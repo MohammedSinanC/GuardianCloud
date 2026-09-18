@@ -1,0 +1,146 @@
+<div class="admin-layout">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()"
+  />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+
+      @if (loading()) {
+        <div class="erp-loading">Loading invoice...</div>
+      }
+
+      @if (!loading() && error() && !invoice()) {
+        <div class="erp-error-box">
+          <span class="material-icons-outlined">error_outline</span> {{ error() }}
+          <a routerLink="/adminapp/invoices" class="erp-btn erp-btn--ghost erp-btn--sm">Back to Invoices</a>
+        </div>
+      }
+
+      @if (!loading() && invoice()) {
+        <div class="erp-page__header">
+          <div class="erp-page__title">
+            <h1>
+              <span class="material-icons-outlined">receipt_long</span>
+              Invoice {{ invoice()?.invoiceNo }}
+              <span [class]="statusClass(invoice()?.status)">{{ invoice()?.status }}</span>
+            </h1>
+            <p>{{ invoice()?.paymentTerms || 'Payment terms not set' }}</p>
+          </div>
+          <div class="erp-actions">
+            <!-- Status-driven buttons (rule #10): valid for current status only -->
+            @if (invoice()?.status === 'DRAFT') {
+              <button class="erp-btn erp-btn--primary" (click)="approve()" [disabled]="busy()">
+                <span class="material-icons-outlined">task_alt</span> Approve
+              </button>
+              <button class="erp-btn erp-btn--danger" (click)="cancel()" [disabled]="busy()">
+                <span class="material-icons-outlined">cancel</span> Cancel Invoice
+              </button>
+            }
+            @if (invoice()?.status === 'APPROVED') {
+              <button class="erp-btn erp-btn--ghost" (click)="downloadPdf()" [disabled]="busy()">
+                <span class="material-icons-outlined">download</span> Download PDF
+              </button>
+              <button class="erp-btn erp-btn--primary" (click)="sendToCustomer()" [disabled]="busy()">
+                <span class="material-icons-outlined">send</span> Send to Customer
+              </button>
+            }
+            <a routerLink="/adminapp/invoices" class="erp-btn erp-btn--ghost">
+              <span class="material-icons-outlined">arrow_back</span> Back
+            </a>
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="erp-error-box">
+            <span class="material-icons-outlined">error_outline</span> {{ error() }}
+          </div>
+        }
+
+        <!-- ===== ERP chain (rule #24 traceability) ===== -->
+        <div class="erp-chain">
+          @if (invoice()?.leadNo) {
+            <a class="erp-chain__link" [routerLink]="['/adminapp/leads', invoice()?.leadNo]">
+              <span class="material-icons-outlined">schedule</span> Lead: {{ invoice()?.leadNo }}
+            </a>
+          }
+          @if (invoice()?.inquiryId) {
+            <a class="erp-chain__link" [routerLink]="['/adminapp/inquiries', refId(invoice()?.inquiryId)]">
+              <span class="material-icons-outlined">assignment</span> Inquiry
+            </a>
+          }
+          @if (quotationNo()) {
+            <a class="erp-chain__link" [routerLink]="['/adminapp/inquiries', refId(invoice()?.inquiryId)]">
+              <span class="material-icons-outlined">request_quote</span>
+              Quotation: {{ quotationNo() }}
+            </a>
+          }
+          @if (customerName()) {
+            <a class="erp-chain__link" [routerLink]="['/adminapp/customers', refId(invoice()?.customerId)]">
+              <span class="material-icons-outlined">business</span>
+              {{ customerName() }}
+            </a>
+          }
+        </div>
+
+        <!-- ===== Amounts ===== -->
+        <div class="erp-summary-row">
+          <div class="erp-summary-card">
+            <div class="erp-summary-card__label">Subtotal</div>
+            <div class="erp-summary-card__value erp-money">{{ money(invoice()?.subtotal) }} {{ invoice()?.currency }}</div>
+          </div>
+          <div class="erp-summary-card">
+            <div class="erp-summary-card__label">VAT ({{ invoice()?.taxRate || 0 }}%)</div>
+            <div class="erp-summary-card__value erp-money">{{ money(invoice()?.taxAmount) }} {{ invoice()?.currency }}</div>
+          </div>
+          <div class="erp-summary-card">
+            <div class="erp-summary-card__label">Grand Total</div>
+            <div class="erp-summary-card__value erp-summary-card__value--teal erp-money">{{ money(invoice()?.totalAmount) }} {{ invoice()?.currency }}</div>
+          </div>
+        </div>
+
+        <!-- ===== Items ===== -->
+        <div class="erp-card">
+          <h3><span class="material-icons-outlined">list_alt</span> Invoice Items</h3>
+          <div class="erp-table-card erp-table-card--flush">
+            <table class="erp-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th style="text-align:right">Qty</th>
+                  <th style="text-align:right">Rate</th>
+                  <th style="text-align:right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of invoice()?.items; track $index) {
+                  <tr>
+                    <td>{{ item.description }}</td>
+                    <td style="text-align:right">{{ item.quantity }}</td>
+                    <td style="text-align:right" class="erp-money">{{ money(item.unitPrice) }}</td>
+                    <td style="text-align:right" class="erp-money">{{ money(item.totalPrice) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ===== Payment info ===== -->
+        @if (invoice()?.bankDetails || invoice()?.notes) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined">account_balance</span> Payment Information</h3>
+            @if (invoice()?.bankDetails) {
+              <p style="margin:0 0 10px;font-size:14px;color:#334155;white-space:pre-wrap"><strong>Bank details:</strong> {{ invoice()?.bankDetails }}</p>
+            }
+            @if (invoice()?.notes) {
+              <p style="margin:0;font-size:14px;color:#334155;white-space:pre-wrap"><strong>Notes:</strong> {{ invoice()?.notes }}</p>
+            }
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

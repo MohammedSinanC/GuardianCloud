@@ -1,0 +1,191 @@
+<div class="admin-layout">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()"
+  />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+
+      @if (loading()) {
+        <div class="erp-loading">Loading customer...</div>
+      }
+
+      @if (!loading() && error()) {
+        <div class="erp-error-box">
+          <span class="material-icons-outlined">error_outline</span> {{ error() }}
+          <a routerLink="/adminapp/customers" class="erp-btn erp-btn--ghost erp-btn--sm">Back to Customers</a>
+        </div>
+      }
+
+      @if (!loading() && detail()) {
+        <div class="erp-page__header">
+          <div class="erp-page__title">
+            <h1>
+              <span class="material-icons-outlined">business</span>
+              {{ detail()?.customer?.companyName }}
+              <span class="erp-badge erp-badge--approved">{{ detail()?.customer?.customerCode }}</span>
+            </h1>
+            <p>{{ detail()?.customer?.customerType }} — created {{ formatDate(detail()?.customer?.createdAt || null) }}</p>
+          </div>
+          <div class="erp-actions">
+            <button class="erp-btn erp-btn--primary" (click)="openLedger()">
+              <span class="material-icons-outlined">receipt_long</span> Ledger
+            </button>
+            <a routerLink="/adminapp/customers" class="erp-btn erp-btn--ghost">
+              <span class="material-icons-outlined">arrow_back</span> Back
+            </a>
+          </div>
+        </div>
+
+        <!-- ===== Info ===== -->
+        <div class="erp-detail-grid">
+          <div class="erp-field"><div class="erp-field__label">Contact Person</div><div class="erp-field__value">{{ detail()?.customer?.contactPerson || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Mobile</div><div class="erp-field__value">{{ detail()?.customer?.mobile || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Email</div><div class="erp-field__value">{{ detail()?.customer?.email || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">TRN / VAT No</div><div class="erp-field__value">{{ detail()?.customer?.trnNumber || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Address</div><div class="erp-field__value">{{ detail()?.customer?.address || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Location</div><div class="erp-field__value">{{ detail()?.customer?.location || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Payment Terms</div><div class="erp-field__value">{{ detail()?.customer?.paymentTerms || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Status</div><div class="erp-field__value">{{ detail()?.customer?.status || 'ACTIVE' }}</div></div>
+        </div>
+
+        <!-- ===== Ledger summary (rule #19 fields) ===== -->
+        <div class="erp-summary-row">
+          <div class="erp-summary-card">
+            <div class="erp-summary-card__label">Opening Balance</div>
+            <div class="erp-summary-card__value erp-money">{{ money(detail()?.summary?.openingBalance) }}</div>
+          </div>
+          <div class="erp-summary-card">
+            <div class="erp-summary-card__label">Total Debit</div>
+            <div class="erp-summary-card__value erp-summary-card__value--danger erp-money">{{ money(detail()?.summary?.totalDebit) }}</div>
+          </div>
+          <div class="erp-summary-card">
+            <div class="erp-summary-card__label">Total Credit</div>
+            <div class="erp-summary-card__value erp-summary-card__value--success erp-money">{{ money(detail()?.summary?.totalCredit) }}</div>
+          </div>
+          <div class="erp-summary-card">
+            <div class="erp-summary-card__label">Outstanding Balance</div>
+            <div class="erp-summary-card__value erp-summary-card__value--teal erp-money">{{ money(detail()?.summary?.outstandingBalance) }}</div>
+          </div>
+        </div>
+
+        <!-- ===== Linked documents (ERP traceability) ===== -->
+        <div class="erp-card">
+          <h3><span class="material-icons-outlined">link</span> Linked Leads</h3>
+          @if (detail()?.leads?.length) {
+            <div class="erp-table-card erp-table-card--flush">
+              <table class="erp-table">
+                <thead><tr><th>Lead No</th><th>Status</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                  @for (l of detail()?.leads; track l._id) {
+                    <tr>
+                      <td class="erp-doc-no">{{ l.leadNo }}</td>
+                      <td>{{ l.status }}</td>
+                      <td>{{ formatDate(l.createdAt) }}</td>
+                      <td><a [routerLink]="['/adminapp/leads', l._id]" class="erp-chain__link">View</a></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p style="color:#64748b;font-size:14px;margin:0">No leads linked.</p>
+          }
+        </div>
+
+        <div class="erp-card">
+          <h3><span class="material-icons-outlined">assignment</span> Linked Inquiries</h3>
+          @if (detail()?.inquiries?.length) {
+            <div class="erp-table-card erp-table-card--flush">
+              <table class="erp-table">
+                <thead><tr><th>Inquiry No</th><th>Stage</th><th>Created</th><th></th></tr></thead>
+                <tbody>
+                  @for (i of detail()?.inquiries; track i._id) {
+                    <tr>
+                      <td class="erp-doc-no">{{ i.inquiryNo }}</td>
+                      <td>{{ i.currentStageCode }}</td>
+                      <td>{{ formatDate(i.createdAt) }}</td>
+                      <td><a [routerLink]="['/adminapp/inquiries', i._id]" class="erp-chain__link">View</a></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p style="color:#64748b;font-size:14px;margin:0">No inquiries linked.</p>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ===== LEDGER DRAWER (rule #19 + #20 filters) ===== -->
+@if (showLedger()) {
+  <div class="erp-overlay" (click)="showLedger.set(false)">
+    <div class="erp-dialog erp-dialog--wide" (click)="$event.stopPropagation()">
+      <div class="erp-dialog__header">
+        <h3>Customer Ledger — {{ detail()?.customer?.companyName }} ({{ detail()?.customer?.customerCode }})</h3>
+        <button class="erp-dialog__close" (click)="showLedger.set(false)">×</button>
+      </div>
+      <div class="erp-dialog__body">
+        <div class="erp-filters">
+          <input type="date" class="erp-select" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)" title="Date From" />
+          <input type="date" class="erp-select" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)" title="Date To" />
+          <select class="erp-select" [ngModel]="txType()" (ngModelChange)="txType.set($event)">
+            <option value="">All Types</option>
+            @for (t of txTypes; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+          <input type="text" class="erp-search" placeholder="Reference No..." [ngModel]="referenceNo()" (ngModelChange)="referenceNo.set($event)" (keyup.enter)="loadTransactions()" />
+          <button class="erp-btn erp-btn--primary erp-btn--sm" (click)="loadTransactions()">Apply</button>
+        </div>
+
+        @if (ledgerLoading()) {
+          <div class="erp-loading">Loading transactions...</div>
+        }
+
+        @if (!ledgerLoading() && transactions().length === 0) {
+          <div class="erp-empty"><p>No transactions for these filters.</p></div>
+        }
+
+        @if (!ledgerLoading() && transactions().length > 0) {
+          <div class="erp-table-card erp-table-card--flush">
+            <table class="erp-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Reference</th>
+                  <th>Description</th>
+                  <th>Type</th>
+                  <th style="text-align:right">Debit</th>
+                  <th style="text-align:right">Credit</th>
+                  <th style="text-align:right">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (t of transactions(); track t._id) {
+                  <tr>
+                    <td>{{ formatDate(t.transactionDate) }}</td>
+                    <td class="erp-doc-no">{{ t.referenceNo }}</td>
+                    <td>{{ t.description }}</td>
+                    <td><span [class]="txClass(t.type)">{{ t.type }}</span></td>
+                    <td style="text-align:right" class="erp-money">{{ t.debit ? money(t.debit) : '-' }}</td>
+                    <td style="text-align:right" class="erp-money">{{ t.credit ? money(t.credit) : '-' }}</td>
+                    <td style="text-align:right" class="erp-money"><strong>{{ money(t.balanceAfter) }}</strong></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+      <div class="erp-dialog__footer">
+        <button class="erp-btn erp-btn--ghost" (click)="showLedger.set(false)">Close</button>
+      </div>
+    </div>
+  </div>
+}

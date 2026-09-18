@@ -1,0 +1,108 @@
+.workflow-history {
+  padding: 16px 0;
+}
+
+.history-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 16px;
+}
+
+.history-loading,
+.history-empty {
+  color: #9ca3af;
+  font-size: 14px;
+  padding: 12px 0;
+}
+
+.history-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.history-table thead th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.history-table tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+  vertical-align: top;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.history-table tbody tr:hover td {
+  background: #f9fafb;
+}
+
+.history-action {
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.history-stages {
+  white-space: nowrap;
+}
+
+.history-role {
+  color: #6b7280;
+}
+
+.history-comment {
+  max-width: 320px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.history-date {
+  white-space: nowrap;
+  color: #6b7280;
+}
+
+.stage-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stage-badge.from {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.stage-badge.to {
+  background: #f0fdfa;
+  color: #0d9488;
+  border: 1px solid #ccfbf1;
+}
+
+.stage-arrow {
+  color: #d1d5db;
+  font-size: 12px;
+}

@@ -1,0 +1,23 @@
+<!-- WhatsApp floating button -->
+<div class="wa-float" role="complementary" aria-label="Contact us on WhatsApp">
+  <button
+    class="wa-float__btn wa-float__btn--whatsapp"
+    (click)="openWhatsApp()"
+    aria-label="Chat on WhatsApp"
+  >
+    <svg viewBox="0 0 32 32" fill="white" width="28" height="28">
+      <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.5 1.132 6.744 3.054 9.374L1.054 31.25l6.142-1.982A15.91 15.91 0 0 0 16.004 32C24.826 32 32 24.822 32 16S24.826 0 16.004 0zm9.338 22.594c-.39 1.098-1.932 2.01-3.16 2.27-.84.178-1.936.32-5.618-1.204-4.714-1.95-7.74-6.73-7.97-7.042-.224-.312-1.86-2.478-1.86-4.726 0-2.248 1.178-3.35 1.594-3.818.416-.468.906-.586 1.206-.586.3 0 .6.002.858.016.276.014.644-.104 1.004.764.39.938 1.326 3.228 1.442 3.46.116.232.194.504.038.814-.156.312-.232.506-.46.776-.228.27-.48.604-.684.814-.228.232-.464.482-.196.946.268.464 1.192 1.964 2.558 3.182 1.756 1.564 3.234 2.048 3.7 2.278.466.23.738.192 1.008-.116.27-.308 1.154-1.344 1.462-1.81.306-.466.614-.388 1.032-.234.42.156 2.66 1.252 3.116 1.482.456.23.76.346.872.536.112.19.112 1.098-.278 2.196z"/>
+    </svg>
+  </button>
+  <span class="wa-float__tooltip">Chat with us on WhatsApp</span>
+</div>
+
+<!-- Call Now button (mobile only) -->
+<button
+  class="call-float"
+  (click)="callNow()"
+  aria-label="Call us now"
+>
+  <span class="material-icons-outlined">phone</span>
+  <span class="call-float__label">Call Now</span>
+</button>

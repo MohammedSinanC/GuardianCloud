@@ -1,0 +1,24 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      @if (loading()) { <div class="erp-loading">Loading quotation...</div> }
+      @if (!loading() && !quotation()) { <div class="erp-error-box">{{ error() || 'Quotation not found' }}</div> }
+      @if (quotation(); as q) {
+        <div class="erp-page__header">
+          <div class="erp-page__title"><h1><span class="material-icons-outlined">request_quote</span> {{ q.quotationNo }} <span class="erp-badge">{{ q.status }}</span></h1><p>Quotation details and workflow history</p></div>
+          <div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/quotation">Back</a>
+            @if (q.status === 'DRAFT' || q.status === 'REJECTED') { <button class="erp-btn erp-btn--warning" (click)="submit()" [disabled]="busy()">Submit</button> }
+            @if (q.status === 'PENDING_APPROVAL' || q.status === 'SENT') { <button class="erp-btn erp-btn--success" (click)="approve()" [disabled]="busy()">Approve</button><button class="erp-btn erp-btn--danger" (click)="showReject.set(true)" [disabled]="busy()">Reject</button> }
+          </div>
+        </div>
+        @if (error()) { <div class="erp-error-box">{{ error() }}</div> }
+        <div class="erp-summary-row"><div class="erp-summary-card"><div class="erp-summary-card__label">Subtotal</div><div class="erp-summary-card__value">{{ q.subtotal || 0 }} {{ q.currency || 'AED' }}</div></div><div class="erp-summary-card"><div class="erp-summary-card__label">VAT</div><div class="erp-summary-card__value">{{ q.taxAmount || 0 }} {{ q.currency || 'AED' }}</div></div><div class="erp-summary-card"><div class="erp-summary-card__label">Grand Total</div><div class="erp-summary-card__value erp-summary-card__value--teal">{{ q.totalAmount || 0 }} {{ q.currency || 'AED' }}</div></div></div>
+        <div class="erp-card"><h3>Quotation Items</h3><div class="erp-table-card erp-table-card--flush"><table class="erp-table"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>@for (item of q.items || []; track $index) { <tr><td>{{ item.description }}</td><td>{{ item.quantity }}</td><td>{{ item.unitPrice }}</td><td>{{ item.totalPrice }}</td></tr> }</tbody></table></div></div>
+        <app-workflow-timeline entityType="QUOTATION" [entityId]="q._id" />
+      }
+    </div>
+  </div>
+</div>
+@if (showReject()) { <div class="erp-overlay"><div class="erp-dialog"><div class="erp-dialog__header"><h3>Reject Quotation</h3><button class="erp-dialog__close" (click)="showReject.set(false)">×</button></div><div class="erp-dialog__body"><div class="erp-form-group"><label>Reason</label><textarea [(ngModel)]="reason"></textarea></div></div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="showReject.set(false)">Cancel</button><button class="erp-btn erp-btn--danger" (click)="reject()" [disabled]="!reason.trim() || busy()">Reject</button></div></div></div> }

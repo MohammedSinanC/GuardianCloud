@@ -1,0 +1,98 @@
+<header class="header" [class.header--scrolled]="isScrolled()">
+  <div class="header__inner container">
+    <!-- Logo -->
+    <a routerLink="/" class="header__logo" (click)="closeMobileMenu()">
+      <span class="header__logo-icon">
+        <span class="material-icons-outlined">clean_hands</span>
+      </span>
+      <span class="header__logo-text">{{ navigation()?.logo }}</span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    @if (navigation()) {
+      <nav class="header__nav" aria-label="Main navigation">
+        @for (link of navigation()!.links; track link.route) {
+          <a
+            class="header__nav-link"
+            [routerLink]="link.route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: link.isHome ?? false }"
+          >
+            {{ link.label }}
+          </a>
+        }
+      </nav>
+    }
+
+    <!-- Desktop CTA -->
+    <div class="header__actions">
+      <a
+        [href]="'tel:' + company()?.phone"
+        class="header__phone"
+        aria-label="Call us"
+      >
+        <span class="material-icons-outlined">phone</span>
+        <span class="header__phone-text">{{ company()?.phone }}</span>
+      </a>
+      <a routerLink="/contact" class="btn btn--primary btn--sm header__cta">
+        {{ navigation()?.ctaLabel }}
+      </a>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button
+      class="header__hamburger"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="isMobileMenuOpen()"
+      aria-label="Toggle navigation menu"
+    >
+      <span class="header__hamburger-line" [class.open]="isMobileMenuOpen()"></span>
+      <span class="header__hamburger-line" [class.open]="isMobileMenuOpen()"></span>
+      <span class="header__hamburger-line" [class.open]="isMobileMenuOpen()"></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu Overlay -->
+  @if (isMobileMenuOpen()) {
+    <div class="header__overlay" (click)="closeMobileMenu()"></div>
+  }
+
+  <!-- Mobile Menu -->
+  <div class="header__mobile" [class.header__mobile--open]="isMobileMenuOpen()">
+    <div class="header__mobile-inner">
+      @if (navigation()) {
+        @for (link of navigation()!.links; track link.route) {
+          <a
+            class="header__mobile-link"
+            [routerLink]="link.route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: link.isHome ?? false }"
+            (click)="closeMobileMenu()"
+          >
+            {{ link.label }}
+          </a>
+        }
+      }
+
+      <div class="header__mobile-actions">
+        <a [href]="'tel:' + company()?.phone" class="btn btn--primary" style="width:100%">
+          <span class="material-icons-outlined">phone</span>
+          Call Now
+        </a>
+        <a
+          [href]="getWhatsAppLink()"
+          target="_blank"
+          rel="noopener"
+          class="btn btn--secondary"
+          style="width:100%"
+        >
+          <span class="material-icons-outlined">chat</span>
+          WhatsApp
+        </a>
+        <a routerLink="/contact" class="btn btn--dark" style="width:100%" (click)="closeMobileMenu()">
+          {{ navigation()?.ctaLabel }}
+        </a>
+      </div>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,169 @@
+<div class="admin-layout">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()"
+  />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      <div class="erp-page__header">
+        <div class="erp-page__title">
+          <h1><span class="material-icons-outlined">business</span> Customers</h1>
+          <p>ERP customers created from approved leads or manually.</p>
+        </div>
+        <button class="erp-btn erp-btn--primary" (click)="openAddDialog()">
+          <span class="material-icons-outlined">add</span> New Customer
+        </button>
+      </div>
+
+      <div class="erp-filters">
+        <input
+          type="text"
+          class="erp-search"
+          placeholder="Search code, company, contact, mobile..."
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          (keyup.enter)="onFilterChange()" />
+        <button class="erp-btn erp-btn--ghost" (click)="onFilterChange()">Filter</button>
+      </div>
+
+      @if (loading()) {
+        <div class="erp-loading">Loading customers...</div>
+      }
+
+      @if (!loading() && customers().length === 0) {
+        <div class="erp-empty">
+          <span class="material-icons-outlined">business_center</span>
+          <p>No customers yet. Approve a lead or create one manually.</p>
+        </div>
+      }
+
+      @if (!loading() && customers().length > 0) {
+        <div class="erp-table-card erp-table-card--flush">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Mobile</th>
+                <th>Location</th>
+                <th>Type</th>
+                <th>Payment Terms</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of customers(); track c._id) {
+                <tr>
+                  <td class="erp-doc-no">{{ c.customerCode }}</td>
+                  <td>{{ c.companyName }}</td>
+                  <td>{{ c.contactPerson }}</td>
+                  <td>{{ c.mobile }}</td>
+                  <td>{{ c.location || '-' }}</td>
+                  <td>{{ c.customerType }}</td>
+                  <td>{{ c.paymentTerms || '-' }}</td>
+                  <td>{{ formatDate(c.createdAt) }}</td>
+                  <td>
+                    <div class="erp-actions">
+                      <a [routerLink]="['/adminapp/customers', c._id]" class="erp-icon-btn" title="Details / Ledger">
+                        <span class="material-icons-outlined">visibility</span>
+                      </a>
+                      <button class="erp-icon-btn" title="Edit customer" (click)="openEditDialog(c)">
+                        <span class="material-icons-outlined">edit</span>
+                      </button>
+                      <button class="erp-icon-btn erp-icon-btn--danger" title="Delete customer" (click)="deleteCustomer(c)">
+                        <span class="material-icons-outlined">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="erp-pagination">
+          <span>Page {{ currentPage() }} of {{ totalPages() }} — {{ total() }} customers</span>
+          <div class="erp-pagination__btns">
+            <button class="erp-btn erp-btn--ghost erp-btn--sm" (click)="prevPage()" [disabled]="currentPage() <= 1">← Prev</button>
+            <button class="erp-btn erp-btn--ghost erp-btn--sm" (click)="nextPage()" [disabled]="currentPage() >= totalPages()">Next →</button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEW CUSTOMER DIALOG ===== -->
+@if (showDialog()) {
+  <div class="erp-overlay" (click)="showDialog.set(false)">
+    <div class="erp-dialog erp-dialog--wide" (click)="$event.stopPropagation()">
+      <div class="erp-dialog__header">
+        <h3>{{ editingId() ? 'Edit Customer' : 'New Customer' }}</h3>
+        <button class="erp-dialog__close" (click)="showDialog.set(false)">×</button>
+      </div>
+      <div class="erp-dialog__body">
+        @if (dialogError()) {
+          <div class="erp-error-box">
+            <span class="material-icons-outlined">error_outline</span> {{ dialogError() }}
+          </div>
+        }
+        <div class="erp-form-grid">
+          <div class="erp-form-group">
+            <label>Company Name <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.companyName" placeholder="e.g. ABC Facilities LLC" />
+          </div>
+          <div class="erp-form-group">
+            <label>Contact Person</label>
+            <input type="text" [(ngModel)]="form.contactPerson" />
+          </div>
+          <div class="erp-form-group">
+            <label>Mobile <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.mobile" placeholder="+971 50 123 4567" />
+          </div>
+          <div class="erp-form-group">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="form.email" />
+          </div>
+          <div class="erp-form-group">
+            <label>Customer Type</label>
+            <select [(ngModel)]="form.customerType">
+              @for (t of customerTypes; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+          <div class="erp-form-group">
+            <label>Payment Terms</label>
+            <select [(ngModel)]="form.paymentTerms">
+              @for (t of paymentTermsOptions; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+          </div>
+          <div class="erp-form-group">
+            <label>TRN / VAT Number</label>
+            <input type="text" [(ngModel)]="form.trnNumber" placeholder="100xxxxxxxxxxxx5" />
+          </div>
+          <div class="erp-form-group">
+            <label>Location</label>
+            <input type="text" [(ngModel)]="form.location" />
+          </div>
+          <div class="erp-form-group erp-form-group--full">
+            <label>Address</label>
+            <input type="text" [(ngModel)]="form.address" />
+          </div>
+        </div>
+      </div>
+      <div class="erp-dialog__footer">
+        <button class="erp-btn erp-btn--ghost" (click)="showDialog.set(false)" [disabled]="saving()">Cancel</button>
+        <button class="erp-btn erp-btn--primary" (click)="saveCustomer()" [disabled]="saving()">
+          {{ saving() ? (editingId() ? 'Saving…' : 'Creating…') : (editingId() ? 'Save Changes' : 'Create Customer') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

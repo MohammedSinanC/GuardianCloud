@@ -1,0 +1,256 @@
+<div class="master-page">
+  <!-- Tabs -->
+  <div class="company-tabs">
+    <button class="company-tab" [class.active]="activeTab() === 'company'" (click)="activeTab.set('company')">
+      <span class="material-icons-outlined">business</span> Company Info
+    </button>
+    <button class="company-tab" [class.active]="activeTab() === 'content'" (click)="activeTab.set('content')">
+      <span class="material-icons-outlined">language</span> Website Content
+    </button>
+  </div>
+
+  <!-- ===== COMPANY TAB ===== -->
+  @if (activeTab() === 'company') {
+    <div class="company-header">
+      <div><h2>Company Information</h2><p class="company-header__sub">Manage your company details</p></div>
+      @if (!isEditMode() && canEdit && !loading()) {
+        <button class="btn-edit-mode" (click)="enterEditMode()"><span class="material-icons-outlined">edit</span> Edit</button>
+      }
+    </div>
+    @if (loading()) { <div class="skeleton-form"><div class="skeleton-row"><div class="skeleton-field"></div><div class="skeleton-field"></div></div></div> }
+    @if (error()) { <div class="company-banner company-banner--error"><span class="material-icons-outlined">error_outline</span>{{ error() }}</div> }
+    @if (success()) { <div class="company-banner company-banner--success"><span class="material-icons-outlined">check_circle</span>{{ success() }}</div> }
+    @if (!loading()) {
+      <div class="company-form">
+        <div class="company-logo-section">
+          @if (isEditMode()) {
+            @if (form.logo) {
+              <div class="company-logo-preview"><img [src]="form.logo" alt="Logo" /><button type="button" class="company-logo-remove" (click)="removeLogo()"><span class="material-icons-outlined">close</span></button></div>
+              <label class="company-logo-change"><span class="material-icons-outlined">edit</span> Change<input type="file" accept="image/*" (change)="onLogoSelected($event)" style="display:none;" /></label>
+            } @else {
+              <label class="company-logo-upload"><span class="material-icons-outlined">add_photo_alternate</span><span>Upload Logo</span><span class="company-logo-hint">PNG/JPG, max 5MB</span><input type="file" accept="image/*" (change)="onLogoSelected($event)" style="display:none;" /></label>
+            }
+          } @else {
+            @if (company?.logo) { <div class="company-logo-preview"><img [src]="company!.logo" alt="Logo" /></div> }
+            @else { <div class="company-logo-placeholder"><span class="material-icons-outlined">business</span></div> }
+          }
+        </div>
+        <div class="company-fields">
+          <div class="company-section"><h3 class="company-section__title"><span class="material-icons-outlined">apartment</span> Basic Information</h3><div class="company-grid">
+            <div class="company-field"><label>Company Name *</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.name" /> } @else { <div class="company-value">{{ company?.name || '-' }}</div> }</div>
+            <div class="company-field"><label>Company Code *</label><div class="company-value company-value--disabled">{{ company?.code || '-' }}</div></div>
+            <div class="company-field company-field--full"><label>Tagline</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.tagline" /> } @else { <div class="company-value">{{ company?.tagline || '-' }}</div> }</div>
+          </div></div>
+          <div class="company-section"><h3 class="company-section__title"><span class="material-icons-outlined">contact_mail</span> Contact</h3><div class="company-grid">
+            <div class="company-field"><label>Email</label>@if (isEditMode()) { <input type="email" [(ngModel)]="form.email" /> } @else { <div class="company-value">{{ company?.email || '-' }}</div> }</div>
+            <div class="company-field"><label>Phone</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.phone" /> } @else { <div class="company-value">{{ company?.phone || '-' }}</div> }</div>
+            <div class="company-field"><label>WhatsApp</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.whatsapp" /> } @else { <div class="company-value">{{ company?.whatsapp || '-' }}</div> }</div>
+            <div class="company-field"><label>Website</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.website" /> } @else { <div class="company-value">{{ company?.website || '-' }}</div> }</div>
+          </div></div>
+          <div class="company-section"><h3 class="company-section__title"><span class="material-icons-outlined">location_on</span> Location</h3><div class="company-grid">
+            <div class="company-field company-field--full"><label>Address</label>@if (isEditMode()) { <textarea [(ngModel)]="form.address" rows="2"></textarea> } @else { <div class="company-value">{{ company?.address || '-' }}</div> }</div>
+          </div></div>
+          <div class="company-section"><h3 class="company-section__title"><span class="material-icons-outlined">business_center</span> Business</h3><div class="company-grid">
+            <div class="company-field"><label>Working Hours</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.workingHours" /> } @else { <div class="company-value">{{ company?.workingHours || '-' }}</div> }</div>
+            <div class="company-field"><label>Year Established</label>@if (isEditMode()) { <input type="number" [(ngModel)]="form.yearEstablished" /> } @else { <div class="company-value">{{ company?.yearEstablished || '-' }}</div> }</div>
+            <div class="company-field"><label>Tax Number</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.taxNumber" /> } @else { <div class="company-value">{{ company?.taxNumber || '-' }}</div> }</div>
+            <div class="company-field"><label>Commercial Reg.</label>@if (isEditMode()) { <input type="text" [(ngModel)]="form.commercialRegistration" /> } @else { <div class="company-value">{{ company?.commercialRegistration || '-' }}</div> }</div>
+            <div class="company-field"><label>VAT Percentage (%)</label>@if (isEditMode()) { <input type="number" [(ngModel)]="form.vatPercentage" min="0" max="100" step="0.5" /> } @else { <div class="company-value">{{ company?.vatPercentage ?? 5 }}%</div> }</div>
+            <div class="company-field"><label>Currency</label>@if (isEditMode()) { <select [(ngModel)]="form.currency"><option value="AED">AED - UAE Dirham</option><option value="USD">USD - US Dollar</option><option value="EUR">EUR - Euro</option><option value="GBP">GBP - British Pound</option><option value="INR">INR - Indian Rupee</option><option value="SAR">SAR - Saudi Riyal</option><option value="QAR">QAR - Qatari Riyal</option><option value="KWD">KWD - Kuwaiti Dinar</option><option value="BHD">BHD - Bahraini Dinar</option><option value="OMR">OMR - Omani Rial</option></select> } @else { <div class="company-value">{{ company?.currency || 'AED' }}</div> }</div>
+            <div class="company-field"><label>Status</label>@if (isEditMode()) { <select [(ngModel)]="form.isActive"><option [ngValue]="true">Active</option><option [ngValue]="false">Inactive</option></select> } @else { <div class="company-value">@if (company?.isActive) { <span class="badge badge--green">Active</span> } @else { <span class="badge badge--red">Inactive</span> }</div> }</div>
+          </div></div>
+          @if (isEditMode()) { <div class="company-actions"><button class="btn-cancel" (click)="cancelEdit()" [disabled]="saving()">Cancel</button><button class="btn-save" (click)="saveCompany()" [disabled]="saving()">@if (saving()) { <span class="spinner"></span> Saving... } @else { Save Changes }</button></div> }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- ===== WEBSITE CONTENT TAB ===== -->
+  @if (activeTab() === 'content') {
+    <div class="company-header">
+      <div><h2>Website Content</h2><p class="company-header__sub">Manage website sections</p></div>
+    </div>
+
+    @if (contentSuccess()) { <div class="company-banner company-banner--success"><span class="material-icons-outlined">check_circle</span>{{ contentSuccess() }}</div> }
+    @if (contentError()) { <div class="company-banner company-banner--error"><span class="material-icons-outlined">error_outline</span>{{ contentError() }}</div> }
+
+    @if (contentLoading()) {
+      <div class="skeleton-form"><div class="skeleton-row"><div class="skeleton-field skeleton-field--full"></div></div></div>
+    }
+
+    @if (!contentLoading()) {
+      <!-- Group Selector -->
+      <div class="content-toolbar">
+        <div class="content-dropdown">
+          <label>Select Section</label>
+          <select [(ngModel)]="selectedGroupValue" (ngModelChange)="selectGroup($event)">
+            @for (g of groups; track g.key) {
+              <option [value]="g.key">{{ g.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="content-toolbar__actions">
+          <span class="content-toolbar__badge">{{ currentGroup?.type === 'array' ? getGroupCount(selectedGroup()) + ' items' : 'Object' }}</span>
+          @if (currentGroup?.type === 'array') {
+            <button class="btn-add" (click)="openAddItem()"><span class="material-icons-outlined">add</span> Add Item</button>
+          } @else {
+            <button class="btn-add" (click)="openObjectEdit()"><span class="material-icons-outlined">edit</span> Edit Section</button>
+          }
+        </div>
+      </div>
+
+      <!-- Object Section (JSON Edit) -->
+      @if (!isArray && editingItem()?._type === 'object') {
+        <div class="editor-panel">
+          <div class="editor-header"><h3>{{ currentGroup?.label }}</h3><div class="editor-actions"><button class="btn-cancel" (click)="cancelEditItem()">Cancel</button><button class="btn-save" (click)="saveObjectEdit()" [disabled]="contentSaving()">@if (contentSaving()) { <span class="spinner"></span> Saving... } @else { Save }</button></div></div>
+          <div class="editor-body"><textarea class="editor-json" [(ngModel)]="editObjectJson" rows="18"></textarea></div>
+        </div>
+      }
+
+      <!-- Object Section (Display) -->
+      @if (!isArray && editingItem()?._type !== 'object') {
+        <div class="content-cards">
+          @for (field of currentGroup?.fields || []; track field) {
+            <div class="content-card">
+              <span class="content-card__field">{{ field }}</span>
+              <span class="content-card__value">{{ currentData[field] || '-' }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Array Section (Cards) -->
+      @if (isArray) {
+        <div class="content-cards">
+          @for (item of items; track $index; let i = $index) {
+            <div class="content-card content-card--array">
+              <div class="content-card__header">
+                <span class="content-card__index">#{{ i + 1 }}</span>
+                <div class="content-card__actions">
+                  <button class="act-btn" (click)="openEditItem(item, i)"><span class="material-icons-outlined">edit</span></button>
+                  <button class="act-btn act-btn--danger" (click)="openDeleteItem(item, i)"><span class="material-icons-outlined">delete</span></button>
+                </div>
+              </div>
+              <div class="content-card__fields">
+                @for (field of currentGroup?.fields || []; track field) {
+                  <div class="content-card__row">
+                    <span class="content-card__field">{{ field }}</span>
+                    <span class="content-card__value">{{ getFieldValue(item, field) }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          @if (items.length === 0) {
+            <div class="empty"><span class="material-icons-outlined">inventory_2</span><p>No items yet</p></div>
+          }
+        </div>
+      }
+
+
+    }
+  }
+</div>
+
+<!-- DELETE CONFIRM DIALOG -->
+@if (showDeleteDialog()) {
+  <div class="dlg-overlay" (click)="cancelDelete()">
+    <div class="dlg dlg--sm" (click)="$event.stopPropagation()">
+      <div class="dlg-header"><h3>Delete Item</h3><button class="dlg-close" (click)="cancelDelete()">×</button></div>
+      <div class="dlg-body"><p style="color:#4b5563; font-size:14px;">Are you sure you want to delete this item? This action cannot be undone.</p></div>
+      <div class="dlg-footer"><button class="btn-cancel" (click)="cancelDelete()">Cancel</button><button class="btn-save" style="background:#dc2626;" (click)="confirmDelete()" [disabled]="contentSaving()">@if (contentSaving()) { <span class="spinner"></span> Deleting... } @else { Delete }</button></div>
+    </div>
+  </div>
+}
+
+<!-- EDIT ITEM POPUP -->
+@if (editingItem() && editingItem()?._type !== 'object') {
+  <div class="dlg-overlay" (click)="cancelEditItem()">
+    <div class="dlg dlg--wide" (click)="$event.stopPropagation()">
+      <div class="dlg-header">
+        <h3>Edit {{ currentGroup?.label }} Item</h3>
+        <button class="dlg-close" (click)="cancelEditItem()">×</button>
+      </div>
+      <div class="dlg-body">
+        @for (field of currentGroup?.fields || []; track field) {
+          @if (field === 'image') {
+            <div class="fg">
+              <label>{{ field }}</label>
+              @if (editForm[field]) {
+                <div class="img-preview-row">
+                  <div class="img-preview">
+                    <img [src]="editForm[field]" alt="Preview" />
+                    <button type="button" class="img-remove" (click)="editForm[field] = ''">
+                      <span class="material-icons-outlined">close</span>
+                    </button>
+                  </div>
+                  <label class="img-change-btn"><span class="material-icons-outlined">edit</span> Change<input type="file" accept="image/*" (change)="onFieldImageSelected($event, editForm, field)" style="display:none;" /></label>
+                </div>
+              } @else {
+                <label class="img-upload-box">
+                  <span class="material-icons-outlined">add_photo_alternate</span>
+                  <span>Upload {{ field }}</span>
+                  <input type="file" accept="image/*" (change)="onFieldImageSelected($event, editForm, field)" style="display:none;" />
+                </label>
+              }
+            </div>
+          } @else {
+            <div class="fg"><label>{{ field }}</label><input class="fi" [(ngModel)]="editForm[field]" /></div>
+          }
+        }
+      </div>
+      <div class="dlg-footer">
+        <button class="btn-cancel" (click)="cancelEditItem()">Cancel</button>
+        <button class="btn-save" (click)="saveEditItem()" [disabled]="contentSaving()">
+          @if (contentSaving()) { <span class="spinner"></span> Saving... } @else { Save Changes }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ADD ITEM POPUP -->
+@if (showAddDialog()) {
+  <div class="dlg-overlay" (click)="cancelAddItem()">
+    <div class="dlg dlg--wide" (click)="$event.stopPropagation()">
+      <div class="dlg-header">
+        <h3>Add {{ currentGroup?.label }} Item</h3>
+        <button class="dlg-close" (click)="cancelAddItem()">×</button>
+      </div>
+      <div class="dlg-body">
+        @for (field of currentGroup?.fields || []; track field) {
+          @if (field === 'image') {
+            <div class="fg">
+              <label>{{ field }}</label>
+              @if (editForm[field]) {
+                <div class="img-preview-row">
+                  <div class="img-preview">
+                    <img [src]="editForm[field]" alt="Preview" />
+                    <button type="button" class="img-remove" (click)="editForm[field] = ''">
+                      <span class="material-icons-outlined">close</span>
+                    </button>
+                  </div>
+                  <label class="img-change-btn"><span class="material-icons-outlined">edit</span> Change<input type="file" accept="image/*" (change)="onFieldImageSelected($event, editForm, field)" style="display:none;" /></label>
+                </div>
+              } @else {
+                <label class="img-upload-box">
+                  <span class="material-icons-outlined">add_photo_alternate</span>
+                  <span>Upload {{ field }}</span>
+                  <input type="file" accept="image/*" (change)="onFieldImageSelected($event, editForm, field)" style="display:none;" />
+                </label>
+              }
+            </div>
+          } @else {
+            <div class="fg"><label>{{ field }}</label><input class="fi" [(ngModel)]="editForm[field]" /></div>
+          }
+        }
+      </div>
+      <div class="dlg-footer">
+        <button class="btn-cancel" (click)="cancelAddItem()">Cancel</button>
+        <button class="btn-save" (click)="saveAddItem()" [disabled]="contentSaving()">
+          @if (contentSaving()) { <span class="spinner"></span> Adding... } @else { Add Item }
+        </button>
+      </div>
+    </div>
+  </div>
+}

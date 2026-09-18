@@ -1,0 +1,92 @@
+{
+  "workbench.activityBar.location": "top",
+
+  "editor.minimap.enabled": false,
+  "editor.minimap.maxColumn": 900,
+  "editor.wordWrap": "off",
+  "editor.rulers": [900],
+  "editor.formatOnSave": true,
+
+  "prettier.tabWidth": 2,
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  "prettier.printWidth": 900,
+  "prettier.trailingComma": "all",
+  "prettier.useTabs": false,
+  "prettier.bracketSpacing": true,
+  "prettier.arrowParens": "always",
+  "prettier.endOfLine": "lf",
+  "prettier.singleAttributePerLine": false,
+
+  "[typescript]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[typescriptreact]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[javascript]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[javascriptreact]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off",
+    "editor.rulers": [900]
+  },
+
+  "diffEditor.ignoreTrimWhitespace": false,
+  "diffEditor.hideUnchangedRegions.enabled": true,
+  "diffEditor.renderSideBySideInlineBreakpoint": 900,
+
+  "security.workspace.trust.untrustedFiles": "open",
+
+  "workbench.editor.tabSizingFixedMaxWidth": 900,
+  "workbench.editor.tabSizingFixedMinWidth": 900
+}

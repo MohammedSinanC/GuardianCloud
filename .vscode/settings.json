@@ -1,0 +1,87 @@
+{
+  // ─────────────────────────────────────────────────────────────
+  // GreenCloud — VS Code workspace settings
+  // Angular + TypeScript + HTML + SCSS
+  // Goal: keep long lines on ONE line (max preferred width: 900)
+  // ─────────────────────────────────────────────────────────────
+
+  // ── Global editor behavior ──
+  "editor.wordWrap": "off",
+  "editor.rulers": [900],
+  "editor.minimap.maxColumn": 900,
+
+  // ── Global formatting defaults (opt-in per language below) ──
+  // No auto-format and no default formatter anywhere by default.
+  // TypeScript/JavaScript rely on these global values.
+  "editor.formatOnSave": false,
+  "editor.defaultFormatter": null,
+
+  // ── Prettier (global config, applies to every enabled language) ──
+  "prettier.printWidth": 900,
+  "prettier.singleAttributePerLine": false,
+  "prettier.tabWidth": 2,
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  "prettier.trailingComma": "all",
+  "prettier.useTabs": false,
+  "prettier.bracketSpacing": true,
+  "prettier.arrowParens": "always",
+  "prettier.endOfLine": "lf",
+
+  // ── TypeScript / JavaScript: NEVER auto-format on save ──
+  // Prettier's printWidth is only a *preferred* width; it can still split
+  // long expressions and conditions. Auto-format is disabled here so your
+  // manually written long lines are preserved exactly as typed.
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off"
+  },
+
+  // ── Angular HTML templates: Prettier ON, keeps many attributes on one line ──
+  // (prettier.printWidth: 900 and prettier.singleAttributePerLine: false
+  //  come from the global Prettier section above)
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off"
+  },
+
+  // ── SCSS / CSS: Prettier ON ──
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+
+  // ── JSON / JSONC: Prettier ON ──
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[handlebars]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

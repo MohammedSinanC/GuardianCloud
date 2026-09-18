@@ -1,0 +1,44 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      <div class="erp-page__header">
+        <div class="erp-page__title">
+          <h1><span class="material-icons-outlined">assignment</span> Work Orders</h1>
+          <p>Work starts after approval and invoice is created only after completion.</p>
+        </div>
+      </div>
+      <div class="erp-filters">
+        <input class="erp-search" placeholder="Search work order, location, technician" [(ngModel)]="search" (keyup.enter)="filter()" />
+        <select class="erp-select" [(ngModel)]="status" (ngModelChange)="filter()">
+          <option value="">All statuses</option><option>DRAFT</option><option>PENDING_APPROVAL</option>
+          <option>APPROVED</option><option>SCHEDULED</option><option>WORK_STARTED</option>
+          <option>WORK_COMPLETED</option><option>REJECTED</option>
+        </select>
+        <button class="erp-btn erp-btn--primary" (click)="filter()">Filter</button>
+      </div>
+      @if (loading()) { <div class="erp-loading">Loading work orders...</div> }
+      @else if (orders().length === 0) { <div class="erp-empty"><p>No work orders found.</p></div> }
+      @else {
+        <div class="erp-table-card erp-table-card--flush">
+          <table class="erp-table">
+            <thead><tr><th>Work Order</th><th>Service</th><th>Location</th><th>Technician</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              @for (order of orders(); track order._id || $index) {
+                <tr>
+                  <td class="erp-doc-no">{{ order.workOrderNo || '-' }}</td>
+                  <td>{{ serviceType(order) }}</td>
+                  <td>{{ location(order) }}</td>
+                  <td>{{ order.assignedTechnician || order.assignedTeam || '-' }}</td>
+                  <td><span class="erp-badge">{{ order.status || 'DRAFT' }}</span></td>
+                  <td><a class="erp-icon-btn" [routerLink]="['/adminapp/work-orders', order._id]" title="View work order"><span class="material-icons-outlined">visibility</span></a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,124 @@
+<div class="inquiry-details-container">
+  @if (loading()) {
+    <div class="loading">Loading inquiry details...</div>
+  }
+
+  @if (error()) {
+    <div class="error">{{ error() }}</div>
+  }
+
+  @if (inquiry()) {
+    <!-- Header -->
+    <div class="details-header">
+      <div class="header-left">
+        <a routerLink="/adminapp/inquiries" class="back-link">← Back to Inquiries</a>
+        <h1>{{ inquiry()!.inquiryNo }}</h1>
+        <div class="header-badges">
+          <app-status-badge [status]="inquiry()!.currentStageCode" />
+          <app-status-badge [status]="inquiry()!.urgency" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="details-grid">
+      <!-- Customer Info -->
+      <div class="detail-card">
+        <h2>Customer Information</h2>
+        <div class="detail-row">
+          <span class="label">Customer Name</span>
+          <span class="value">{{ inquiry()!.customerName }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Contact Person</span>
+          <span class="value">{{ inquiry()!.contactPerson }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Mobile</span>
+          <span class="value">{{ inquiry()!.mobile }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Email</span>
+          <span class="value">{{ inquiry()!.email || '-' }}</span>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="detail-card">
+        <h2>Service Location</h2>
+        <div class="detail-row">
+          <span class="label">Address</span>
+          <span class="value">{{ inquiry()!.serviceLocation }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Building</span>
+          <span class="value">{{ inquiry()!.building || '-' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Unit</span>
+          <span class="value">{{ inquiry()!.unit || '-' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Area</span>
+          <span class="value">{{ inquiry()!.area || '-' }}</span>
+        </div>
+      </div>
+
+      <!-- Pest Details -->
+      <div class="detail-card full-width">
+        <h2>Pest Details</h2>
+        <div class="detail-row">
+          <span class="label">Pest Types</span>
+          <span class="value">
+            @for (pest of inquiry()!.pestTypes; track pest) {
+              <span class="pest-tag">{{ pest }}</span>
+            }
+            @if (inquiry()!.pestTypes.length === 0) {
+              <span>-</span>
+            }
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Description</span>
+          <span class="value">{{ inquiry()!.problemDescription }}</span>
+        </div>
+      </div>
+
+      <!-- Scheduling -->
+      <div class="detail-card">
+        <h2>Schedule</h2>
+        <div class="detail-row">
+          <span class="label">Preferred Date</span>
+          <span class="value">{{ formatDate(inquiry()!.preferredDate) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Preferred Time</span>
+          <span class="value">{{ inquiry()!.preferredTime || '-' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Urgency</span>
+          <span class="value"><app-status-badge [status]="inquiry()!.urgency" /></span>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="detail-card">
+        <h2>Request Info</h2>
+        <div class="detail-row">
+          <span class="label">Created</span>
+          <span class="value">{{ formatDate(inquiry()!.createdAt) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Updated</span>
+          <span class="value">{{ formatDate(inquiry()!.updatedAt) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Status</span>
+          <span class="value"><app-status-badge [status]="inquiry()!.status" /></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inquiry workflow actions and timeline are intentionally removed while the workflow is being redeveloped. -->
+  }
+</div>

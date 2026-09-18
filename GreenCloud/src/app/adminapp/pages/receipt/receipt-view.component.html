@@ -1,0 +1,26 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      @if (loading()) { <div class="erp-loading">Loading receipt...</div> }
+      @if (!loading() && !receipt()) { <div class="erp-error-box">{{ error() || 'Receipt not found' }}</div> }
+      @if (receipt(); as r) {
+        <div class="erp-page__header">
+          <div class="erp-page__title"><h1><span class="material-icons-outlined">payments</span> {{ r.receiptNo }} <span class="erp-badge">{{ r.status }}</span></h1><p>Receipt and customer ledger posting</p></div>
+          <div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/receipts">Back</a>@if (r.status === 'DRAFT') {<button class="erp-btn erp-btn--success" (click)="post()" [disabled]="busy()">Post Payment</button>}</div>
+        </div>
+        @if (error()) { <div class="erp-error-box">{{ error() }}</div> }
+        <div class="erp-detail-grid">
+          <div class="erp-field"><div class="erp-field__label">Receipt Date</div><div class="erp-field__value">{{ r.receiptDate | date:'dd MMM yyyy' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Customer</div><div class="erp-field__value">{{ r.customerId }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Payment Method</div><div class="erp-field__value">{{ r.paymentMethod }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Amount</div><div class="erp-field__value erp-money">{{ r.amount | number:'1.2-2' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Reference</div><div class="erp-field__value">{{ r.referenceNo || '-' }}</div></div>
+          <div class="erp-field erp-form-group--full"><div class="erp-field__label">Remarks</div><div class="erp-field__value">{{ r.remarks || '-' }}</div></div>
+        </div>
+        <app-workflow-timeline entityType="RECEIPT" [entityId]="r._id" />
+      }
+    </div>
+  </div>
+</div>

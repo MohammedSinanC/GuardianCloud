@@ -1,0 +1,26 @@
+<article class="service-card" [class.service-card--featured]="featured()">
+  <div class="service-card__image-wrap">
+    <img
+      [src]="service().image"
+      [alt]="service().title"
+      loading="lazy"
+      class="service-card__image"
+    />
+    <div class="service-card__category">{{ service().category }}</div>
+  </div>
+
+  <div class="service-card__body">
+    <div class="service-card__icon">
+      <span class="material-icons-outlined">{{ service().icon }}</span>
+    </div>
+    <h3 class="service-card__title">{{ service().title }}</h3>
+    <p class="service-card__desc">{{ service().shortDescription }}</p>
+    <a
+      [routerLink]="['/services', service().id]"
+      class="service-card__link"
+    >
+      Learn More
+      <span class="material-icons-outlined">arrow_forward</span>
+    </a>
+  </div>
+</article>

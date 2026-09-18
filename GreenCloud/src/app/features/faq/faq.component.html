@@ -1,0 +1,53 @@
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <span class="badge">FAQ</span>
+    <h1>Frequently Asked <span class="text-gradient">Questions</span></h1>
+    <p>Find answers to common questions about our services, pricing, and processes.</p>
+  </div>
+</section>
+
+<!-- FAQ List -->
+<section class="section">
+  <div class="container">
+    <div class="faq-page__grid">
+      <div class="faq-page__list">
+        @for (item of faq(); track item.question) {
+          <app-faq-item [item]="item" />
+        }
+      </div>
+
+      <aside class="faq-page__sidebar">
+        <div class="faq-page__card">
+          <h3>Still Have Questions?</h3>
+          <p>Can't find what you're looking for? Contact our friendly team and we'll be happy to help.</p>
+          <a routerLink="/contact" class="btn btn--primary" style="width:100%">
+            Contact Us
+            <span class="material-icons-outlined">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="faq-page__card">
+          <h4>Quick Contact</h4>
+          <div class="faq-page__quick-contact">
+            <a [href]="'tel:' + company()?.phone" class="faq-page__quick-item">
+              <span class="material-icons-outlined">phone</span>
+              {{ company()?.phone }}
+            </a>
+            <a
+              [href]="getWhatsAppLink()"
+              target="_blank"
+              rel="noopener"
+              class="faq-page__quick-item"
+            >
+              <svg viewBox="0 0 32 32" fill="#25d366" width="20" height="20">
+                <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.5 1.132 6.744 3.054 9.374L1.054 31.25l6.142-1.982A15.91 15.91 0 0 0 16.004 32C24.826 32 32 24.822 32 16S24.826 0 16.004 0z"/>
+              </svg>
+              WhatsApp Us
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

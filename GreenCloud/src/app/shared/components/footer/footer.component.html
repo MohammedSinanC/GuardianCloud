@@ -1,0 +1,95 @@
+<footer class="footer">
+  <div class="footer__top">
+    <div class="container">
+      <div class="footer__grid">
+        <!-- Company Info -->
+        <div class="footer__col footer__col--brand">
+          <a routerLink="/" class="footer__logo">
+            <span class="footer__logo-icon">
+              <span class="material-icons-outlined">clean_hands</span>
+            </span>
+            <span class="footer__logo-text">{{ company()?.name }}</span>
+          </a>
+          <p class="footer__description">{{ footer()?.description }}</p>
+          <div class="footer__social">
+            @for (social of socialLinks(); track social.platform) {
+              <a
+                [href]="social.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="footer__social-link"
+                [attr.aria-label]="social.label"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path [attr.d]="getSocialIcon(social.platform)" />
+                </svg>
+              </a>
+            }
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="footer__col">
+          <h4 class="footer__heading">Quick Links</h4>
+          <ul class="footer__links">
+            @for (link of footer()?.quickLinks; track link.route) {
+              <li>
+                <a [routerLink]="link.route" class="footer__link">{{ link.label }}</a>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Services Links -->
+        <div class="footer__col">
+          <h4 class="footer__heading">Our Services</h4>
+          <ul class="footer__links">
+            @for (link of footer()?.servicesLinks; track link.route) {
+              <li>
+                <a [routerLink]="link.route" class="footer__link">{{ link.label }}</a>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="footer__col">
+          <h4 class="footer__heading">Contact Us</h4>
+          <div class="footer__contact">
+            <div class="footer__contact-item">
+              <span class="material-icons-outlined">phone</span>
+              <a [href]="'tel:' + company()?.phone">{{ company()?.phone }}</a>
+            </div>
+            <div class="footer__contact-item">
+              <span class="material-icons-outlined">email</span>
+              <a [href]="'mailto:' + company()?.email">{{ company()?.email }}</a>
+            </div>
+            <div class="footer__contact-item">
+              <span class="material-icons-outlined">location_on</span>
+              <span>{{ company()?.address }}</span>
+            </div>
+            <div class="footer__contact-item">
+              <span class="material-icons-outlined">schedule</span>
+              <span>{{ company()?.workingHours }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="footer__bottom">
+    <div class="container">
+      <div class="footer__bottom-inner">
+        <p class="footer__copyright">
+          {{ footer()?.copyright }}
+        </p>
+        <div class="footer__bottom-links">
+          <a routerLink="/faq">Privacy Policy</a>
+          <a routerLink="/faq">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

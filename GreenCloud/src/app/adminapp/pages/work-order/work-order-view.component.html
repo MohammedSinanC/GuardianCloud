@@ -1,0 +1,17 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      @if (loading()) { <div class="erp-loading">Loading work order...</div> }
+      @if (!loading() && !order()) { <div class="erp-error-box">{{ error() || 'Work order not found' }}</div> }
+      @if (order(); as o) {
+        <div class="erp-page__header"><div class="erp-page__title"><h1><span class="material-icons-outlined">assignment</span> {{ o.workOrderNo }} <span class="erp-badge">{{ o.status }}</span></h1><p>{{ o.serviceType || 'Work order' }} · {{ o.serviceLocation || 'Location not set' }}</p></div><div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/work-orders">Back</a>@if (o.status === 'APPROVED' || o.status === 'SCHEDULED') {<button class="erp-btn erp-btn--success" (click)="start()" [disabled]="busy()">Start Work</button>}@if (o.status === 'WORK_STARTED') {<button class="erp-btn erp-btn--warning" (click)="showComplete.set(true)" [disabled]="busy()">Complete Work</button>}@if (o.status === 'PENDING_APPROVAL') {<button class="erp-btn erp-btn--success" (click)="approve()" [disabled]="busy()">Approve</button>}</div></div>
+        @if (error()) { <div class="erp-error-box">{{ error() }}</div> }
+        <div class="erp-detail-grid"><div class="erp-field"><div class="erp-field__label">Quotation</div><div class="erp-field__value"><a [routerLink]="['/adminapp/quotation', o.quotationId]">View quotation</a></div></div><div class="erp-field"><div class="erp-field__label">Assigned Team</div><div class="erp-field__value">{{ o.assignedTeam || '-' }}</div></div><div class="erp-field"><div class="erp-field__label">Technician</div><div class="erp-field__value">{{ o.assignedTechnician || '-' }}</div></div><div class="erp-field"><div class="erp-field__label">Scheduled Date</div><div class="erp-field__value">{{ o.scheduledDate || '-' }} {{ o.scheduledTime }}</div></div><div class="erp-field erp-form-group--full"><div class="erp-field__label">Work Description</div><div class="erp-field__value">{{ o.workDescription || '-' }}</div></div><div class="erp-field erp-form-group--full"><div class="erp-field__label">Completion Notes</div><div class="erp-field__value">{{ o.completionNotes || '-' }}</div></div></div>
+        <app-workflow-timeline entityType="WORK_ORDER" [entityId]="o._id" />
+      }
+    </div>
+  </div>
+</div>
+@if (showComplete()) { <div class="erp-overlay"><div class="erp-dialog"><div class="erp-dialog__header"><h3>Complete Work</h3><button class="erp-dialog__close" (click)="showComplete.set(false)">×</button></div><div class="erp-dialog__body"><div class="erp-form-group"><label>Completion Notes *</label><textarea [(ngModel)]="completionNotes"></textarea></div><div class="erp-form-group"><label>Materials Used</label><textarea [(ngModel)]="materialsUsed"></textarea></div><div class="erp-form-group"><label>Customer Confirmation</label><input [(ngModel)]="customerConfirmation" /></div></div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="showComplete.set(false)">Cancel</button><button class="erp-btn erp-btn--success" (click)="complete()" [disabled]="!completionNotes.trim() || busy()">Complete Work</button></div></div></div> }

@@ -1,0 +1,96 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="inquiry-list-container">
+      <div class="page-header">
+        <h1>{{ title }}</h1>
+        <span class="total-badge">{{ total() }} total</span>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-bar">
+        <input type="text" [(ngModel)]="search" (keyup.enter)="onFilterChange()" placeholder="Search inquiries..."
+          class="search-input" />
+
+        <select *ngIf="!fixedStages" [(ngModel)]="filterStage" (change)="onFilterChange()" class="filter-select">
+          @for (opt of stageOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+
+        <select [(ngModel)]="filterUrgency" (change)="onFilterChange()" class="filter-select">
+          <option value="">All Urgency</option>
+          <option value="NORMAL">Normal</option>
+          <option value="URGENT">Urgent</option>
+          <option value="EMERGENCY">Emergency</option>
+        </select>
+
+        <button class="btn-search" (click)="onFilterChange()">Filter</button>
+      </div>
+
+      @if (loading()) {
+      <div class="loading">Loading inquiries...</div>
+      }
+
+      @if (!loading() && inquiries().length > 0) {
+      <div class="table-wrapper">
+        <table class="inquiry-table">
+          <thead>
+            <tr>
+              <th>Inquiry No</th>
+              <th>Customer</th>
+              <th>Contact</th>
+              <th>Location</th>
+              <th>Pest Type</th>
+              <th>Stage</th>
+              <th>Urgency</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (inquiry of inquiries(); track inquiry._id || $index) {
+            <tr>
+              <td class="inquiry-no">{{ inquiry.inquiryNo || '-' }}</td>
+              <td>{{ inquiry.customerName || inquiry.companyName || '-' }}</td>
+              <td>{{ inquiry.mobile || '-' }}</td>
+              <td>{{ inquiry.serviceLocation || inquiry.location || '-' }}</td>
+              <td><span class="pest-tag">{{ (inquiry.pestTypes || []).slice(0, 2).join(', ') || '-' }}</span></td>
+              <td><app-status-badge [status]="inquiry.currentStageCode || inquiry.status || 'UNKNOWN'" /></td>
+              <td><app-status-badge [status]="inquiry.urgency || 'NORMAL'" /></td>
+              <td>{{ formatDate(inquiry.createdAt) }}</td>
+              <td>
+                <a
+                  [routerLink]="['/adminapp/inquiries', inquiry._id]"
+                  class="btn-view"
+                  title="View inquiry details"
+                  aria-label="View inquiry details">
+                  <span class="material-icons-outlined">visibility</span>
+                </a>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span class="pagination-info">
+          Page {{ currentPage() }} of {{ totalPages() }}
+        </span>
+        <div class="pagination-buttons">
+          <button (click)="prevPage()" [disabled]="currentPage() <= 1" class="btn-page">← Prev</button>
+          <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="btn-page">Next →</button>
+        </div>
+      </div>
+      }
+
+      @if (!loading() && inquiries().length === 0) {
+      <div class="empty-state">
+        <p>No inquiries found matching your filters.</p>
+      </div>
+      }
+    </div>
+  </div>
+</div>

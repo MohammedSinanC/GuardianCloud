@@ -1,0 +1,70 @@
+<div class="admin-login">
+  <div class="admin-login__card">
+    <div class="admin-login__header">
+      <div class="admin-login__logo">
+        <span class="material-icons-outlined">admin_panel_settings</span>
+      </div>
+      <h1 class="admin-login__title">Admin Panel</h1>
+      <p class="admin-login__subtitle">Sign in to your account</p>
+    </div>
+
+    @if (errorMessage) {
+    <div class="admin-login__error">
+      <span class="material-icons-outlined">error_outline</span>
+      {{ errorMessage }}
+    </div>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="admin-login__form" novalidate>
+      <div class="admin-login__field">
+        <label for="username" class="admin-login__label">Email Address</label>
+        <div class="admin-login__input-wrap">
+          <span class="material-icons-outlined admin-login__input-icon">email</span>
+          <input
+            id="username"
+            type="email"
+            formControlName="username"
+            class="admin-login__input"
+            [class.error]="isFieldInvalid('username')"
+            placeholder="admin@gmail.com"
+          />
+        </div>
+        @if (isFieldInvalid('username')) {
+        <span class="admin-login__field-error">Please enter a valid email address</span>
+        }
+      </div>
+
+      <div class="admin-login__field">
+        <label for="password" class="admin-login__label">Password</label>
+        <div class="admin-login__input-wrap">
+          <span class="material-icons-outlined admin-login__input-icon">lock</span>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            class="admin-login__input"
+            [class.error]="isFieldInvalid('password')"
+            placeholder="Enter your password"
+          />
+        </div>
+        @if (isFieldInvalid('password')) {
+        <span class="admin-login__field-error">Password is required</span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="admin-login__btn"
+        [disabled]="loading"
+      >
+        @if (loading) {
+        <span class="admin-login__spinner"></span>
+        Signing in...
+        } @else {
+        Sign In
+        <span class="material-icons-outlined">arrow_forward</span>
+        }
+      </button>
+    </form>
+  </div>
+</div>

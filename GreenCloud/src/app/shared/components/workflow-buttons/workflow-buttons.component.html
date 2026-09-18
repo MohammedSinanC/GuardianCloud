@@ -1,0 +1,87 @@
+<div class="workflow-buttons-container">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="workflow-loading">
+      <span class="spinner"></span> Loading actions...
+    </div>
+  }
+
+  <!-- Current Stage -->
+  @if (currentStage()) {
+    <div class="current-stage">
+      <span class="stage-label">Current Stage:</span>
+      <span class="stage-value">{{ currentStage()!.name }}</span>
+    </div>
+  }
+
+  <!-- Action Buttons -->
+  @if (!loading() && actions().length > 0) {
+    <div class="action-buttons">
+      @for (action of actions(); track action.id) {
+        <button
+          class="workflow-btn"
+          [ngClass]="getButtonClass(action.buttonColor)"
+          (click)="onActionClick(action)"
+          [disabled]="executing()">
+          {{ action.name }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- No Actions -->
+  @if (!loading() && actions().length === 0 && currentStage()) {
+    <div class="no-actions">
+      No actions available for the current stage.
+    </div>
+  }
+
+  <!-- Confirmation Dialog -->
+  @if (showConfirm() && selectedAction()) {
+    <div class="confirm-overlay" (click)="cancelConfirm()">
+      <div class="confirm-dialog" (click)="$event.stopPropagation()">
+        <h3>Confirm Action</h3>
+        <p>
+          Are you sure you want to <strong>{{ selectedAction()!.name }}</strong>?
+        </p>
+
+        @if (selectedAction()!.requiresComment) {
+          <div class="form-group">
+            <label>Comment (required)</label>
+            <textarea
+              [(ngModel)]="comment"
+              rows="3"
+              placeholder="Enter your comment..."
+              class="form-control"></textarea>
+          </div>
+        } @else {
+          <div class="form-group">
+            <label>Comment (optional)</label>
+            <textarea
+              [(ngModel)]="comment"
+              rows="2"
+              placeholder="Add a comment..."
+              class="form-control"></textarea>
+          </div>
+        }
+
+        <div class="confirm-actions">
+          <button class="btn-cancel" (click)="cancelConfirm()" [disabled]="executing()">
+            Cancel
+          </button>
+          <button
+            class="btn-confirm"
+            [ngClass]="getButtonClass(selectedAction()!.buttonColor)"
+            (click)="confirmAction()"
+            [disabled]="executing()">
+            @if (executing()) {
+              <span class="spinner small"></span> Processing...
+            } @else {
+              {{ selectedAction()!.name }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,110 @@
+<div class="workflow-mgmt-container">
+  <div class="page-header">
+    <h1>Workflow Management</h1>
+    <p>View and manage workflow configurations. All changes are stored in MongoDB.</p>
+  </div>
+
+  <!-- Workflow Selector -->
+  <div class="workflow-selector">
+    @for (wf of workflows; track wf.code) {
+      <button
+        class="wf-tab"
+        [class.active]="selectedWorkflow === wf.code"
+        (click)="onWorkflowChange(wf.code)">
+        {{ wf.name }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading workflow configuration...</div>
+  }
+
+  @if (error()) {
+    <div class="error-msg">{{ error() }}</div>
+  }
+
+  @if (workflowConfig()) {
+    <!-- Workflow Info -->
+    <div class="workflow-info">
+      <div class="info-item">
+        <span class="label">Workflow Code</span>
+        <span class="value">{{ workflowConfig().workflow.workflowCode }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Workflow Name</span>
+        <span class="value">{{ workflowConfig().workflow.workflowName }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Entity Type</span>
+        <span class="value">{{ workflowConfig().workflow.entityType }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Version</span>
+        <span class="value">{{ workflowConfig().workflow.version }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Total Stages</span>
+        <span class="value">{{ workflowConfig().stages.length }}</span>
+      </div>
+    </div>
+
+    <!-- Stages and Actions -->
+    <div class="stages-list">
+      @for (stage of workflowConfig().stages; track stage.stageCode) {
+        <div class="stage-card" [class.terminal]="stage.stageType === 'terminal'" [class.reject]="stage.stageType === 'reject'">
+          <div class="stage-header">
+            <div class="stage-info">
+              <span class="stage-order">#{{ stage.sequence }}</span>
+              <span class="stage-code">{{ stage.stageCode }}</span>
+              <span class="stage-name">{{ stage.stageName }}</span>
+              @if (stage.isInitial) {
+                <span class="badge badge-initial">Initial</span>
+              }
+              @if (stage.isFinal) {
+                <span class="badge badge-final">Final</span>
+              }
+              <span class="badge badge-type">{{ stage.stageType }}</span>
+            </div>
+            <span class="action-count">{{ getActionCount(stage.actions) }} action(s)</span>
+          </div>
+
+          @if (stage.actions && stage.actions.length > 0) {
+            <div class="actions-list">
+              @for (action of stage.actions; track action.actionCode) {
+                <div class="action-item">
+                  <div class="action-main">
+                    <span class="action-btn-preview" [style.background]="action.buttonColor === 'primary' ? '#0d9488' : action.buttonColor === 'success' ? '#16a34a' : action.buttonColor === 'danger' ? '#dc2626' : action.buttonColor === 'warning' ? '#f59e0b' : action.buttonColor === 'info' ? '#0ea5e9' : '#6b7280'">
+                      {{ action.actionName }}
+                    </span>
+                    <span class="action-arrow">→</span>
+                    <span class="next-stage">{{ action.nextStageCode || 'N/A' }}</span>
+                    @if (action.rejectStageCode) {
+                      <span class="reject-arrow">or →</span>
+                      <span class="reject-stage">{{ action.rejectStageCode }}</span>
+                    }
+                  </div>
+                  <div class="action-meta">
+                    @if (action.allowedRoles && action.allowedRoles.length > 0) {
+                      <span class="meta-item roles">
+                        Roles: {{ action.allowedRoles.join(', ') }}
+                      </span>
+                    }
+                    @if (action.mailRequired) {
+                      <span class="meta-item mail">📧 Mail: {{ action.mailRecipients }}</span>
+                    }
+                    @if (action.requiresComment) {
+                      <span class="meta-item comment">💬 Comment required</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="no-actions">No actions configured for this stage</div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

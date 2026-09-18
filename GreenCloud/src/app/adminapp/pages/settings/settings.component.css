@@ -1,0 +1,95 @@
+/* ===== LAYOUT ===== */
+.admin-layout { display: flex; min-height: 100vh; background: #f1f5f9; }
+.admin-layout__main { flex: 1; margin-left: 260px; min-width: 0; transition: margin-left 0.3s ease; }
+.admin-layout__main.sidebar-collapsed { margin-left: 72px; }
+
+.settings-container { padding: 24px; }
+.settings-header { margin-bottom: 24px; }
+.settings-header h1 { font-size: 24px; font-weight: 700; color: #111827; margin: 0 0 4px; }
+.page-subtitle { font-size: 14px; color: #6b7280; margin: 0; }
+
+/* ===== 30/70 SPLIT ===== */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  min-height: calc(100vh - 160px);
+}
+
+/* ===== LEFT MENU ===== */
+.settings-menu {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  height: fit-content;
+  position: sticky;
+  top: 24px;
+}
+
+.settings-menu__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #64748b;
+}
+
+.settings-menu__title .material-icons-outlined { font-size: 16px; color: #94a3b8; }
+
+.settings-menu__list { display: flex; flex-direction: column; gap: 2px; }
+
+.settings-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.settings-menu__item:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.settings-menu__item.active {
+  background: #f0fdfa;
+  color: #0d9488;
+  font-weight: 600;
+}
+
+.settings-menu__item-icon { font-size: 18px; flex-shrink: 0; }
+.settings-menu__item-label { white-space: nowrap; }
+
+/* ===== RIGHT CONTENT ===== */
+.settings-content {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+  min-height: 400px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .admin-layout__main { margin-left: 0 !important; }
+  .settings-container { padding: 16px; }
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .settings-menu { position: static; }
+}

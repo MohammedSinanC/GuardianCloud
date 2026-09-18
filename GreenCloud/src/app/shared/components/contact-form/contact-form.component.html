@@ -1,0 +1,138 @@
+<div class="contact-form-wrap">
+  @if (submitted()) {
+  <div class="contact-form__success">
+    <span class="material-icons-outlined contact-form__success-icon">check_circle</span>
+    <h3>Thank You!</h3>
+    <p>Your inquiry has been submitted successfully. We will get back to you shortly.</p>
+    <button class="btn btn--primary" (click)="contactService.reset()">Submit Another Inquiry</button>
+  </div>
+  } @else {
+  <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form" novalidate>
+    <div class="contact-form__grid">
+      <!-- Name -->
+      <div class="contact-form__field">
+        <label for="name" class="contact-form__label">Full Name *</label>
+        <input id="name" type="text" formControlName="name" class="contact-form__input"
+          [class.error]="isFieldInvalid('name')" placeholder="Enter your full name" />
+        @if (isFieldInvalid('name')) {
+        <span class="contact-form__error">Please enter your name (min 2 characters)</span>
+        }
+      </div>
+
+      <!-- Phone -->
+      <div class="contact-form__field">
+        <label for="phone" class="contact-form__label">Phone Number *</label>
+        <input id="phone" type="tel" formControlName="phone" class="contact-form__input"
+          [class.error]="isFieldInvalid('phone')" placeholder="+971 XX XXX XXXX" />
+        @if (isFieldInvalid('phone')) {
+        <span class="contact-form__error">Please enter a valid phone number</span>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="contact-form__field">
+        <label for="email" class="contact-form__label">Email Address *</label>
+        <input id="email" type="email" formControlName="email" class="contact-form__input"
+          [class.error]="isFieldInvalid('email')" placeholder="your@email.com" />
+        @if (isFieldInvalid('email')) {
+        <span class="contact-form__error">Please enter a valid email address</span>
+        }
+      </div>
+
+      <!-- Pest Type -->
+      <div class="contact-form__field">
+        <label for="pestType" class="contact-form__label">Pest Type *</label>
+        <select id="pestType" formControlName="pestType" class="contact-form__select"
+          [class.error]="isFieldInvalid('pestType')">
+          <option value="">Select pest type</option>
+          @for (pest of pestTypes(); track pest.code) {
+            <option [value]="pest.code">{{ pest.label }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('pestType')) {
+        <span class="contact-form__error">Please select a pest type</span>
+        }
+      </div>
+
+      <!-- Service -->
+      <div class="contact-form__field">
+        <label for="service" class="contact-form__label">Service *</label>
+        <select id="service" formControlName="service" class="contact-form__select"
+          [class.error]="isFieldInvalid('service')">
+          <option value="">Select a service</option>
+          @for (svc of serviceTypes(); track svc.code) {
+            <option [value]="svc.code">{{ svc.label }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('service')) {
+        <span class="contact-form__error">Please select a service</span>
+        }
+      </div>
+
+      <!-- contract -->
+      <div class="contact-form__field">
+        <label for="contract" class="contact-form__label">Contract *</label>
+        <select id="contract" formControlName="contract" class="contact-form__select"
+          [class.error]="isFieldInvalid('contract')">
+          <option value="">Select a Contract</option>
+          @for (ct of contractTypes(); track ct.code) {
+            <option [value]="ct.code">{{ ct.label }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('contract')) {
+        <span class="contact-form__error">Please select a service</span>
+        }
+      </div>
+
+      <!-- Location -->
+      <div class="contact-form__field">
+        <label for="location" class="contact-form__label">Location *</label>
+        <select id="location" formControlName="location" class="contact-form__select"
+          [class.error]="isFieldInvalid('location')">
+          <option value="">Select your location</option>
+          @for (loc of contentService.locations(); track loc.city) {
+          <option [value]="loc.city">{{ loc.city }}</option>
+          }
+        </select>
+        @if (isFieldInvalid('location')) {
+        <span class="contact-form__error">Please select your location</span>
+        }
+      </div>
+
+      <!-- Preferred Date -->
+      <div class="contact-form__field">
+        <label for="date" class="contact-form__label">Preferred Date</label>
+        <input id="date" type="date" formControlName="preferredDate" class="contact-form__input" />
+      </div>
+
+      <!-- Message -->
+      <div class="contact-form__field contact-form__field--full">
+        <label for="message" class="contact-form__label">Problem Description *</label>
+        <textarea id="message" formControlName="message" class="contact-form__textarea"
+          [class.error]="isFieldInvalid('message')" rows="4"
+          placeholder="Describe your pest problem in detail..."></textarea>
+        @if (isFieldInvalid('message')) {
+        <span class="contact-form__error">Please enter a message (min 10 characters)</span>
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+    <div class="contact-form__error-message">
+      <span class="material-icons-outlined">error</span>
+      {{ error() }}
+    </div>
+    }
+
+    <button type="submit" class="btn btn--primary btn--lg contact-form__submit" [disabled]="submitting()">
+      @if (submitting()) {
+      <span class="contact-form__spinner"></span>
+      Submitting...
+      } @else {
+      Submit Inquiry
+      <span class="material-icons-outlined">send</span>
+      }
+    </button>
+  </form>
+  }
+</div>

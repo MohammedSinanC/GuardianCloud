@@ -1,0 +1,62 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      <div class="erp-page__header">
+        <div class="erp-page__title">
+          <h1><span class="material-icons-outlined">fact_check</span> Site Inspections</h1>
+          <p>Inspections are created only for approved inquiries that require inspection.</p>
+        </div>
+      </div>
+      <div class="erp-filters">
+        <input class="erp-search" placeholder="Search inspection, location, inspector" [(ngModel)]="search" (keyup.enter)="filter()" />
+        <select class="erp-select" [(ngModel)]="status" (ngModelChange)="filter()">
+          <option value="">All statuses</option><option>DRAFT</option><option>PENDING_APPROVAL</option>
+          <option>APPROVED</option><option>REJECTED</option>
+        </select>
+        <button class="erp-btn erp-btn--primary" (click)="filter()">Filter</button>
+      </div>
+      @if (loading()) { <div class="erp-loading">Loading inspections...</div> }
+      @else if (inspections().length === 0) { <div class="erp-empty"><p>No site inspections found.</p></div> }
+      @else {
+        <div class="erp-table-card erp-table-card--flush">
+          <table class="erp-table">
+            <thead><tr><th>Inspection No</th><th>Inquiry No</th><th>Customer</th><th>Site Location</th><th>Inspection Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              @for (inspection of inspections(); track inspection._id || $index) {
+                <tr>
+                  <td class="erp-doc-no">{{ inspection.inspectionNo || '-' }}</td>
+                  <td>{{ inspection.inquiryNo || '-' }}</td>
+                  <td>{{ inspection.customerName || '-' }}</td>
+                  <td>{{ inspection.siteLocation || inspection.location || '-' }}</td>
+                  <td>{{ formatDate(inspection.inspectionDate) }}</td>
+                  <td><span [class]="statusBadgeClass(inspection.status)">{{ inspection.status || 'DRAFT' }}</span></td>
+                  <td>
+                    <a class="erp-icon-btn" [routerLink]="['/adminapp/site-inspection', inspection._id]" title="View / Edit inspection"><span class="material-icons-outlined">visibility</span></a>
+                    @if (canApprove(inspection.status)) {
+                      <button class="erp-icon-btn" (click)="approve(inspection)" title="Approve inspection" [disabled]="busyId() === inspection._id"><span class="material-icons-outlined">check_circle</span></button>
+                    }
+                    @if (canApprove(inspection.status)) {
+                      <button class="erp-icon-btn erp-icon-btn--danger" (click)="openReject(inspection)" title="Reject inspection"><span class="material-icons-outlined">cancel</span></button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+@if (rejectTarget(); as target) {
+  <div class="erp-overlay" (click)="closeReject()">
+    <div class="erp-dialog" (click)="$event.stopPropagation()">
+      <div class="erp-dialog__header"><h3>Reject Inspection {{ target.inspectionNo }}</h3><button class="erp-dialog__close" (click)="closeReject()">×</button></div>
+      <div class="erp-dialog__body"><div class="erp-form-group"><label>Reason</label><textarea [(ngModel)]="rejectReason"></textarea></div></div>
+      <div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="closeReject()">Cancel</button><button class="erp-btn erp-btn--danger" (click)="reject()" [disabled]="!rejectReason.trim() || busyId() === target._id">Reject</button></div>
+    </div>
+  </div>
+}

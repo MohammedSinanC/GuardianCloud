@@ -1,0 +1,9 @@
+<div class="section-heading" [class.section-heading--light]="light()">
+  @if (badge()) {
+    <div class="badge section-heading__badge">{{ badge() }}</div>
+  }
+  <h2 class="section-heading__title" [innerHTML]="title()"></h2>
+  @if (description()) {
+    <p class="section-heading__desc">{{ description() }}</p>
+  }
+</div>

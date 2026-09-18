@@ -1,0 +1,178 @@
+<div class="admin-layout">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="page-container">
+      <div class="page-header">
+        <div>
+          <h1>Roles & Permissions</h1>
+          <p class="page-subtitle">Manage roles and their page permissions</p>
+        </div>
+        @if (canCreate()) {
+          <button class="btn-primary" (click)="openAddDialog()">
+            <span class="material-icons-outlined">add</span>
+            Add Role
+          </button>
+        }
+      </div>
+
+      @if (loading()) {
+        <div class="skeleton-cards">
+          @for (i of [1,2,3]; track i) { <div class="skeleton-card"></div> }
+        </div>
+      }
+
+      @if (!loading() && roles().length === 0) {
+        <div class="empty-state">
+          <span class="material-icons-outlined empty-icon">admin_panel_settings</span>
+          <p>No roles found</p>
+        </div>
+      }
+
+      @if (!loading() && roles().length > 0) {
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Role Name</th>
+                <th>Description</th>
+                <th>Permissions</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (role of roles(); track role._id) {
+                <tr>
+                  <td class="cell-bold">
+                    {{ role.name }}
+                    @if (role.isSystem) {
+                      <span class="badge badge--warning" style="margin-left: 6px;">System</span>
+                    }
+                  </td>
+                  <td>{{ role.description || '-' }}</td>
+                  <td><span class="badge badge--info">{{ countPermissions(role.permissions) }} permissions</span></td>
+                  <td>
+                    @if (role.isActive) {
+                      <span class="badge badge--success">Active</span>
+                    } @else {
+                      <span class="badge badge--danger">Inactive</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="action-btns">
+                      @if (canEdit()) {
+                        <button class="action-btn" title="Edit" (click)="openEditDialog(role)">
+                          <span class="material-icons-outlined">edit</span>
+                        </button>
+                      }
+                      @if (canDelete() && !role.isSystem) {
+                        <button class="action-btn action-btn--danger" title="Delete" (click)="deleteRole(role)">
+                          <span class="material-icons-outlined">delete</span>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT ROLE DIALOG -->
+@if (showDialog()) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-box dialog-box--wide" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>{{ isEditing() ? 'Edit Role' : 'Add Role' }}</h3>
+        <button class="dialog-close" (click)="closeDialog()">×</button>
+      </div>
+      <div class="dialog-body">
+        @if (dialogError()) {
+          <div class="dialog-error">
+            <span class="material-icons-outlined">error_outline</span>
+            {{ dialogError() }}
+          </div>
+        }
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Role Name *</label>
+            <input type="text" class="form-input" [(ngModel)]="formName" placeholder="e.g. Manager" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-input" [(ngModel)]="formDescription" placeholder="Brief description" />
+          </div>
+        </div>
+
+        <!-- Permission Matrix -->
+        <div class="perm-matrix-section">
+          <h4 class="perm-matrix-title">
+            <span class="material-icons-outlined">security</span>
+            Page Permissions
+          </h4>
+          <div class="perm-matrix">
+            <div class="perm-matrix-header">
+              <span class="perm-matrix-cell perm-matrix-cell--page">Page</span>
+              <span class="perm-matrix-cell">Visible</span>
+              <span class="perm-matrix-cell">View</span>
+              <span class="perm-matrix-cell">Create</span>
+              <span class="perm-matrix-cell">Edit</span>
+              <span class="perm-matrix-cell">Delete</span>
+              <span class="perm-matrix-cell perm-matrix-cell--action">All</span>
+            </div>
+            @for (page of allPages; track page.key) {
+              <div class="perm-matrix-row">
+                <span class="perm-matrix-cell perm-matrix-cell--page">{{ page.label }}</span>
+                <span class="perm-matrix-cell">
+                  <input type="checkbox" [checked]="matrix[page.key]?.visible" (change)="togglePermission(page.key, 'visible')" />
+                </span>
+                <span class="perm-matrix-cell">
+                  <input type="checkbox" [checked]="matrix[page.key]?.view" (change)="togglePermission(page.key, 'view')" [disabled]="!matrix[page.key]?.visible" />
+                </span>
+                @if (page.hasCrud) {
+                  <span class="perm-matrix-cell">
+                    <input type="checkbox" [checked]="matrix[page.key]?.create" (change)="togglePermission(page.key, 'create')" [disabled]="!matrix[page.key]?.view" />
+                  </span>
+                  <span class="perm-matrix-cell">
+                    <input type="checkbox" [checked]="matrix[page.key]?.edit" (change)="togglePermission(page.key, 'edit')" [disabled]="!matrix[page.key]?.view" />
+                  </span>
+                  <span class="perm-matrix-cell">
+                    <input type="checkbox" [checked]="matrix[page.key]?.delete" (change)="togglePermission(page.key, 'delete')" [disabled]="!matrix[page.key]?.view" />
+                  </span>
+                } @else {
+                  <span class="perm-matrix-cell perm-matrix-cell--na">-</span>
+                  <span class="perm-matrix-cell perm-matrix-cell--na">-</span>
+                  <span class="perm-matrix-cell perm-matrix-cell--na">-</span>
+                }
+                <span class="perm-matrix-cell perm-matrix-cell--action">
+                  <button class="perm-all-btn" (click)="toggleAllForPage(page.key)" title="Toggle all">
+                    <span class="material-icons-outlined">done_all</span>
+                  </button>
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="dialog-btn-cancel" (click)="closeDialog()" [disabled]="saving()">Cancel</button>
+        <button class="dialog-btn-confirm" style="background:#0d9488;" (click)="saveRole()" [disabled]="saving()">
+          @if (saving()) {
+            <span class="dialog-spinner"></span> Saving...
+          } @else {
+            {{ isEditing() ? 'Update Role' : 'Create Role' }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

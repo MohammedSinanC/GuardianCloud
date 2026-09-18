@@ -1,0 +1,39 @@
+<article class="location-card" [class.location-card--main]="location().isMainBranch">
+  @if (location().isMainBranch) {
+    <div class="location-card__badge">Main Branch</div>
+  }
+  <div class="location-card__header">
+    <div class="location-card__icon">
+      <span class="material-icons-outlined">location_on</span>
+    </div>
+    <div>
+      <h3 class="location-card__city">{{ location().city }}</h3>
+      <p class="location-card__area">{{ location().area }}</p>
+    </div>
+  </div>
+
+  <div class="location-card__details">
+    <div class="location-card__detail">
+      <span class="material-icons-outlined">place</span>
+      <span>{{ location().address }}</span>
+    </div>
+    <div class="location-card__detail">
+      <span class="material-icons-outlined">phone</span>
+      <a [href]="'tel:' + location().phone">{{ location().phone }}</a>
+    </div>
+    <div class="location-card__detail">
+      <span class="material-icons-outlined">schedule</span>
+      <span>{{ location().workingHours }}</span>
+    </div>
+  </div>
+
+  <a
+    [href]="location().mapUrl"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="location-card__directions"
+  >
+    <span class="material-icons-outlined">directions</span>
+    Get Directions
+  </a>
+</article>

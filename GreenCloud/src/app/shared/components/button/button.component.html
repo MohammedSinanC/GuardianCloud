@@ -1,0 +1,44 @@
+@if (route()) {
+  <a
+    [routerLink]="route()"
+    class="btn"
+    [class]="'btn btn--' + variant() + ' btn--' + size()"
+  >
+    @if (icon() && iconPosition() === 'left') {
+      <span class="material-icons-outlined btn__icon">{{ icon() }}</span>
+    }
+    {{ label() }}
+    @if (icon() && iconPosition() === 'right') {
+      <span class="material-icons-outlined btn__icon">{{ icon() }}</span>
+    }
+  </a>
+} @else if (href()) {
+  <a
+    [href]="href()"
+    [target]="target()"
+    [attr.rel]="target() === '_blank' ? 'noopener noreferrer' : null"
+    class="btn"
+    [class]="'btn btn--' + variant() + ' btn--' + size()"
+  >
+    @if (icon() && iconPosition() === 'left') {
+      <span class="material-icons-outlined btn__icon">{{ icon() }}</span>
+    }
+    {{ label() }}
+    @if (icon() && iconPosition() === 'right') {
+      <span class="material-icons-outlined btn__icon">{{ icon() }}</span>
+    }
+  </a>
+} @else {
+  <button
+    class="btn"
+    [class]="'btn btn--' + variant() + ' btn--' + size()"
+  >
+    @if (icon() && iconPosition() === 'left') {
+      <span class="material-icons-outlined btn__icon">{{ icon() }}</span>
+    }
+    {{ label() }}
+    @if (icon() && iconPosition() === 'right') {
+      <span class="material-icons-outlined btn__icon">{{ icon() }}</span>
+    }
+  </button>
+}

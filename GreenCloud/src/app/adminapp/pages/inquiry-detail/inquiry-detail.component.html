@@ -1,0 +1,264 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+
+  <div class="admin-layout__main">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+
+    <main class="inquiry-detail-container">
+      @if (loading()) {
+        <div class="state-card">Loading inquiry details...</div>
+      }
+
+      @if (error()) {
+        <div class="error-msg">
+          <span class="material-icons-outlined">error_outline</span>
+          {{ error() }}
+        </div>
+      }
+
+      @if (inquiry()) {
+        <div class="page-header">
+          <div>
+            <a routerLink="/adminapp/inquiries" class="back-link">
+              <span class="material-icons-outlined">arrow_back</span> Back to Inquiries
+            </a>
+            <div class="title-row">
+              <h1>{{ inquiry()!.inquiryNo }}</h1>
+              <app-status-badge [status]="inquiry()!.status" />
+            </div>
+            <p class="page-subtitle">Inquiry created from lead {{ inquiry()!.leadId ? 'conversion' : 'customer request' }}</p>
+          </div>
+
+          @if (canAct()) {
+            <div class="header-actions">
+              <button class="btn-action btn-action--draft" type="button" (click)="saveDraft()" [disabled]="saving() || approving() || rejecting()">
+                <span class="material-icons-outlined">save</span>
+                {{ saving() ? 'Saving...' : 'Save as Draft' }}
+              </button>
+              <button class="btn-action btn-action--approve" type="button" (click)="approve()" [disabled]="saving() || approving() || rejecting()">
+                <span class="material-icons-outlined">check_circle</span>
+                {{ approving() ? 'Approving...' : 'Approve' }}
+              </button>
+              <button class="btn-action btn-action--reject" type="button" (click)="openRejectDialog()" [disabled]="saving() || approving() || rejecting()">
+                <span class="material-icons-outlined">cancel</span> Reject
+              </button>
+            </div>
+          }
+        </div>
+
+        @if (downstreamType()) {
+          <div class="result-card" [class.result-card--inspection]="downstreamType() === 'INSPECTION'">
+            <span class="material-icons-outlined">check_circle</span>
+            <div>
+              <strong>{{ downstreamType() === 'INSPECTION' ? 'Site Inspection draft created' : 'Quotation draft created' }}</strong>
+              <p>The next document was created successfully and is linked to this inquiry.</p>
+            </div>
+          </div>
+        }
+
+        @if (inquiry()!.status === 'REJECTED' && inquiry()!.rejectionReason) {
+          <div class="rejection-banner">
+            <span class="material-icons-outlined">block</span>
+            <div>
+              <strong>Inquiry rejected</strong>
+              <p>{{ inquiry()!.rejectionReason }}</p>
+            </div>
+          </div>
+        }
+
+        <div class="details-grid">
+          <section class="detail-card">
+            <h2><span class="material-icons-outlined">business</span> Customer Information</h2>
+            @if (isEditing()) {
+              <div class="info-grid">
+                <div class="info-item">
+                  <label class="label" for="customerName">Customer Name</label>
+                  <input id="customerName" class="detail-input" type="text" autocomplete="name" [disabled]="false" [ngModel]="inquiry()!.customerName || inquiry()!.companyName || inquiry()!.contactPerson" (ngModelChange)="updateField('customerName', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="companyName">Company</label>
+                  <input id="companyName" class="detail-input" [ngModel]="inquiry()!.companyName" (ngModelChange)="updateField('companyName', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="contactPerson">Contact Person</label>
+                  <input id="contactPerson" class="detail-input" [ngModel]="inquiry()!.contactPerson" (ngModelChange)="updateField('contactPerson', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="mobile">Mobile</label>
+                  <input id="mobile" class="detail-input" [ngModel]="inquiry()!.mobile" (ngModelChange)="updateField('mobile', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="email">Email</label>
+                  <input id="email" type="email" class="detail-input" [ngModel]="inquiry()!.email" (ngModelChange)="updateField('email', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="source">Source</label>
+                  <select id="source" class="detail-input" [ngModel]="inquiry()!.source" (ngModelChange)="updateField('source', $event)">
+                    @for (source of sources; track source) {
+                      <option [value]="source">{{ sourceLabel(source) }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            } @else {
+              <div class="info-grid">
+                <div class="info-item"><span class="label">Customer Name</span><span class="value">{{ inquiry()!.customerName || inquiry()!.companyName || inquiry()!.contactPerson || '-' }}</span></div>
+                <div class="info-item"><span class="label">Company</span><span class="value">{{ inquiry()!.companyName || '-' }}</span></div>
+                <div class="info-item"><span class="label">Contact Person</span><span class="value">{{ inquiry()!.contactPerson || '-' }}</span></div>
+                <div class="info-item"><span class="label">Mobile</span><span class="value">{{ inquiry()!.mobile || '-' }}</span></div>
+                <div class="info-item"><span class="label">Email</span><span class="value">{{ inquiry()!.email || '-' }}</span></div>
+                <div class="info-item"><span class="label">Source</span><span class="value">{{ sourceLabel(inquiry()!.source) || '-' }}</span></div>
+              </div>
+            }
+          </section>
+
+          <section class="detail-card">
+            <h2><span class="material-icons-outlined">location_on</span> Service Details</h2>
+            @if (isEditing()) {
+              <div class="info-grid">
+                <div class="info-item">
+                  <label class="label" for="serviceType">Service Type</label>
+                  <select id="serviceType" class="detail-input" [ngModel]="inquiry()!.serviceType" (ngModelChange)="updateField('serviceType', $event)">
+                    <option value="">Select service type</option>
+                    @for (service of serviceTypes(); track service.code) {
+                      <option [value]="service.code">{{ service.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="info-item">
+                  <label class="label" for="serviceLocation">Location</label>
+                  <select id="serviceLocation" class="detail-input" [ngModel]="masterLocationValue(inquiry()!.serviceLocation || inquiry()!.location)" (ngModelChange)="updateLocation($event)">
+                    <option value="">Select location</option>
+                    @for (item of locations(); track item.city) {
+                      <option [value]="locationLabel(item)">{{ locationLabel(item) }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="info-item">
+                  <label class="label" for="building">Building</label>
+                  <input id="building" class="detail-input" [ngModel]="inquiry()!.building" (ngModelChange)="updateField('building', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="unit">Unit / Area</label>
+                  <input id="unit" class="detail-input" [ngModel]="inquiry()!.unit" (ngModelChange)="updateField('unit', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="area">Area</label>
+                  <input id="area" class="detail-input" [ngModel]="inquiry()!.area" (ngModelChange)="updateField('area', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="preferredDate">Preferred Date</label>
+                  <input id="preferredDate" type="date" class="detail-input" [ngModel]="inputDate(inquiry()!.preferredDate)" (ngModelChange)="updateField('preferredDate', $event || null)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="preferredTime">Preferred Time</label>
+                  <select id="preferredTime" class="detail-input" [ngModel]="inquiry()!.preferredTime" (ngModelChange)="updateField('preferredTime', $event)">
+                    @for (time of preferredTimes; track time) {
+                      <option [value]="time">{{ sourceLabel(time) }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div class="inspection-toggle">
+                <label class="inspection-toggle__label">
+                  <input type="checkbox" [ngModel]="siteInspectionRequired" (ngModelChange)="siteInspectionRequired = $event" />
+                  <span>
+                    <strong>Need site inspection</strong>
+                    <small>{{ siteInspectionRequired ? 'Approval will create a Site Inspection draft.' : 'Approval will create a Quotation draft directly.' }}</small>
+                  </span>
+                </label>
+              </div>
+            } @else {
+              <div class="info-grid">
+                <div class="info-item"><span class="label">Service Type</span><span class="value">{{ inquiry()!.serviceType || '-' }}</span></div>
+                <div class="info-item"><span class="label">Location</span><span class="value">{{ inquiry()!.serviceLocation || inquiry()!.location || '-' }}</span></div>
+                <div class="info-item"><span class="label">Building</span><span class="value">{{ inquiry()!.building || '-' }}</span></div>
+                <div class="info-item"><span class="label">Unit / Area</span><span class="value">{{ inquiry()!.unit || inquiry()!.area || '-' }}</span></div>
+                <div class="info-item"><span class="label">Preferred Date</span><span class="value">{{ formatDateShort(inquiry()!.preferredDate) }}</span></div>
+                <div class="info-item"><span class="label">Preferred Time</span><span class="value">{{ sourceLabel(inquiry()!.preferredTime) || '-' }}</span></div>
+                <div class="info-item">
+                  <span class="label">Site Inspection</span>
+                  <span class="value inspection-value">
+                    <label class="inspection-checkbox">
+                      <input type="checkbox" [ngModel]="inquiry()!.siteInspectionRequired" [disabled]="!isEditing()" (ngModelChange)="siteInspectionRequired = $event" />
+                      <span>Need Site Inspection</span>
+                    </label>
+                  </span>
+                </div>
+              </div>
+            }
+          </section>
+
+          <section class="detail-card">
+            <h2><span class="material-icons-outlined">pest_control</span> Inquiry Description</h2>
+            @if (isEditing()) {
+              <div class="pest-selector">
+                <span class="label">Pest Type(s)</span>
+                <div class="pest-options">
+                  @for (pest of pestTypeOptions(); track pest.code) {
+                    <button type="button" class="pest-option" [class.pest-option--selected]="hasPestType(pest.code)" (click)="togglePestType(pest.code)">
+                      {{ pest.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+              <label class="label description-label" for="problemDescription">Description</label>
+              <textarea id="problemDescription" class="detail-textarea" rows="5" [ngModel]="inquiry()!.problemDescription" (ngModelChange)="updateField('problemDescription', $event)"></textarea>
+              <label class="label description-label" for="remarks">Remarks</label>
+              <textarea id="remarks" class="detail-textarea" rows="3" [ngModel]="inquiry()!.remarks" (ngModelChange)="updateField('remarks', $event)"></textarea>
+            } @else {
+              <div class="pest-tags">
+                @for (pest of inquiry()!.pestTypes || []; track pest) {
+                  <span class="pest-tag">{{ pest }}</span>
+                }
+                @if (!(inquiry()!.pestTypes || []).length) {
+                  <span class="muted">No pest type specified</span>
+                }
+              </div>
+              <p class="description">{{ inquiry()!.problemDescription || 'No description provided.' }}</p>
+              @if (inquiry()!.remarks) {
+                <div class="remarks"><strong>Remarks:</strong> {{ inquiry()!.remarks }}</div>
+              }
+            }
+          </section>
+
+          <section class="detail-card">
+            <h2><span class="material-icons-outlined">info</span> Request Information</h2>
+            <div class="info-grid info-grid--single">
+              <div class="info-item"><span class="label">Created</span><span class="value">{{ formatDate(inquiry()!.createdAt) }}</span></div>
+              <div class="info-item"><span class="label">Last Updated</span><span class="value">{{ formatDate(inquiry()!.updatedAt) }}</span></div>
+              <div class="info-item"><span class="label">Created By</span><span class="value">{{ inquiry()!.createdByName || 'System' }}</span></div>
+              <div class="info-item"><span class="label">Urgency</span><span class="value"><app-status-badge [status]="inquiry()!.urgency" /></span></div>
+            </div>
+          </section>
+        </div>
+      }
+    </main>
+  </div>
+</div>
+
+@if (showRejectDialog()) {
+  <div class="dialog-overlay" (click)="closeRejectDialog()">
+    <div class="dialog-box" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <div>
+          <h2>Reject Inquiry</h2>
+          <p>Please provide a reason for rejecting this inquiry.</p>
+        </div>
+        <button class="dialog-close" type="button" (click)="closeRejectDialog()">×</button>
+      </div>
+      <div class="dialog-body">
+        <label for="rejectReason">Rejection reason <span>*</span></label>
+        <textarea id="rejectReason" [(ngModel)]="rejectReason" rows="4" placeholder="Enter rejection reason..."></textarea>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-secondary" type="button" (click)="closeRejectDialog()" [disabled]="rejecting()">Cancel</button>
+        <button class="btn-action btn-action--reject" type="button" (click)="reject()" [disabled]="rejecting() || !rejectReason.trim()">
+          <span class="material-icons-outlined">cancel</span>
+          {{ rejecting() ? 'Rejecting...' : 'Reject Inquiry' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

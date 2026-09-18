@@ -1,0 +1,48 @@
+<div class="workflow-history">
+  <h3 class="history-title">Workflow History</h3>
+
+  @if (loading()) {
+    <div class="history-loading">Loading history...</div>
+  }
+
+  @if (!loading() && history().length === 0) {
+    <div class="history-empty">No workflow history available.</div>
+  }
+
+  @if (!loading() && history().length > 0) {
+    <div class="history-table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Stage Transition</th>
+            <th>Performed By</th>
+            <th>Role</th>
+            <th>Comment</th>
+            <th>Date &amp; Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of history(); track entry._id) {
+            <tr>
+              <td class="history-action">{{ entry.actionName }}</td>
+              <td class="history-stages">
+                @if (entry.fromStageCode) {
+                  <span class="stage-badge from">{{ entry.fromStageCode }}</span>
+                  <span class="stage-arrow">→</span>
+                }
+                <span class="stage-badge to">{{ entry.toStageCode }}</span>
+              </td>
+              <td>{{ entry.performedByName || 'System' }}</td>
+              <td class="history-role">{{ entry.performedByRole || '-' }}</td>
+              <td class="history-comment">
+                @if (entry.comment) { {{ entry.comment }} } @else { - }
+              </td>
+              <td class="history-date">{{ formatDate(entry.createdAt) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

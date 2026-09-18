@@ -1,0 +1,114 @@
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <span class="badge">About Us</span>
+    <h1>Professional <span class="text-gradient">Hygiene & Facility Solutions</span></h1>
+    <p>Delivering excellence in hygiene and facility management since 2014.</p>
+  </div>
+</section>
+
+<!-- About Content -->
+<section class="section">
+  <div class="container">
+    @if (about()) {
+      <div class="about-main reveal">
+        <div class="about-main__images">
+          <div class="about-main__image-main">
+            <img
+              [src]="about()!.image"
+              [alt]="about()!.title"
+              loading="lazy"
+              width="600"
+              height="450"
+            />
+          </div>
+          <div class="about-main__image-secondary">
+            <img
+              [src]="about()!.secondaryImage"
+              alt="Al Waha Hygiene team"
+              loading="lazy"
+              width="300"
+              height="250"
+            />
+          </div>
+        </div>
+        <div class="about-main__content">
+          <span class="badge">{{ about()!.badge }}</span>
+          <h2>{{ about()!.title }}</h2>
+          <p>{{ about()!.description }}</p>
+          <p>{{ about()!.secondParagraph }}</p>
+          <ul class="about-highlights">
+            @for (h of about()!.highlights; track h) {
+              <li>
+                <span class="material-icons-outlined">check_circle</span>
+                {{ h }}
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Mission & Vision -->
+<section class="about-mv section">
+  <div class="container">
+    @if (about()) {
+      <div class="about-mv__grid reveal">
+        <div class="about-mv__card">
+          <div class="about-mv__icon">
+            <span class="material-icons-outlined">flag</span>
+          </div>
+          <h3>Our Mission</h3>
+          <p>{{ about()!.mission }}</p>
+        </div>
+        <div class="about-mv__card">
+          <div class="about-mv__icon">
+            <span class="material-icons-outlined">visibility</span>
+          </div>
+          <h3>Our Vision</h3>
+          <p>{{ about()!.vision }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="about-stats section">
+  <div class="container">
+    <div class="about-stats__grid reveal">
+      @for (stat of animatedStats(); track stat.label) {
+        <app-statistic-card
+          [value]="stat.value"
+          [suffix]="stat.suffix"
+          [label]="stat.label"
+          [description]="stat.description"
+        />
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="about-why section">
+  <div class="container">
+    <div class="reveal">
+      <app-section-heading
+        badge="Why Choose Us"
+        title="Trusted by Thousands"
+        description="We deliver consistent quality and reliability across every service."
+      />
+    </div>
+    <div class="about-why__grid reveal">
+      @for (item of whyChooseUs(); track item.title) {
+        <div class="about-why__card">
+          <span class="material-icons-outlined about-why__icon">{{ item.icon }}</span>
+          <h4>{{ item.title }}</h4>
+          <p>{{ item.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

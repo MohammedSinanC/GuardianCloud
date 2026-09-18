@@ -1,0 +1,82 @@
+<div class="inquiry-list-container">
+  <div class="page-header">
+    <h1>My Inquiries</h1>
+    <a routerLink="/adminapp/inquiries/create" class="btn-primary">+ New Inquiry</a>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <input
+      type="text"
+      [(ngModel)]="search"
+      (keyup.enter)="onSearch()"
+      placeholder="Search by inquiry number, name, email..."
+      class="search-input" />
+    <button class="btn-search" (click)="onSearch()">Search</button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading">Loading inquiries...</div>
+  }
+
+  <!-- Table -->
+  @if (!loading() && inquiries().length > 0) {
+    <div class="table-wrapper">
+      <table class="inquiry-table">
+        <thead>
+          <tr>
+            <th>Inquiry No</th>
+            <th>Customer</th>
+            <th>Location</th>
+            <th>Stage</th>
+            <th>Urgency</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (inquiry of inquiries(); track inquiry._id) {
+            <tr>
+              <td class="inquiry-no">{{ inquiry.inquiryNo }}</td>
+              <td>{{ inquiry.customerName || inquiry.companyName || inquiry.contactPerson || '-' }}</td>
+              <td>{{ inquiry.serviceLocation }}</td>
+              <td>
+                <app-status-badge [status]="inquiry.currentStageCode" />
+              </td>
+              <td>
+                <app-status-badge [status]="inquiry.urgency" />
+              </td>
+              <td>{{ formatDate(inquiry.createdAt) }}</td>
+              <td>
+                <a [routerLink]="['/adminapp/inquiries', inquiry._id]" class="btn-view">
+                  View
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <span class="pagination-info">
+        Showing {{ (currentPage() - 1) * 10 + 1 }} - {{ Math.min(currentPage() * 10, total()) }} of {{ total() }}
+      </span>
+      <div class="pagination-buttons">
+        <button (click)="prevPage()" [disabled]="currentPage() <= 1" class="btn-page">Previous</button>
+        <span class="page-num">{{ currentPage() }} / {{ totalPages() }}</span>
+        <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="btn-page">Next</button>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && inquiries().length === 0) {
+    <div class="empty-state">
+      <p>No inquiries found.</p>
+      <a routerLink="/adminapp/inquiries/create" class="btn-primary">Create Your First Inquiry</a>
+    </div>
+  }
+</div>

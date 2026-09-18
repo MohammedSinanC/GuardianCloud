@@ -1,0 +1,251 @@
+<div class="admin-layout">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="page-container">
+      <div class="page-header">
+        <div>
+          <h1>Users</h1>
+          <p class="page-subtitle">Manage user accounts and access</p>
+        </div>
+        @if (canCreate()) {
+          <button class="btn-primary" (click)="openAddDialog()">
+            <span class="material-icons-outlined">person_add</span>
+            Add User
+          </button>
+        }
+      </div>
+
+      @if (loading()) {
+        <div class="skeleton-cards">
+          @for (i of [1,2,3]; track i) { <div class="skeleton-card"></div> }
+        </div>
+      }
+
+      @if (!loading() && users().length === 0) {
+        <div class="empty-state">
+          <span class="material-icons-outlined empty-icon">people_outline</span>
+          <p>No users found</p>
+        </div>
+      }
+
+      @if (!loading() && users().length > 0) {
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of users(); track user._id) {
+                <tr>
+                  <td class="cell-bold">{{ user.name || user.username }}</td>
+                  <td>{{ user.username }}</td>
+                  <td>{{ user.email || '-' }}</td>
+                  <td>{{ getCompanyName(user.companyId) }}</td>
+                  <td><span class="badge badge--info">{{ getRoleName(user.roleId) }}</span></td>
+                  <td>
+                    @if (user.isActive) {
+                      <span class="badge badge--success">Active</span>
+                    } @else {
+                      <span class="badge badge--danger">Inactive</span>
+                    }
+                  </td>
+                  <td class="cell-muted">{{ user.createdAt | date:'mediumDate' }}</td>
+                  <td>
+                    <div class="action-btns">
+                      @if (canEdit()) {
+                        <button class="action-btn" title="Edit" (click)="openEditDialog(user)">
+                          <span class="material-icons-outlined">edit</span>
+                        </button>
+                      }
+                      @if (canDelete()) {
+                        <button class="action-btn action-btn--danger" [title]="user.isActive ? 'Deactivate' : 'Activate'" (click)="openConfirmDialog(user)">
+                          <span class="material-icons-outlined">{{ user.isActive ? 'block' : 'check_circle' }}</span>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT USER DIALOG -->
+@if (showDialog()) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-box" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>{{ isEditing() ? 'Edit User' : 'Add User' }}</h3>
+        <button class="dialog-close" (click)="closeDialog()">×</button>
+      </div>
+      <div class="dialog-body">
+        @if (dialogError()) {
+          <div class="dialog-error">
+            <span class="material-icons-outlined">error_outline</span>
+            {{ dialogError() }}
+          </div>
+        }
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Username *</label>
+            <input type="text" class="form-input" [(ngModel)]="formUsername" placeholder="e.g. john" [disabled]="isEditing()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-input" [(ngModel)]="formName" placeholder="John Doe" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" [(ngModel)]="formEmail" placeholder="john@company.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mobile</label>
+            <input type="text" class="form-input" [(ngModel)]="formMobile" placeholder="+971 50 123 4567" />
+          </div>
+        </div>
+
+        <!-- Profile Image -->
+        <div class="profile-upload-section">
+          <label class="form-label">Profile Image</label>
+          <div class="profile-upload-wrapper">
+            @if (formProfileImage) {
+              <div class="profile-preview">
+                <img [src]="formProfileImage" alt="Profile" />
+                <button type="button" class="profile-remove-btn" (click)="removeImage()">
+                  <span class="material-icons-outlined">close</span>
+                </button>
+              </div>
+              <label class="profile-change-btn">
+                <span class="material-icons-outlined">edit</span>
+                Change
+                <input type="file" accept="image/*" (change)="onImageSelected($event)" style="display: none;" />
+              </label>
+            } @else {
+              <label class="profile-upload-box">
+                <span class="material-icons-outlined">add_a_photo</span>
+                <span>Click to upload</span>
+                <span class="profile-upload-hint">JPG, PNG, max 10MB</span>
+                <input type="file" accept="image/*" (change)="onImageSelected($event)" style="display: none;" />
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Password {{ isEditing() ? '(leave blank to keep)' : '*' }}</label>
+            <input type="password" class="form-input" [(ngModel)]="formPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <select class="form-select" [(ngModel)]="formRoleId">
+              <option value="">Select role</option>
+              @for (role of roles(); track role._id) {
+                <option [value]="role._id">{{ role.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          @if (isSuperAdmin) {
+            <div class="form-group">
+              <label class="form-label">Company</label>
+              <select class="form-select" [(ngModel)]="formCompanyId">
+                <option value="">Select company</option>
+                @for (company of companies(); track company._id) {
+                  <option [value]="company._id">{{ company.name }}</option>
+                }
+              </select>
+            </div>
+          } @else {
+            <div class="form-group">
+              <label class="form-label">Company</label>
+              <input type="text" class="form-input" [value]="getCompanyName(formCompanyId)" disabled />
+            </div>
+          }
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" [(ngModel)]="formIsActive">
+              <option [ngValue]="true">Active</option>
+              <option [ngValue]="false">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="dialog-btn-cancel" (click)="closeDialog()" [disabled]="saving()">Cancel</button>
+        <button class="dialog-btn-confirm" style="background:#0d9488;" (click)="saveUser()" [disabled]="saving()">
+          @if (saving()) {
+            <span class="dialog-spinner"></span> Saving...
+          } @else {
+            {{ isEditing() ? 'Update' : 'Create' }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- CONFIRM TOGGLE DIALOG -->
+@if (showConfirmDialog() && confirmUser) {
+  <div class="dialog-overlay" (click)="closeConfirmDialog()">
+    <div class="dialog-box dialog-box--sm" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>
+          <span class="material-icons-outlined" style="vertical-align: middle; margin-right: 8px;" [style.color]="confirmUser.isActive ? '#dc2626' : '#16a34a'">
+            {{ confirmUser.isActive ? 'block' : 'check_circle' }}
+          </span>
+          {{ confirmUser.isActive ? 'Deactivate' : 'Activate' }} User
+        </h3>
+        <button class="dialog-close" (click)="closeConfirmDialog()">×</button>
+      </div>
+      <div class="dialog-body">
+        <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
+          Are you sure you want to <strong [style.color]="confirmUser.isActive ? '#dc2626' : '#16a34a'">{{ confirmUser.isActive ? 'deactivate' : 'activate' }}</strong>
+          user <strong>"{{ confirmUser.name || confirmUser.username }}"</strong>?
+        </p>
+        @if (confirmUser.isActive) {
+          <p style="color: #9ca3af; font-size: 13px; margin-top: 8px;">
+            This user will no longer be able to log in to the system.
+          </p>
+        } @else {
+          <p style="color: #9ca3af; font-size: 13px; margin-top: 8px;">
+            This user will regain access to the system.
+          </p>
+        }
+      </div>
+      <div class="dialog-footer">
+        <button class="dialog-btn-cancel" (click)="closeConfirmDialog()" [disabled]="confirming()">Cancel</button>
+        <button class="dialog-btn-confirm" [style.background]="confirmUser.isActive ? '#dc2626' : '#16a34a'" (click)="confirmToggleActive()" [disabled]="confirming()">
+          @if (confirming()) {
+            <span class="dialog-spinner"></span> Processing...
+          } @else {
+            {{ confirmUser.isActive ? 'Deactivate' : 'Activate' }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

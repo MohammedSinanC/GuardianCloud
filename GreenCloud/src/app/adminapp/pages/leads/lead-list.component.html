@@ -1,0 +1,112 @@
+<div class="admin-layout">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()"
+  />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      <div class="erp-page__header">
+        <div class="erp-page__title">
+          <h1><span class="material-icons-outlined">schedule</span> Leads</h1>
+          <p>Every sale starts here — approve a lead to create customer, ledger and inquiry.</p>
+        </div>
+        <a routerLink="/adminapp/leads/new" class="erp-btn erp-btn--primary">
+          <span class="material-icons-outlined">add</span> New Lead
+        </a>
+      </div>
+
+      <div class="erp-filters">
+        <input
+          type="text"
+          class="erp-search"
+          placeholder="Search lead no, company, contact, mobile..."
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          (keyup.enter)="onFilterChange()" />
+        <select class="erp-select" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event); onFilterChange()">
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+        <button class="erp-btn erp-btn--ghost" (click)="onFilterChange()">Filter</button>
+      </div>
+
+      @if (loading()) {
+        <div class="erp-loading">Loading leads...</div>
+      }
+
+      @if (!loading() && leads().length === 0) {
+        <div class="erp-empty">
+          <span class="material-icons-outlined">inbox</span>
+          <p>No leads found. Create your first lead to start the ERP flow.</p>
+        </div>
+      }
+
+      @if (!loading() && leads().length > 0) {
+        <div class="erp-table-card erp-table-card--flush">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>Lead No</th>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Mobile</th>
+                <th>Service</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (lead of leads(); track lead._id) {
+                <tr>
+                  <td class="erp-doc-no lead-number-highlight">{{ lead.leadNo }}</td>
+                  <td>{{ lead.companyName }}</td>
+                  <td>{{ lead.contactPerson }}</td>
+                  <td>{{ lead.mobile }}</td>
+                  <td>{{ lead.serviceRequired || '-' }}</td>
+                  <td>{{ lead.source ? statusLabel(lead.source) : '-' }}</td>
+                  <td><span [class]="statusClass(lead.status)">{{ statusLabel(lead.status) }}</span></td>
+                  <td>{{ formatDate(lead.createdAt) }}</td>
+                  <td>
+                    <div class="erp-actions">
+                      <a [routerLink]="['/adminapp/leads', lead._id]" class="erp-icon-btn" title="View / Approve">
+                        <span class="material-icons-outlined">visibility</span>
+                      </a>
+                      @switch (lead.status) {
+                        @case ('DRAFT') {
+                          <button class="erp-icon-btn" title="Submit for approval" (click)="submitLead(lead)" [disabled]="busyId() === lead._id">
+                            <span class="material-icons-outlined">send</span>
+                          </button>
+                          <button class="erp-icon-btn erp-icon-btn--danger" title="Delete draft" (click)="deleteDraft(lead)" [disabled]="busyId() === lead._id">
+                            <span class="material-icons-outlined">delete</span>
+                          </button>
+                        }
+                        @case ('PENDING_APPROVAL') {
+                          <button class="erp-icon-btn" title="Approve" (click)="approve(lead)" [disabled]="busyId() === lead._id">
+                            <span class="material-icons-outlined">task_alt</span>
+                          </button>
+                        }
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="erp-pagination">
+          <span>Page {{ currentPage() }} of {{ totalPages() }} — {{ total() }} leads</span>
+          <div class="erp-pagination__btns">
+            <button class="erp-btn erp-btn--ghost erp-btn--sm" (click)="prevPage()" [disabled]="currentPage() <= 1">← Prev</button>
+            <button class="erp-btn erp-btn--ghost erp-btn--sm" (click)="nextPage()" [disabled]="currentPage() >= totalPages()">Next →</button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

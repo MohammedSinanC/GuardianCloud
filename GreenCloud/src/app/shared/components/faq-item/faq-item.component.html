@@ -1,0 +1,18 @@
+<div class="faq-item" [class.faq-item--open]="isOpen()">
+  <button
+    class="faq-item__question"
+    (click)="toggle()"
+    [attr.aria-expanded]="isOpen()"
+    aria-controls="faq-answer"
+  >
+    <span class="faq-item__question-text">{{ item().question }}</span>
+    <span class="faq-item__icon material-icons-outlined">
+      {{ isOpen() ? 'expand_less' : 'expand_more' }}
+    </span>
+  </button>
+  @if (isOpen()) {
+    <div class="faq-item__answer" id="faq-answer" role="region">
+      <p>{{ item().answer }}</p>
+    </div>
+  }
+</div>

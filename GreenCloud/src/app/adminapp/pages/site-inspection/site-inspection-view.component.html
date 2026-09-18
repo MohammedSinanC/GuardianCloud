@@ -1,0 +1,256 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <main class="inquiry-detail-container">
+      @if (loading()) {
+        <div class="state-card">Loading inspection...</div>
+      }
+
+      @if (error() && !inspection()) {
+        <div class="error-msg">
+          <span class="material-icons-outlined">error_outline</span>
+          {{ error() }}
+        </div>
+      }
+
+      @if (inspection(); as item) {
+        <div class="page-header">
+          <div>
+            <a routerLink="/adminapp/site-inspection" class="back-link">
+              <span class="material-icons-outlined">arrow_back</span> Back to Site Inspections
+            </a>
+            <div class="title-row">
+              <h1>{{ item.inspectionNo || 'Site Inspection' }}</h1>
+              <app-status-badge [status]="item.status" />
+            </div>
+            <p class="page-subtitle">Site inspection linked to inquiry {{ item.inquiryId?.inquiryNo || '-' }}</p>
+          </div>
+
+          <div class="header-actions">
+            @if (isEditing()) {
+              <button class="btn-action btn-action--draft" type="button" (click)="saveDraft()" [disabled]="saving()">
+                <span class="material-icons-outlined">save</span>
+                {{ saving() ? 'Saving...' : 'Save' }}
+              </button>
+            }
+            @if (item.status === 'DRAFT' || item.status === 'REJECTED') {
+              <button class="btn-action btn-action--approve" type="button" (click)="submit()" [disabled]="saving()">
+                <span class="material-icons-outlined">send</span>
+                Submit
+              </button>
+            }
+            @if (item.status === 'PENDING_APPROVAL') {
+              <button class="btn-action btn-action--approve" type="button" (click)="approve()" [disabled]="saving()">
+                <span class="material-icons-outlined">check_circle</span>
+                Approve
+              </button>
+              <button class="btn-action btn-action--reject" type="button" (click)="showReject.set(true)" [disabled]="saving()">
+                <span class="material-icons-outlined">cancel</span> Reject
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (error()) {
+          <div class="error-msg">
+            <span class="material-icons-outlined">error_outline</span>
+            {{ error() }}
+          </div>
+        }
+
+        @if (item.status === 'REJECTED' && item.rejectionReason) {
+          <div class="rejection-banner">
+            <span class="material-icons-outlined">block</span>
+            <div>
+              <strong>Inspection rejected</strong>
+              <p>{{ item.rejectionReason }}</p>
+            </div>
+          </div>
+        }
+
+        <div class="details-grid">
+          <section class="detail-card detail-card--full">
+            <h2><span class="material-icons-outlined">description</span> Inquiry Information</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Inquiry No</span>
+                <span class="value"><a [routerLink]="['/adminapp/inquiries', item.inquiryId?._id || item.inquiryId]">{{ item.inquiryId?.inquiryNo || '-' }}</a></span>
+              </div>
+              <div class="info-item">
+                <span class="label">Customer</span>
+                <span class="value">{{ item.inquiryId?.customerName || item.inquiryId?.companyName || item.customerId?.companyName || item.customerId?.contactPerson || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Contact Person</span>
+                <span class="value">{{ item.inquiryId?.contactPerson || item.customerId?.contactPerson || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Contact Number</span>
+                <span class="value">{{ item.inquiryId?.mobile || item.customerId?.mobile || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Site Location</span>
+                <span class="value">{{ item.location || item.inquiryId?.serviceLocation || item.inquiryId?.location || '-' }}</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-card detail-card--half">
+            <h2><span class="material-icons-outlined">event</span> Inspection Details</h2>
+            @if (isEditing()) {
+              <div class="info-grid">
+                <div class="info-item">
+                  <label class="label" for="inspectionDate">Inspection Date</label>
+                  <input id="inspectionDate" type="date" class="detail-input" [ngModel]="inputDate(item.inspectionDate)" (ngModelChange)="updateField('inspectionDate', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="inspectionType">Inspection Type</label>
+                  <select id="inspectionType" class="detail-input" [ngModel]="item.inspectionType" (ngModelChange)="updateField('inspectionType', $event)">
+                    <option value="">Select inspection type</option>
+                    @for (type of inspectionTypeSelectOptions(); track type.code) {
+                      <option [value]="type.code">{{ type.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="info-item">
+                  <label class="label" for="pestType">Pest Type</label>
+                  <input id="pestType" type="text" class="detail-input" [ngModel]="item.pestType" (ngModelChange)="updateField('pestType', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="severity">Severity</label>
+                  <select id="severity" class="detail-input" [ngModel]="item.severity" (ngModelChange)="updateField('severity', $event)">
+                    <option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option>
+                  </select>
+                </div>
+                <div class="info-item">
+                  <label class="label" for="affectedArea">Affected Area</label>
+                  <input id="affectedArea" type="text" class="detail-input" [ngModel]="item.affectedArea" (ngModelChange)="updateField('affectedArea', $event)" />
+                </div>
+                <div class="info-item">
+                  <label class="label" for="estimatedWork">Estimated Work</label>
+                  <input id="estimatedWork" type="text" class="detail-input" [ngModel]="item.estimatedWork" (ngModelChange)="updateField('estimatedWork', $event)" />
+                </div>
+                <div class="info-item info-item--wide">
+                  <label class="label" for="inspector">Inspector (from User Master)</label>
+                  <div class="inspection-typeahead">
+                    <input
+                      type="text"
+                      id="inspector"
+                      placeholder="Search inspector by name..."
+                      autocomplete="off"
+                      [value]="showInspectorList() ? inspectorSearch() : inspectorDisplayValue()"
+                      (focus)="openInspectorList()"
+                      (input)="inspectorSearch.set($any($event.target).value); showInspectorList.set(true)"
+                      (blur)="closeInspectorList()" />
+                    <span class="material-icons-outlined inspection-typeahead__icon">search</span>
+                    @if (showInspectorList()) {
+                      <div class="inspection-typeahead__list">
+                        @for (user of filteredInspectors(); track user._id) {
+                          <button type="button" class="inspection-typeahead__option" (mousedown)="$event.preventDefault()" (click)="selectInspector(user)">
+                            <span class="inspection-typeahead__name">{{ userLabel(user) }}</span>
+                            @if (user.username) { <span class="inspection-typeahead__sub">{{ user.username }}</span> }
+                          </button>
+                        }
+                        @if (filteredInspectors().length === 0) {
+                          <div class="inspection-typeahead__empty">No inspectors match your search</div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+                <label class="label description-label" for="findings">Findings</label>
+                <textarea id="findings" class="detail-textarea" rows="4" [ngModel]="item.findings" (ngModelChange)="updateField('findings', $event)"></textarea>
+                <label class="label description-label" for="recommendations">Recommendations</label>
+                <textarea id="recommendations" class="detail-textarea" rows="3" [ngModel]="item.recommendations" (ngModelChange)="updateField('recommendations', $event)"></textarea>
+                <label class="label description-label" for="requiredTreatment">Required Treatment</label>
+                <input id="requiredTreatment" type="text" class="detail-input" [ngModel]="item.requiredTreatment" (ngModelChange)="updateField('requiredTreatment', $event)" />
+                <label class="label description-label" for="remarks">Remarks</label>
+                <textarea id="remarks" class="detail-textarea" rows="2" [ngModel]="item.remarks" (ngModelChange)="updateField('remarks', $event)"></textarea>
+              </div>
+            } @else {
+              <div class="info-grid">
+                <div class="info-item"><span class="label">Inspection Date</span><span class="value">{{ formatDate(item.inspectionDate) }}</span></div>
+                <div class="info-item"><span class="label">Inspector</span><span class="value">{{ item.inspector || '-' }}</span></div>
+                <div class="info-item"><span class="label">Inspection Type</span><span class="value">{{ item.inspectionType || '-' }}</span></div>
+                <div class="info-item"><span class="label">Pest Type</span><span class="value">{{ item.pestType || '-' }}</span></div>
+                <div class="info-item"><span class="label">Severity</span><span class="value">{{ item.severity }}</span></div>
+                <div class="info-item"><span class="label">Affected Area</span><span class="value">{{ item.affectedArea || '-' }}</span></div>
+                <div class="info-item"><span class="label">Estimated Work</span><span class="value">{{ item.estimatedWork || '-' }}</span></div>
+              </div>
+              <div class="inspection-notes">
+                <div class="label">Findings</div>
+                <p class="description">{{ item.findings || 'No findings recorded.' }}</p>
+              </div>
+              <div class="inspection-notes">
+                <div class="label">Recommendations</div>
+                <p class="description">{{ item.recommendations || 'No recommendations recorded.' }}</p>
+              </div>
+              @if (item.remarks) {
+                <div class="remarks"><strong>Remarks:</strong> {{ item.remarks }}</div>
+              }
+            }
+          </section>
+
+          <section class="detail-card detail-card--half">
+            <h2><span class="material-icons-outlined">photo_camera</span> Site Images</h2>
+            @if (isEditing()) {
+              <div class="image-upload-area">
+                <input id="siteImages" type="file" accept="image/*" multiple class="image-input" (change)="onImagesSelected($event)" />
+                <label for="siteImages" class="image-upload-label">
+                  <span class="material-icons-outlined">add_photo_alternate</span>
+                  <strong>Upload site images</strong>
+                  <small>JPG, PNG or WebP · up to 5MB each</small>
+                </label>
+              </div>
+            }
+            @if ((item.attachments || []).length > 0) {
+              <div class="image-grid">
+                @for (img of item.attachments; track $index) {
+                  <div class="image-tile">
+                    <img [src]="img.fileUrl" [alt]="img.fileName || 'Site image'" />
+                    @if (isEditing()) {
+                      <button type="button" class="image-remove" (click)="removeImage($index)" title="Remove image">
+                        <span class="material-icons-outlined">close</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            } @else if (isEditing()) {
+              <p class="image-hint">No site images yet — upload photos of the affected areas.</p>
+            } @else {
+              <p class="image-hint">No site images uploaded.</p>
+            }
+          </section>
+        </div>
+        <app-workflow-timeline entityType="INSPECTION" [entityId]="item._id" />
+      }
+    </main>
+  </div>
+</div>
+
+@if (showReject()) {
+  <div class="dialog-overlay" (click)="closeRejectDialog()">
+    <div class="dialog-box" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <div>
+          <h2>Reject Inspection</h2>
+          <p>Please provide a reason for rejecting this inspection.</p>
+        </div>
+        <button class="dialog-close" type="button" (click)="closeRejectDialog()">×</button>
+      </div>
+      <div class="dialog-body">
+        <label for="rejectReason">Rejection reason <span>*</span></label>
+        <textarea id="rejectReason" [(ngModel)]="rejectionReason" rows="4" placeholder="Enter rejection reason..."></textarea>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-secondary" type="button" (click)="closeRejectDialog()" [disabled]="saving()">Cancel</button>
+        <button class="btn-action btn-action--reject" type="button" (click)="reject()" [disabled]="saving() || !rejectionReason.trim()">
+          <span class="material-icons-outlined">cancel</span>
+          {{ saving() ? 'Rejecting...' : 'Reject Inspection' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

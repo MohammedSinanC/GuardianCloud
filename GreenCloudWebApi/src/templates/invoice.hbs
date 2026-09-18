@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #1f2937; font-size: 13px; }
+    .doc { max-width: 800px; margin: 0 auto; }
+
+    .doc-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #0d9488; padding-bottom: 14px; }
+    .company-name { font-size: 22px; font-weight: 700; color: #0d9488; }
+    .company-tagline { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .company-meta { font-size: 11px; color: #4b5563; margin-top: 6px; line-height: 1.5; }
+
+    .doc-title { text-align: right; }
+    .doc-title h1 { font-size: 24px; letter-spacing: 2px; color: #111827; }
+    .doc-title .doc-no { font-size: 13px; color: #0d9488; font-weight: 700; margin-top: 4px; }
+    .doc-title .doc-date { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+    .status-band { margin-top: 10px; text-align: right; }
+    .status-chip { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; }
+    .status-APPROVED { background: #d1fae5; color: #065f46; }
+    .status-DRAFT { background: #fef3c7; color: #92400e; }
+    .status-CANCELLED { background: #fee2e2; color: #991b1b; }
+
+    .section { margin-top: 18px; }
+    .section-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #6b7280; text-transform: uppercase; margin-bottom: 6px; }
+
+    .party { display: flex; justify-content: space-between; gap: 24px; }
+    .party-block { flex: 1; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; }
+    .party-block .name { font-weight: 700; font-size: 13px; }
+    .party-block .line { font-size: 11.5px; color: #4b5563; margin-top: 2px; }
+
+    .ref-row { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+    .ref-chip { background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; border-radius: 4px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
+
+    table.items { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    table.items th { background: #0d9488; color: #fff; text-align: left; padding: 8px 10px; font-size: 11.5px; }
+    table.items th.num, table.items td.num { text-align: right; }
+    table.items td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12.5px; }
+    table.items tr:nth-child(even) td { background: #f8fafc; }
+
+    .totals { margin-top: 14px; margin-left: auto; width: 300px; }
+    .totals .row { display: flex; justify-content: space-between; padding: 5px 10px; font-size: 12.5px; }
+    .totals .row.grand { background: #0d9488; color: #fff; font-weight: 700; font-size: 14px; border-radius: 4px; margin-top: 4px; }
+    .totals .row span:last-child { font-weight: 600; }
+
+    .terms { margin-top: 18px; font-size: 11.5px; color: #374151; line-height: 1.6; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; }
+    .terms p { margin-top: 4px; white-space: pre-line; }
+
+    .doc-footer { margin-top: 26px; border-top: 2px solid #0d9488; padding-top: 8px; text-align: center; font-size: 10.5px; color: #6b7280; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="doc">
+    <div class="doc-header">
+      <div>
+        <div class="company-name">{{company.name}}</div>
+        {{#if company.tagline}}<div class="company-tagline">{{company.tagline}}</div>{{/if}}
+        <div class="company-meta">
+          {{company.address}}<br />
+          {{#if company.phone}}Tel: {{company.phone}}{{/if}}
+          {{#if company.email}} &nbsp;|&nbsp; {{company.email}}{{/if}}
+          {{#if company.taxNumber}}<br />TRN: {{company.taxNumber}}{{/if}}
+          {{#if company.commercialRegistration}} &nbsp;|&nbsp; CR: {{company.commercialRegistration}}{{/if}}
+        </div>
+      </div>
+      <div class="doc-title">
+        <h1>TAX INVOICE</h1>
+        <div class="doc-no">{{invoice.invoiceNo}}</div>
+        <div class="doc-date">Date: {{invoice.invoiceDate}}</div>
+        {{#if invoice.dueDate}}<div class="doc-date">Due: {{invoice.dueDate}}</div>{{/if}}
+        <div class="status-band"><span class="status-chip status-{{invoice.status}}">{{invoice.status}}</span></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="party">
+        <div class="party-block">
+          <div class="section-title">Bill To</div>
+          <div class="name">{{customer.companyName}}</div>
+          <div class="line">Attn: {{customer.contactPerson}}</div>
+          <div class="line">{{customer.mobile}}{{#if customer.email}} &nbsp;|&nbsp; {{customer.email}}{{/if}}</div>
+          <div class="line">{{customer.address}}{{#if customer.location}}, {{customer.location}}{{/if}}</div>
+          <div class="line">Customer Code: {{customer.customerCode}}</div>
+          {{#if customer.trnNumber}}<div class="line">TRN: {{customer.trnNumber}}</div>{{/if}}
+        </div>
+        <div class="party-block">
+          <div class="section-title">References</div>
+          {{#if invoice.leadNo}}<div class="line"><b>Lead:</b> {{invoice.leadNo}}</div>{{/if}}
+          {{#if invoice.inquiryNo}}<div class="line"><b>Inquiry:</b> {{invoice.inquiryNo}}</div>{{/if}}
+          {{#if invoice.quotationNo}}<div class="line"><b>Quotation:</b> {{invoice.quotationNo}}</div>{{/if}}
+          {{#if invoice.paymentTypeName}}<div class="line"><b>Payment Plan:</b> {{invoice.paymentTypeName}}</div>{{/if}}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Invoice Items</div>
+      <table class="items">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Description</th>
+            <th class="num" style="width:70px">Qty</th>
+            <th class="num" style="width:100px">Rate ({{invoice.currency}})</th>
+            <th class="num" style="width:110px">Amount ({{invoice.currency}})</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each items}}
+          <tr>
+            <td>{{add @index 1}}</td>
+            <td>{{this.description}}</td>
+            <td class="num">{{this.quantity}}</td>
+            <td class="num">{{fmt this.unitPrice}}</td>
+            <td class="num">{{fmt this.totalPrice}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="totals">
+        {{#if invoice.discount}}
+        <div class="row"><span>Discount</span><span>-{{fmt invoice.discount}} {{invoice.currency}}</span></div>
+        {{/if}}
+        <div class="row"><span>Subtotal</span><span>{{fmt invoice.subtotal}} {{invoice.currency}}</span></div>
+        <div class="row"><span>VAT ({{invoice.taxRate}}%)</span><span>{{fmt invoice.taxAmount}} {{invoice.currency}}</span></div>
+        <div class="row grand"><span>Grand Total</span><span>{{fmt invoice.totalAmount}} {{invoice.currency}}</span></div>
+      </div>
+    </div>
+
+    {{#if invoice.bankDetails}}
+    <div class="section terms">
+      <div class="section-title">Bank Details</div>
+      <p>{{invoice.bankDetails}}</p>
+    </div>
+    {{/if}}
+
+    {{#if invoice.paymentTerms}}
+    <div class="section terms">
+      <div class="section-title">Payment Terms</div>
+      <p>{{invoice.paymentTerms}}</p>
+    </div>
+    {{/if}}
+
+    {{#if invoice.notes}}
+    <div class="section terms">
+      <div class="section-title">Notes</div>
+      <p>{{invoice.notes}}</p>
+    </div>
+    {{/if}}
+
+    <div class="doc-footer">
+      {{company.name}}{{#if company.phone}} &nbsp;|&nbsp; {{company.phone}}{{/if}}{{#if company.email}} &nbsp;|&nbsp; {{company.email}}{{/if}}{{#if company.website}} &nbsp;|&nbsp; {{company.website}}{{/if}}<br />
+      This is a computer-generated invoice. Thank you for your business.
+    </div>
+  </div>
+</body>
+</html>

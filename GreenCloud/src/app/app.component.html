@@ -1,0 +1,18 @@
+@if (isLoaded()) {
+  @if (!isAdminRoute()) {
+    <app-header />
+  }
+  <main>
+    <router-outlet />
+  </main>
+  @if (!isAdminRoute()) {
+    <app-footer />
+    <app-whatsapp-button />
+  }
+  @if (isAdminRoute()) {
+    <app-toaster />
+    <app-confirm-dialog />
+  }
+} @else {
+  <app-loading />
+}

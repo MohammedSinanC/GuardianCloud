@@ -1,0 +1,35 @@
+.stat-card {
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.stat-card__value {
+  font-size: var(--font-size-5xl);
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+}
+
+.stat-card__suffix {
+  font-size: var(--font-size-3xl);
+  color: var(--primary-light);
+}
+
+.stat-card__label {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.stat-card__desc {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 767px) {
+  .stat-card__value {
+    font-size: var(--font-size-4xl);
+  }
+}

@@ -1,0 +1,223 @@
+/* Page Hero */
+.page-hero {
+  background: linear-gradient(135deg, var(--primary-50) 0%, #e8f5f4 100%);
+  padding: calc(var(--header-height) + 60px) 0 60px;
+  text-align: center;
+
+  .badge {
+    margin-bottom: var(--space-md);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
+  }
+
+  p {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+/* About Main */
+.about-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: center;
+}
+
+.about-main__images {
+  position: relative;
+}
+
+.about-main__image-main {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 50%, #e8f5f4 100%);
+
+  img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 50%, #e8f5f4 100%);
+  }
+}
+
+.about-main__image-secondary {
+  position: absolute;
+  bottom: -30px;
+  right: -20px;
+  width: 50%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 4px solid var(--bg-white);
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, #b8e4e1 0%, var(--primary-50) 50%, #e8f5f4 100%);
+
+  img {
+    width: 100%;
+    aspect-ratio: 6 / 5;
+    object-fit: cover;
+    background: linear-gradient(135deg, #b8e4e1 0%, var(--primary-50) 50%, #e8f5f4 100%);
+  }
+}
+
+.about-main__content {
+  .badge {
+    margin-bottom: var(--space-md);
+  }
+
+  h2 {
+    font-size: var(--font-size-3xl);
+    font-weight: 800;
+    margin-bottom: var(--space-lg);
+  }
+
+  p {
+    margin-bottom: var(--space-md);
+    line-height: 1.8;
+  }
+}
+
+.about-highlights {
+  margin-top: var(--space-lg);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+
+    .material-icons-outlined {
+      font-size: 20px;
+      color: var(--accent);
+    }
+  }
+}
+
+/* Mission & Vision */
+.about-mv__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+}
+
+.about-mv__card {
+  background: var(--bg-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  text-align: center;
+
+  h3 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-md);
+  }
+
+  p {
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+}
+
+.about-mv__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-md);
+  background: var(--primary-50);
+  color: var(--primary);
+  border-radius: var(--radius-full);
+
+  .material-icons-outlined {
+    font-size: 28px;
+  }
+}
+
+/* Stats */
+.about-stats {
+  background: var(--bg-dark);
+}
+
+.about-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+/* Why Choose Us */
+.about-why__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+}
+
+.about-why__card {
+  text-align: center;
+  padding: var(--space-xl);
+  background: var(--bg-soft);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-normal);
+
+  &:hover {
+    background: var(--bg-white);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+  }
+
+  h4 {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--space-sm);
+  }
+
+  p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+  }
+}
+
+.about-why__icon {
+  font-size: 32px;
+  color: var(--primary);
+  margin-bottom: var(--space-md);
+}
+
+@media (max-width: 1023px) {
+  .about-main {
+    grid-template-columns: 1fr;
+  }
+
+  .about-stats__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-why__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .about-main__image-secondary {
+    display: none;
+  }
+
+  .about-mv__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-highlights {
+    grid-template-columns: 1fr;
+  }
+}

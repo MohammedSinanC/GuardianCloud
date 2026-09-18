@@ -1,0 +1,66 @@
+<div
+  class="wf-node"
+  [class.wf-node--current]="isCurrent"
+  [class.wf-node--passed]="isPassed"
+  [class.wf-node--rect]="node.shape === 'rect'"
+  [class.wf-node--rounded]="node.shape === 'rounded'"
+  [class.wf-node--oval]="node.shape === 'oval'"
+  [class.wf-node--circle]="node.shape === 'circle'"
+  [style.--node-color]="node.color"
+  [style.--node-bg]="node.bgColor"
+  [style.--node-border]="node.borderColor"
+  [class.wf-node--clickable]="isClickable"
+  (click)="onNodeClick()"
+>
+  <!-- Number badge -->
+  <div class="wf-node__number" [style.background]="node.color">
+    {{ stageNumber }}
+  </div>
+
+  <!-- Stage body -->
+  <div class="wf-node__body">
+    @if (isCurrent) {
+      <span class="wf-node__current-indicator"></span>
+    }
+
+    <span class="wf-node__label">{{ stage.stageName }}</span>
+
+    @if (stageTypeLabel) {
+      <span class="wf-node__tag" [class]="stageTypeClass">{{ stageTypeLabel }}</span>
+    }
+
+    @if (stage.description) {
+      <span class="wf-node__desc">{{ stage.description }}</span>
+    }
+  </div>
+
+  <!-- Action chips -->
+  @if (showActions && stage.actions && stage.actions.length > 0) {
+    <div class="wf-node__actions">
+      @for (action of stage.actions; track action.actionCode) {
+        <button
+          class="wf-chip"
+          [class.wf-chip--active]="isCurrent"
+          [style.--chip-color]="getActionColor(action.buttonColor)"
+          [disabled]="!isCurrent"
+          (click)="onActionClick(action, $event)"
+          [title]="action.actionName + ' → ' + (action.nextStageCode || action.rejectStageCode || '')"
+        >
+          {{ action.actionName }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Edit/Delete buttons -->
+  @if (isClickable) {
+    <div class="wf-node__toolbar">
+      <button class="wf-node__tool-btn" (click)="onEdit($event)" title="Edit stage">
+        <span class="material-icons-outlined">edit</span>
+      </button>
+      <button class="wf-node__tool-btn wf-node__tool-btn--danger" (click)="onDelete($event)" title="Delete stage">
+        <span class="material-icons-outlined">delete</span>
+      </button>
+    </div>
+  }
+</div>

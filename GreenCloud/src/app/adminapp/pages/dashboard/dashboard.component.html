@@ -1,0 +1,249 @@
+<div class="admin-dashboard">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()" />
+
+  <div class="admin-dashboard__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+
+    <div class="admin-dashboard__content">
+      <!-- Welcome Banner -->
+      <div class="dash-welcome">
+        <div class="dash-welcome__text">
+          <h1 class="dash-welcome__title">Dashboard</h1>
+          <p class="dash-welcome__subtitle">Welcome back, Admin. Here's what's happening today.</p>
+        </div>
+        <div class="dash-filters">
+          <div class="dash-filter-group">
+            <span class="material-icons-outlined dash-filter-icon">calendar_today</span>
+            <select [(ngModel)]="selectedDateRange" (change)="onFilterChange()" class="dash-filter-select">
+              @for (dr of dateRanges; track dr.value) {
+                <option [value]="dr.value">{{ dr.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="dash-filter-group">
+            <span class="material-icons-outlined dash-filter-icon">event</span>
+            <select [(ngModel)]="selectedYear" (change)="onFilterChange()" class="dash-filter-select">
+              @for (y of years; track y) {
+                <option [value]="y">{{ y }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      @if (loading()) {
+        <div class="dash-skeleton-grid">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="dash-skeleton-card">
+              <div class="dash-skeleton-line w40"></div>
+              <div class="dash-skeleton-line w60 h32"></div>
+              <div class="dash-skeleton-line w30"></div>
+            </div>
+          }
+        </div>
+        <div class="dash-skeleton-grid">
+          @for (i of [1,2]; track i) {
+            <div class="dash-skeleton-card h280"></div>
+          }
+        </div>
+      }
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="dash-error">
+          <span class="material-icons-outlined">error_outline</span>
+          <p>{{ error() }}</p>
+          <button class="dash-retry-btn" (click)="loadDashboard()">Retry</button>
+        </div>
+      }
+
+      @if (!loading() && !error() && data()) {
+        <!-- KPI Cards -->
+        <div class="dash-kpi-grid">
+          <div class="dash-kpi dash-kpi--teal" routerLink="/adminapp/inquiries">
+            <div class="dash-kpi__left-bar"></div>
+            <div class="dash-kpi__icon dash-kpi__icon--teal">
+              <span class="material-icons-outlined">people</span>
+            </div>
+            <div class="dash-kpi__info">
+              <span class="dash-kpi__label">Total Customers</span>
+              <span class="dash-kpi__value">{{ formatNumber(data()!.summary.totalCustomers) }}</span>
+            </div>
+          </div>
+
+          <div class="dash-kpi dash-kpi--amber" routerLink="/adminapp/inquiries">
+            <div class="dash-kpi__left-bar"></div>
+            <div class="dash-kpi__icon dash-kpi__icon--amber">
+              <span class="material-icons-outlined">pending_actions</span>
+            </div>
+            <div class="dash-kpi__info">
+              <span class="dash-kpi__label">Pending Inquiries</span>
+              <span class="dash-kpi__value">{{ formatNumber(data()!.summary.pendingInquiries) }}</span>
+            </div>
+          </div>
+
+          <div class="dash-kpi dash-kpi--blue" routerLink="/adminapp/inquiries">
+            <div class="dash-kpi__left-bar"></div>
+            <div class="dash-kpi__icon dash-kpi__icon--blue">
+              <span class="material-icons-outlined">description</span>
+            </div>
+            <div class="dash-kpi__info">
+              <span class="dash-kpi__label">Total Inquiries</span>
+              <span class="dash-kpi__value">{{ formatNumber(data()!.summary.totalInquiries) }}</span>
+            </div>
+          </div>
+
+          <div class="dash-kpi dash-kpi--green" routerLink="/adminapp/inquiries">
+            <div class="dash-kpi__left-bar"></div>
+            <div class="dash-kpi__icon dash-kpi__icon--green">
+              <span class="material-icons-outlined">check_circle</span>
+            </div>
+            <div class="dash-kpi__info">
+              <span class="dash-kpi__label">Total Completed</span>
+              <span class="dash-kpi__value">{{ formatNumber(data()!.summary.totalCompleted) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 1: Monthly Quotations + Requests by Status -->
+        <div class="dash-chart-grid">
+          <div class="dash-chart-card">
+            <div class="dash-chart-header">
+              <div class="dash-chart-header__dot dash-chart-header__dot--teal"></div>
+              <h3 class="dash-chart-title">Monthly Quotations</h3>
+            </div>
+            <div class="dash-chart-body">
+              @if (isBrowser) {
+                <div id="chart-monthly-quotations" style="width:100%;height:280px;"></div>
+              }
+            </div>
+          </div>
+          <div class="dash-chart-card">
+            <div class="dash-chart-header">
+              <div class="dash-chart-header__dot dash-chart-header__dot--blue"></div>
+              <h3 class="dash-chart-title">Service Requests by Status</h3>
+            </div>
+            <div class="dash-chart-body">
+              @if (isBrowser) {
+                <div id="chart-status-bar" style="width:100%;height:280px;"></div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 2: Location Donut + Monthly Requests -->
+        <div class="dash-chart-grid">
+          <div class="dash-chart-card">
+            <div class="dash-chart-header">
+              <div class="dash-chart-header__dot dash-chart-header__dot--purple"></div>
+              <h3 class="dash-chart-title">Service Requests by Location</h3>
+            </div>
+            <div class="dash-chart-body">
+              @if (isBrowser) {
+                <div id="chart-location-donut" style="width:100%;height:280px;"></div>
+              }
+            </div>
+          </div>
+          <div class="dash-chart-card">
+            <div class="dash-chart-header">
+              <div class="dash-chart-header__dot dash-chart-header__dot--green"></div>
+              <h3 class="dash-chart-title">Monthly Service Requests</h3>
+            </div>
+            <div class="dash-chart-body">
+              @if (isBrowser) {
+                <div id="chart-monthly-requests" style="width:100%;height:280px;"></div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 3: Quotation Conversion + Performance -->
+        <div class="dash-chart-grid">
+          <div class="dash-chart-card">
+            <div class="dash-chart-header">
+              <div class="dash-chart-header__dot dash-chart-header__dot--amber"></div>
+              <h3 class="dash-chart-title">Quotation Conversion</h3>
+            </div>
+            <div class="dash-chart-body">
+              @if (isBrowser) {
+                <div id="chart-conversion" style="width:100%;height:280px;"></div>
+              }
+            </div>
+          </div>
+          <div class="dash-chart-card">
+            <div class="dash-chart-header">
+              <div class="dash-chart-header__dot dash-chart-header__dot--red"></div>
+              <h3 class="dash-chart-title">Service Request Performance</h3>
+            </div>
+            <div class="dash-chart-body">
+              @if (isBrowser) {
+                <div id="chart-performance" style="width:100%;height:280px;"></div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Inquiries -->
+        <div class="dash-inquiries-card">
+          <div class="dash-inquiries-header">
+            <div class="dash-inquiries-header__left">
+              <div class="dash-chart-header__dot dash-chart-header__dot--teal"></div>
+              <h3 class="dash-chart-title">Latest Inquiries</h3>
+            </div>
+            <a routerLink="/adminapp/inquiries" class="dash-view-all">View All <span class="material-icons-outlined" style="font-size:16px;vertical-align:middle">arrow_forward</span></a>
+          </div>
+
+          @if (data()!.latestInquiries.length === 0) {
+            <div class="dash-empty">
+              <span class="material-icons-outlined">inbox</span>
+              <p>No recent inquiries found.</p>
+            </div>
+          } @else {
+            <div class="dash-table-wrapper">
+              <table class="dash-table">
+                <thead>
+                  <tr>
+                    <th>Request No.</th>
+                    <th>Customer</th>
+                    <th>Service</th>
+                    <th>Location</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (inquiry of data()!.latestInquiries; track inquiry._id) {
+                    <tr>
+                      <td class="dash-td-bold">{{ inquiry.inquiryNo }}</td>
+                      <td>{{ inquiry.customerName }}</td>
+                      <td>{{ inquiry.pestTypes.length ? inquiry.pestTypes[0] : '-' }}</td>
+                      <td>{{ inquiry.serviceLocation || '-' }}</td>
+                      <td>{{ formatDate(inquiry.createdAt) }}</td>
+                      <td>
+                        <span class="dash-status-badge" [style.background]="getStageColor(inquiry.currentStageCode) + '18'" [style.color]="getStageColor(inquiry.currentStageCode)">
+                          {{ getStageLabel(inquiry.currentStageCode) }}
+                        </span>
+                      </td>
+                      <td>
+                        <a [routerLink]="['/adminapp/inquiries', inquiry._id]" class="dash-view-btn">View</a>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (mobileMenuOpen) {
+    <div class="admin-dashboard__overlay" (click)="closeMobileMenu()"></div>
+  }
+</div>

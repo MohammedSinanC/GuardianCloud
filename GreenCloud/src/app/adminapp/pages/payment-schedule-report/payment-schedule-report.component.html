@@ -1,0 +1,276 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+
+    <div class="psr-container">
+      <!-- Header -->
+      <div class="psr-header">
+        <div>
+          <h1>Payment Schedule Report</h1>
+          <p class="psr-header__sub">Monitor all upcoming, due, overdue and paid payments</p>
+        </div>
+        <button class="psr-btn psr-btn--outline" (click)="loadReport()">
+          <span class="material-icons-outlined">refresh</span> Refresh
+        </button>
+      </div>
+
+      <!-- Summary Cards -->
+      @if (summary()) {
+      <div class="psr-cards">
+        <div class="psr-card psr-card--upcoming">
+          <span class="material-icons-outlined psr-card__icon">upcoming</span>
+          <div class="psr-card__body">
+            <span class="psr-card__value">{{ summary()!.upcomingCount }}</span>
+            <span class="psr-card__label">Upcoming</span>
+          </div>
+        </div>
+        <div class="psr-card psr-card--overdue">
+          <span class="material-icons-outlined psr-card__icon">warning</span>
+          <div class="psr-card__body">
+            <span class="psr-card__value">{{ summary()!.overdueCount }}</span>
+            <span class="psr-card__label">Overdue</span>
+          </div>
+        </div>
+        <div class="psr-card psr-card--today">
+          <span class="material-icons-outlined psr-card__icon">today</span>
+          <div class="psr-card__body">
+            <span class="psr-card__value">{{ summary()!.dueTodayCount }}</span>
+            <span class="psr-card__label">Due Today</span>
+          </div>
+        </div>
+        <div class="psr-card psr-card--paid">
+          <span class="material-icons-outlined psr-card__icon">check_circle</span>
+          <div class="psr-card__body">
+            <span class="psr-card__value">{{ summary()!.paidCount }}</span>
+            <span class="psr-card__label">Paid</span>
+          </div>
+        </div>
+        <div class="psr-card psr-card--amount">
+          <span class="material-icons-outlined psr-card__icon">account_balance_wallet</span>
+          <div class="psr-card__body">
+            <span class="psr-card__value">{{ formatCurrency(summary()!.totalDueAmount) }}</span>
+            <span class="psr-card__label">Total Due</span>
+          </div>
+        </div>
+        <div class="psr-card psr-card--total">
+          <span class="material-icons-outlined psr-card__icon">payments</span>
+          <div class="psr-card__body">
+            <span class="psr-card__value">{{ summary()!.totalPayments }}</span>
+            <span class="psr-card__label">Total Payments</span>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Filters -->
+      <div class="psr-filters">
+        <div class="psr-filters__row">
+          <div class="psr-filter">
+            <label>Search</label>
+            <input type="text" placeholder="Search inquiry, customer..." [(ngModel)]="filterSearch" (keyup.enter)="applyFilters()" />
+          </div>
+          <div class="psr-filter">
+            <label>Date From</label>
+            <input type="date" [(ngModel)]="filterDateFrom" />
+          </div>
+          <div class="psr-filter">
+            <label>Date To</label>
+            <input type="date" [(ngModel)]="filterDateTo" />
+          </div>
+          <div class="psr-filter">
+            <label>Status</label>
+            <select [(ngModel)]="filterStatus">
+              <option value="">All</option>
+              <option value="PENDING">Upcoming</option>
+              <option value="OVERDUE">Overdue</option>
+              <option value="PAID">Paid</option>
+            </select>
+          </div>
+          <div class="psr-filter">
+            <label>Payment Type</label>
+            <select [(ngModel)]="filterPaymentType">
+              <option value="">All</option>
+              <option value="ONE_TIME">One Time</option>
+              <option value="MONTHLY">Monthly</option>
+              <option value="QUARTERLY">Quarterly</option>
+              <option value="YEARLY">Yearly</option>
+              <option value="HALF_YEARLY">Half Yearly</option>
+            </select>
+          </div>
+          <div class="psr-filter psr-filter--actions">
+            <button class="psr-btn psr-btn--primary" (click)="applyFilters()">Apply</button>
+            <button class="psr-btn psr-btn--outline" (click)="resetFilters()">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      @if (loading()) {
+      <div class="psr-loading">
+        <div class="psr-spinner"></div>
+        Loading payment schedule...
+      </div>
+      }
+
+      @if (!loading()) {
+      <!-- Main Content: Calendar + Lists -->
+      <div class="psr-main">
+        <!-- Calendar -->
+        <div class="psr-calendar">
+          <div class="psr-cal-header">
+            <button class="psr-cal-nav" (click)="prevMonth()"><span class="material-icons-outlined">chevron_left</span></button>
+            <h3>{{ monthNames[currentMonth()] }} {{ currentYear() }}</h3>
+            <button class="psr-cal-nav" (click)="nextMonth()"><span class="material-icons-outlined">chevron_right</span></button>
+            <button class="psr-btn psr-btn--sm" (click)="goToToday()">Today</button>
+          </div>
+
+          <div class="psr-cal-grid">
+            @for (d of dayNames; track d) {
+            <div class="psr-cal-dayname">{{ d }}</div>
+            }
+            @for (day of calendarDays(); track $index) {
+            <div class="psr-cal-day" [class.other-month]="!day.isCurrentMonth" [class.today]="day.isToday"
+              [class.has-payments]="day.payments.length > 0" (click)="onDayClick(day)">
+              <span class="psr-cal-day__num">{{ day.dayNum }}</span>
+              @if (day.payments.length > 0) {
+              <div class="psr-cal-day__indicator">
+                @if (hasStatus(day.payments, 'OVERDUE')) {
+                <span class="psr-dot psr-dot--overdue"></span>
+                } @else if (hasStatus(day.payments, 'DUE_TODAY')) {
+                <span class="psr-dot psr-dot--today"></span>
+                } @else if (hasStatus(day.payments, 'PAID')) {
+                <span class="psr-dot psr-dot--paid"></span>
+                } @else {
+                <span class="psr-dot psr-dot--upcoming"></span>
+                }
+                <span class="psr-cal-day__count">{{ day.payments.length }} payment{{ day.payments.length > 1 ? 's' : '' }}</span>
+              </div>
+              }
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Side Lists -->
+        <div class="psr-lists">
+          <!-- Due Today -->
+          @if (summary() && summary()!.dueTodayCount > 0) {
+          <div class="psr-list-section psr-list-section--today">
+            <h3><span class="material-icons-outlined">today</span> Due Today ({{ summary()!.dueTodayCount }})</h3>
+            <div class="psr-list-table-wrap">
+              <table class="psr-table">
+                <thead>
+                  <tr><th>Inquiry</th><th>Amount</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  @for (p of getDueTodayPayments(); track p._id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/adminapp/inquiries', getInquiryId(p)]" class="psr-link">{{ getInquiryName(p) }}</a>
+                      <span class="psr-sub">{{ getInquiryNo(p) }}</span>
+                    </td>
+                    <td class="psr-amount">{{ formatCurrency(p.total || p.amount) }}</td>
+                    <td><span class="psr-badge" [class]="getStatusClass('DUE_TODAY')">Due Today</span></td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          }
+
+          <!-- Overdue -->
+          @if (summary() && summary()!.overdueCount > 0) {
+          <div class="psr-list-section psr-list-section--overdue">
+            <h3><span class="material-icons-outlined">warning</span> Overdue ({{ summary()!.overdueCount }})</h3>
+            <div class="psr-list-table-wrap">
+              <table class="psr-table">
+                <thead>
+                  <tr><th>Inquiry</th><th>Due Date</th><th>Amount</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  @for (p of getOverduePayments(); track p._id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/adminapp/inquiries', getInquiryId(p)]" class="psr-link">{{ getInquiryName(p) }}</a>
+                      <span class="psr-sub">{{ getInquiryNo(p) }}</span>
+                    </td>
+                    <td>{{ formatDate(p.dueDate) }}</td>
+                    <td class="psr-amount">{{ formatCurrency(p.total || p.amount) }}</td>
+                    <td><span class="psr-badge psr-status--overdue">Overdue</span></td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+          }
+
+          <!-- Upcoming -->
+          <div class="psr-list-section psr-list-section--upcoming">
+            <h3><span class="material-icons-outlined">upcoming</span> Upcoming Payments ({{ summary()?.upcomingCount || 0 }})</h3>
+            <div class="psr-list-table-wrap">
+              @if ((summary()?.upcomingCount || 0) === 0) {
+              <div class="psr-empty">No upcoming payments.</div>
+              } @else {
+              <table class="psr-table">
+                <thead>
+                  <tr><th>Inquiry</th><th>Due Date</th><th>Amount</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  @for (p of getUpcomingPayments(); track p._id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/adminapp/inquiries', getInquiryId(p)]" class="psr-link">{{ getInquiryName(p) }}</a>
+                      <span class="psr-sub">{{ getInquiryNo(p) }}</span>
+                    </td>
+                    <td>{{ formatDate(p.dueDate) }}</td>
+                    <td class="psr-amount">{{ formatCurrency(p.total || p.amount) }}</td>
+                    <td><span class="psr-badge psr-status--upcoming">Upcoming</span></td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Day Detail Modal -->
+      @if (showDayDetail()) {
+      <div class="psr-overlay" (click)="closeDayDetail()">
+        <div class="psr-modal" (click)="$event.stopPropagation()">
+          <div class="psr-modal__header">
+            <h3>Payments on {{ formatDate(selectedDayPayments()[0].dueDate) }}</h3>
+            <button class="psr-modal__close" (click)="closeDayDetail()"><span class="material-icons-outlined">close</span></button>
+          </div>
+          <div class="psr-modal__body">
+            <table class="psr-table">
+              <thead>
+                <tr><th>Inquiry</th><th>Payment #</th><th>Amount</th><th>VAT</th><th>Total</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                @for (p of selectedDayPayments(); track p._id) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/adminapp/inquiries', getInquiryId(p)]" class="psr-link" (click)="closeDayDetail()">{{ getInquiryName(p) }}</a>
+                    <span class="psr-sub">{{ p.paymentTypeName }}</span>
+                  </td>
+                  <td>Payment {{ p.paymentNo }}</td>
+                  <td>{{ formatCurrency(p.amount) }}</td>
+                  <td>{{ formatCurrency(p.vat || 0) }}</td>
+                  <td class="psr-amount">{{ formatCurrency(p.total || p.amount) }}</td>
+                  <td><span class="psr-badge" [class]="getStatusClass(p.effectiveStatus)">{{ getStatusLabel(p.effectiveStatus) }}</span></td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+</div>

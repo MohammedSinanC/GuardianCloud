@@ -1,0 +1,211 @@
+<div class="wf-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+
+  <div class="wf-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+
+    <div class="wf-page">
+      <!-- Toolbar -->
+      <div class="wf-toolbar">
+        <div class="wf-toolbar__left">
+          <h1 class="wf-toolbar__title">
+            <span class="material-icons-outlined">account_tree</span>
+            Workflow Diagram
+          </h1>
+          <span class="wf-toolbar__badge">PEST_CONTROL</span>
+        </div>
+        <div class="wf-toolbar__center">
+          <div class="wf-search">
+            <span class="material-icons-outlined">search</span>
+            <input type="text" placeholder="Load Inquiry ID…"
+              [value]="currentInquiryId()"
+              (input)="currentInquiryId.set($any($event.target).value)"
+              (keydown.enter)="loadInquiry(currentInquiryId())" />
+          </div>
+        </div>
+        <div class="wf-toolbar__right">
+          <button class="wf-ico-btn" (click)="zoomOut()"><span class="material-icons-outlined">remove</span></button>
+          <span class="wf-zoom-val">{{ (zoom * 100) | number:'1.0-0' }}%</span>
+          <button class="wf-ico-btn" (click)="zoomIn()"><span class="material-icons-outlined">add</span></button>
+          <button class="wf-ico-btn" (click)="zoomReset()"><span class="material-icons-outlined">fit_screen</span></button>
+
+        </div>
+      </div>
+
+      <!-- Current stage bar -->
+      @if (currentStageCode() && currentActions().length > 0) {
+        <div class="wf-stage-bar">
+          <span class="material-icons-outlined">play_circle</span>
+          Current: <strong>{{ currentStageCode() }}</strong>
+          <div class="wf-stage-bar__chips">
+            @for (a of currentActions(); track a.actionCode) {
+              <span class="wf-bar-chip" [style.background]="getActionColor(a.buttonColor)">{{ a.actionName }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Loading -->
+      @if (loading()) {
+        <div class="wf-loading"><div class="wf-spinner"></div>Loading workflow…</div>
+      }
+
+      <!-- ===== CANVAS ===== -->
+      @if (!loading()) {
+        <div class="wf-canvas-wrap"
+          (mousedown)="onCanvasMouseDown($event)"
+          (wheel)="onCanvasWheel($event)">
+
+          <div class="wf-canvas" [style.transform]="transform" [style.width.px]="canvasW" [style.height.px]="canvasH">
+
+            <!-- Phase bands -->
+            @for (band of phaseBands(); track band.key) {
+              <div class="wf-band" [style.left.px]="band.x" [style.top.px]="band.y"
+                [style.width.px]="band.w" [style.height.px]="band.h"
+                [style.background]="band.bg" [style.border-color]="band.color">
+                <span class="wf-band__label" [style.color]="band.color">{{ band.label }}</span>
+              </div>
+            }
+
+            <!-- SVG arrows -->
+            <svg class="wf-svg" [attr.width]="canvasW" [attr.height]="canvasH">
+              <defs>
+                <marker id="ah" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                  <polygon points="0 0, 10 4, 0 8" fill="#94a3b8" />
+                </marker>
+                <marker id="ah-r" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                  <polygon points="0 0, 10 4, 0 8" fill="#dc2626" />
+                </marker>
+              </defs>
+              @for (arrow of arrows(); track $index) {
+                <line [attr.x1]="arrow.x1" [attr.y1]="arrow.y1"
+                  [attr.x2]="arrow.x2" [attr.y2]="arrow.y2"
+                  [attr.stroke]="arrow.color" stroke-width="2"
+                  [attr.stroke-dasharray]="arrow.dashed ? '6,4' : 'none'"
+                  [attr.marker-end]="arrow.dashed ? 'url(#ah-r)' : 'url(#ah)'" />
+                @if (arrow.label) {
+                  <text [attr.x]="arrow.midX" [attr.y]="arrow.midY"
+                    [attr.fill]="arrow.color" font-size="9" font-weight="600"
+                    text-anchor="middle" font-family="Inter,sans-serif">
+                    {{ arrow.label }}
+                  </text>
+                }
+              }
+            </svg>
+
+            <!-- Nodes -->
+            @for (node of nodePositions(); track node.stageCode) {
+              <div class="er-node"
+                [class.er-node--current]="isCurrent(node.stageCode)"
+                [class.er-node--passed]="isPassed(node.stageCode)"
+                [style.left.px]="node.x" [style.top.px]="node.y"
+                [style.width.px]="node.w">
+
+                <!-- Number -->
+                <div class="er-node__num" [style.background]="node.color">{{ ($index + 1) }}</div>
+
+                <!-- Body -->
+                <div class="er-node__body"
+                  [class.er-node__body--circle]="node.shape === 'circle'"
+                  [class.er-node__body--oval]="node.shape === 'oval'"
+                  [style.border-color]="node.border" [style.background]="node.bg">
+
+                  @if (isCurrent(node.stageCode)) {
+                    <div class="er-node__pulse"></div>
+                  }
+
+                  <span class="er-node__name">{{ allStages()[$index]?.stageName }}</span>
+
+                  @if (getNodeTag(allStages()[$index])) {
+                    <span class="er-node__tag" [class]="getNodeTagClass(allStages()[$index])">
+                      {{ getNodeTag(allStages()[$index]) }}
+                    </span>
+                  }
+                </div>
+
+
+
+                <!-- Action chips -->
+                @if (allStages()[$index]?.actions && allStages()[$index]!.actions!.length > 0) {
+                  <div class="er-node__chips">
+                    @for (action of allStages()[$index]!.actions!; track action.actionCode) {
+                      <span class="er-chip"
+                        [class.er-chip--on]="isCurrent(node.stageCode)"
+                        [style.--c]="getActionColor(action.buttonColor)"
+                        [title]="action.actionName + ' → ' + (action.nextStageCode || '')">
+                        {{ action.actionName }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (mobileMenuOpen) {
+    <div class="wf-overlay-bg" (click)="closeMobileMenu()"></div>
+  }
+</div>
+
+<!-- ===== DIALOGS ===== -->
+@if (showDialog()) {
+  <div class="wf-overlay" (click)="closeDialog()">
+    <div class="wf-dialog" (click)="$event.stopPropagation()">
+      <div class="wf-dialog__hdr">
+        <span class="material-icons-outlined">{{ dialogType() === 'stage' ? 'dns' : 'link' }}</span>
+        <h3>{{ dialogMode() === 'add' ? 'Add' : 'Edit' }} {{ dialogType() === 'stage' ? 'Stage' : 'Action' }}</h3>
+        <button class="wf-dialog__x" (click)="closeDialog()"><span class="material-icons-outlined">close</span></button>
+      </div>
+      <div class="wf-dialog__bd">
+        @if (dialogType() === 'stage') {
+          <div class="wf-fg">
+            <div class="wf-fg__col"><label>Stage Code *</label><input class="wf-fi" [(ngModel)]="formStageCode" placeholder="e.g. UNDER_REVIEW" [disabled]="dialogMode()==='edit'" /></div>
+            <div class="wf-fg__col"><label>Stage Name *</label><input class="wf-fi" [(ngModel)]="formStageName" placeholder="e.g. Under Review" /></div>
+            <div class="wf-fg__col"><label>Stage Type</label><select class="wf-fi" [(ngModel)]="formStageType"><option value="normal">Normal</option><option value="terminal">Terminal</option><option value="reject">Rejected</option><option value="hold">On Hold</option></select></div>
+            <div class="wf-fg__col"><label>Description</label><input class="wf-fi" [(ngModel)]="formDescription" placeholder="Brief description" /></div>
+          </div>
+          <div class="wf-checks"><label class="wf-chk"><input type="checkbox" [(ngModel)]="formIsInitial" /> Initial</label><label class="wf-chk"><input type="checkbox" [(ngModel)]="formIsFinal" /> Final</label></div>
+        }
+        @if (dialogType() === 'action') {
+          <div class="wf-fg">
+            <div class="wf-fg__col"><label>From Stage *</label><select class="wf-fi" [(ngModel)]="formActionStageCode">@for (s of allStages(); track s.stageCode) {<option [value]="s.stageCode">{{ s.stageName }}</option>}</select></div>
+            <div class="wf-fg__col"><label>Action Code *</label><input class="wf-fi" [(ngModel)]="formActionCode" placeholder="e.g. APPROVE" /></div>
+            <div class="wf-fg__col"><label>Action Name *</label><input class="wf-fi" [(ngModel)]="formActionName" placeholder="e.g. Approve" /></div>
+            <div class="wf-fg__col"><label>Next Stage</label><select class="wf-fi" [(ngModel)]="formNextStageCode"><option value="">— None —</option>@for (s of allStages(); track s.stageCode) {<option [value]="s.stageCode">{{ s.stageName }}</option>}</select></div>
+            <div class="wf-fg__col"><label>Reject Stage</label><select class="wf-fi" [(ngModel)]="formRejectStageCode"><option value="">— None —</option>@for (s of allStages(); track s.stageCode) {<option [value]="s.stageCode">{{ s.stageName }}</option>}</select></div>
+            <div class="wf-fg__col"><label>Button Color</label><select class="wf-fi" [(ngModel)]="formButtonColor"><option value="primary">Primary</option><option value="success">Success</option><option value="danger">Danger</option><option value="warning">Warning</option><option value="info">Info</option></select></div>
+            <div class="wf-fg__col"><label>Mail Recipients</label><input class="wf-fi" [(ngModel)]="formMailRecipients" placeholder="e.g. CUSTOMER" /></div>
+          </div>
+          <div class="wf-checks"><label class="wf-chk"><input type="checkbox" [(ngModel)]="formRequiresComment" /> Requires Comment</label><label class="wf-chk"><input type="checkbox" [(ngModel)]="formMailRequired" /> Send Email</label></div>
+        }
+      </div>
+      <div class="wf-dialog__ft">
+        <button class="wf-btn-ghost" (click)="closeDialog()">Cancel</button>
+        <button class="wf-btn-primary" (click)="dialogType() === 'stage' ? saveStage() : saveAction()">
+          {{ dialogMode() === 'add' ? 'Create' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDeleteConfirm()) {
+  <div class="wf-overlay" (click)="cancelDelete()">
+    <div class="wf-dialog wf-dialog--sm" (click)="$event.stopPropagation()">
+      <div class="wf-dialog__hdr wf-dialog__hdr--red"><span class="material-icons-outlined">warning</span><h3>Delete {{ deleteTarget()?.type }}</h3><button class="wf-dialog__x" (click)="cancelDelete()"><span class="material-icons-outlined">close</span></button></div>
+      <div class="wf-dialog__bd"><p style="color:#475569;font-size:14px">Delete <strong>{{ deleteTarget()?.name }}</strong>? This cannot be undone.</p></div>
+      <div class="wf-dialog__ft"><button class="wf-btn-ghost" (click)="cancelDelete()">Cancel</button><button class="wf-btn-danger" (click)="executeDelete()">Delete</button></div>
+    </div>
+  </div>
+}
+
+@if (toastMessage) {
+  <div class="wf-toast" [class.wf-toast--ok]="toastType==='success'" [class.wf-toast--err]="toastType==='error'" [class.wf-toast--info]="toastType==='info'">
+    <span class="material-icons-outlined">{{ toastType==='success' ? 'check_circle' : toastType==='error' ? 'error' : 'info' }}</span>
+    {{ toastMessage }}
+  </div>
+}

@@ -1,0 +1,51 @@
+<!-- Services Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <span class="badge">Our Services</span>
+    <h1>Professional <span class="text-gradient">Hygiene Solutions</span></h1>
+    <p>Comprehensive range of hygiene, pest control, cleaning, and facility management services across the UAE.</p>
+  </div>
+</section>
+
+<!-- Services List -->
+<section class="section">
+  <div class="container">
+    <!-- Category Filter -->
+    <div class="services-filters">
+      @for (cat of categories(); track cat.id) {
+        <button
+          class="services-filter"
+          [class.services-filter--active]="activeCategory() === cat.id"
+          (click)="setCategory(cat.id)"
+        >
+          {{ cat.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Services Grid -->
+    <div class="services-grid">
+      @for (service of filteredServices(); track service.id) {
+        <app-service-card [service]="service" />
+      }
+    </div>
+
+    @if (filteredServices().length === 0) {
+      <div class="services-empty">
+        <p>No services found in this category.</p>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="services-cta">
+  <div class="container services-cta__inner">
+    <h2>Can't Find What You Need?</h2>
+    <p>Contact us for customized solutions tailored to your specific requirements.</p>
+    <a routerLink="/contact" class="btn btn--primary btn--lg">
+      Contact Us
+      <span class="material-icons-outlined">arrow_forward</span>
+    </a>
+  </div>
+</section>

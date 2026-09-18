@@ -1,0 +1,23 @@
+<div class="wf-conn" [class.wf-conn--right]="direction === 'right'" [class.wf-conn--reject]="type === 'reject'">
+  @if (direction === 'down') {
+    <div class="wf-conn__vert">
+      <svg width="24" height="40" viewBox="0 0 24 40">
+        <line x1="12" y1="0" x2="12" y2="32" [attr.stroke]="color" stroke-width="2" stroke-dasharray="6,3" />
+        <polygon points="6,30 18,30 12,38" [attr.fill]="color" />
+      </svg>
+    </div>
+  }
+
+  @if (direction === 'right') {
+    <div class="wf-conn__horiz">
+      <svg width="60" height="24" viewBox="0 0 60 24">
+        <line x1="0" y1="12" x2="50" y2="12" [attr.stroke]="color" stroke-width="2" stroke-dasharray="6,3" />
+        <polygon points="48,6 58,12 48,18" [attr.fill]="color" />
+      </svg>
+    </div>
+  }
+
+  @if (label) {
+    <span class="wf-conn__label" [style.color]="color">{{ label }}</span>
+  }
+</div>

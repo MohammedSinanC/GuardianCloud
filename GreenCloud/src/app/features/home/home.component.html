@@ -1,0 +1,319 @@
+<!-- ==================== HERO SECTION ==================== -->
+<section class="hero">
+  <div class="hero__bg-shapes">
+    <div class="hero__shape hero__shape--1"></div>
+    <div class="hero__shape hero__shape--2"></div>
+    <div class="hero__shape hero__shape--3"></div>
+  </div>
+  <div class="hero__inner container">
+    <div class="hero__content">
+      @if (hero()) {
+        <span class="badge hero__badge">{{ hero()!.badge }}</span>
+        <h1 class="hero__title">
+          {{ hero()!.titleLine1 }}<br />
+          <span class="text-gradient">{{ hero()!.titleLine2 }}</span><br />
+          {{ hero()!.titleLine3 }}
+        </h1>
+        <p class="hero__desc">{{ hero()!.description }}</p>
+        <div class="hero__actions">
+          <a [routerLink]="hero()!.primaryRoute" class="btn btn--primary btn--lg">
+            {{ hero()!.primaryButton }}
+            <span class="material-icons-outlined">arrow_forward</span>
+          </a>
+          <a [routerLink]="hero()!.secondaryRoute" class="btn btn--secondary btn--lg">
+            {{ hero()!.secondaryButton }}
+          </a>
+        </div>
+      }
+    </div>
+
+    <div class="hero__visual">
+      <div class="hero__image-wrap">
+        <img
+          [src]="hero()?.image || '/assets/images/hero/hero-main.jpg'"
+          alt="Al Waha Hygiene - Professional Hygiene Solutions"
+          class="hero__image"
+          width="600"
+          height="500"
+        />
+        <div class="hero__image-overlay"></div>
+      </div>
+      @if (hero()?.floatingCard) {
+        <div class="hero__floating-card">
+          <span class="material-icons-outlined hero__floating-icon">
+            {{ hero()!.floatingCard.icon }}
+          </span>
+          <div>
+            <div class="hero__floating-title">{{ hero()!.floatingCard.title }}</div>
+            <div class="hero__floating-subtitle">{{ hero()!.floatingCard.subtitle }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TRUST SECTION ==================== -->
+<section class="home-trust">
+  <div class="container">
+    <div class="home-trust__grid reveal">
+      @for (item of trust(); track item.title) {
+        <div class="home-trust__item">
+          <span class="material-icons-outlined home-trust__icon">{{ item.icon }}</span>
+          <div class="home-trust__text">
+            <div class="home-trust__title">{{ item.title }}</div>
+            <div class="home-trust__desc">{{ item.description }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SERVICES SECTION ==================== -->
+<section class="home-services section">
+  <div class="container">
+    <div class="reveal">
+      <app-section-heading
+        badge="What We Offer"
+        title="Our Professional Services"
+        description="Comprehensive hygiene, pest control, cleaning, and facility management solutions for homes and businesses."
+      />
+    </div>
+    <div class="home-services__grid reveal">
+      @for (service of services(); track service.id) {
+        <app-service-card [service]="service" />
+      }
+    </div>
+    <div class="home-services__cta reveal">
+      <a routerLink="/services" class="btn btn--secondary btn--lg">
+        View All Services
+        <span class="material-icons-outlined">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ABOUT SECTION ==================== -->
+<section class="home-about section">
+  <div class="container">
+    <div class="home-about__grid reveal">
+      <div class="home-about__images">
+        @if (about()) {
+          <div class="home-about__image-main">
+            <img
+              [src]="about()!.image"
+              alt="Al Waha Hygiene team"
+              loading="lazy"
+              width="500"
+              height="400"
+            />
+          </div>
+          <div class="home-about__image-secondary">
+            <img
+              [src]="about()!.secondaryImage"
+              alt="Al Waha Hygiene professionals"
+              loading="lazy"
+              width="260"
+              height="200"
+            />
+          </div>
+        }
+      </div>
+      <div class="home-about__content">
+        @if (about()) {
+          <span class="badge">{{ about()!.badge }}</span>
+          <h2 class="home-about__title">{{ about()!.title }}</h2>
+          <p class="home-about__desc">{{ about()!.description }}</p>
+          <p class="home-about__desc">{{ about()!.secondParagraph }}</p>
+          <ul class="home-about__highlights">
+            @for (highlight of about()!.highlights.slice(0, 4); track highlight) {
+              <li class="home-about__highlight">
+                <span class="material-icons-outlined">check_circle</span>
+                {{ highlight }}
+              </li>
+            }
+          </ul>
+          <a routerLink="/about" class="btn btn--primary">
+            Learn More About Us
+            <span class="material-icons-outlined">arrow_forward</span>
+          </a>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== STATISTICS SECTION ==================== -->
+<section class="home-stats section">
+  <div class="container">
+    <div class="home-stats__grid reveal">
+      @for (stat of animatedStats(); track stat.label) {
+        <app-statistic-card
+          [value]="stat.value"
+          [suffix]="stat.suffix"
+          [label]="stat.label"
+          [description]="stat.description"
+        />
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== WHY CHOOSE US ==================== -->
+<section class="home-why section">
+  <div class="container">
+    <div class="reveal">
+      <app-section-heading
+        badge="Why Choose Us"
+        title="Trusted by Thousands"
+        description="We deliver consistent quality and reliability across every service."
+      />
+    </div>
+    <div class="home-why__grid reveal">
+      @for (item of whyChooseUs(); track item.title) {
+        <div class="home-why__card">
+          <div class="home-why__card-icon">
+            <span class="material-icons-outlined">{{ item.icon }}</span>
+          </div>
+          <h4 class="home-why__card-title">{{ item.title }}</h4>
+          <p class="home-why__card-desc">{{ item.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section class="home-process section">
+  <div class="container">
+    <div class="reveal">
+      <app-section-heading
+        badge="How It Works"
+        title="Simple 4-Step Process"
+        description="Getting started with our services is easy and hassle-free."
+      />
+    </div>
+    <div class="home-process__steps reveal">
+      @for (step of processSteps(); track step.step) {
+        <div class="home-process__step">
+          <div class="home-process__number">{{ step.step }}</div>
+          <div class="home-process__icon">
+            <span class="material-icons-outlined">{{ step.icon }}</span>
+          </div>
+          <h4 class="home-process__title">{{ step.title }}</h4>
+          <p class="home-process__desc">{{ step.description }}</p>
+        </div>
+        @if (step.step < processSteps().length) {
+          <div class="home-process__arrow">
+            <span class="material-icons-outlined">arrow_forward</span>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ==================== LOCATIONS SECTION ==================== -->
+<section class="home-locations section">
+  <div class="container">
+    <div class="reveal">
+      <app-section-heading
+        badge="Our Locations"
+        title="Serving All 7 Emirates"
+        description="Visit us at any of our branches across the UAE."
+      />
+    </div>
+    <div class="home-locations__grid reveal">
+      @for (location of locations(); track location.city) {
+        <div class="home-location-mini">
+          <span class="material-icons-outlined home-location-mini__icon">location_on</span>
+          <div>
+            <div class="home-location-mini__city">{{ location.city }}</div>
+            <div class="home-location-mini__area">{{ location.area }}</div>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="home-locations__cta reveal">
+      <a routerLink="/branches" class="btn btn--secondary btn--lg">
+        View All Branches
+        <span class="material-icons-outlined">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TESTIMONIALS SECTION ==================== -->
+<section class="home-testimonials section">
+  <div class="container">
+    <div class="reveal">
+      <app-section-heading
+        badge="Testimonials"
+        title="What Our Clients Say"
+        description="Trusted by thousands of homes and businesses across the UAE."
+      />
+    </div>
+    <div class="home-testimonials__scroll reveal">
+      <div class="home-testimonials__track">
+        @for (testimonial of testimonials(); track testimonial.id) {
+          <app-testimonial-card [testimonial]="testimonial" />
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FAQ SECTION ==================== -->
+<section class="home-faq section">
+  <div class="container">
+    <div class="home-faq__grid">
+      <div class="home-faq__info reveal">
+        <span class="badge">FAQ</span>
+        <h2>Frequently Asked Questions</h2>
+        <p>Find answers to common questions about our services, pricing, and processes.</p>
+        <a routerLink="/faq" class="btn btn--primary">
+          View All FAQs
+          <span class="material-icons-outlined">arrow_forward</span>
+        </a>
+      </div>
+      <div class="home-faq__list reveal">
+        @for (item of faq().slice(0, 5); track item.question) {
+          <app-faq-item [item]="item" />
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CTA SECTION ==================== -->
+<section class="home-cta">
+  <div class="home-cta__overlay"></div>
+  <div class="container home-cta__inner">
+    <div class="home-cta__content reveal">
+      <h2 class="home-cta__title">Need Professional Hygiene Services?</h2>
+      <p class="home-cta__desc">
+        Let our experts take care of your cleaning, pest control and facility needs.
+        Contact us today for a free consultation and quote.
+      </p>
+      <div class="home-cta__actions">
+        <a routerLink="/contact" class="btn btn--white btn--lg">
+          Book a Service
+          <span class="material-icons-outlined">arrow_forward</span>
+        </a>
+        <a
+          [href]="getWhatsAppLink()"
+          target="_blank"
+          rel="noopener"
+          class="btn btn--secondary btn--lg"
+          style="border-color: rgba(255,255,255,0.4); color: white;"
+        >
+          <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
+            <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.5 1.132 6.744 3.054 9.374L1.054 31.25l6.142-1.982A15.91 15.91 0 0 0 16.004 32C24.826 32 32 24.822 32 16S24.826 0 16.004 0z"/>
+          </svg>
+          WhatsApp Us
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,28 @@
+<header class="admin-topbar">
+  <div class="admin-topbar__left">
+    <button class="admin-topbar__menu-btn" (click)="onToggle()">
+      <span class="material-icons-outlined">menu</span>
+    </button>
+    <h2 class="admin-topbar__title">Dashboard</h2>
+  </div>
+
+  <div class="admin-topbar__right">
+    <!-- User identity: circular avatar + name + role at top-right end -->
+    <div class="admin-topbar__user" [title]="getUserName()">
+      @if (getUserImage()) {
+        <img class="admin-topbar__avatar" [src]="getUserImage()" alt="Profile" />
+      } @else {
+        <div class="admin-topbar__avatar admin-topbar__avatar--default">
+          <span class="material-icons-outlined">person</span>
+        </div>
+      }
+      <div class="admin-topbar__user-info">
+        <span class="admin-topbar__user-name">{{ getUserName() }}</span>
+        <span class="admin-topbar__user-role">{{ getUserRole() }}</span>
+      </div>
+      <button class="admin-topbar__user-logout" (click)="onLogout()" title="Logout">
+        <span class="material-icons-outlined">logout</span>
+      </button>
+    </div>
+  </div>
+</header>

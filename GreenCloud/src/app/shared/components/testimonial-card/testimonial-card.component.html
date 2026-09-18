@@ -1,0 +1,21 @@
+<article class="testimonial-card">
+  <div class="testimonial-card__stars">
+    @for (star of stars; track star) {
+      <span class="material-icons-outlined testimonial-card__star">star</span>
+    }
+  </div>
+  <blockquote class="testimonial-card__text">
+    "{{ testimonial().text }}"
+  </blockquote>
+  <div class="testimonial-card__author">
+    <div class="testimonial-card__avatar">
+      {{ getInitials(testimonial().name) }}
+    </div>
+    <div class="testimonial-card__info">
+      <div class="testimonial-card__name">{{ testimonial().name }}</div>
+      <div class="testimonial-card__meta">
+        {{ testimonial().location }} · {{ testimonial().service }}
+      </div>
+    </div>
+  </div>
+</article>

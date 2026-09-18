@@ -1,0 +1,43 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+      <div class="erp-page__header">
+        <div class="erp-page__title">
+          <h1><span class="material-icons-outlined">request_quote</span> Quotations</h1>
+          <p>Quotation approval creates a work order, never an invoice.</p>
+        </div>
+      </div>
+      <div class="erp-filters">
+        <input class="erp-search" placeholder="Search quotation" [(ngModel)]="search" (keyup.enter)="filter()" />
+        <select class="erp-select" [(ngModel)]="status" (ngModelChange)="filter()">
+          <option value="">All statuses</option><option>DRAFT</option><option>PENDING_APPROVAL</option>
+          <option>SENT</option><option>APPROVED</option><option>REJECTED</option>
+        </select>
+        <button class="erp-btn erp-btn--primary" (click)="filter()">Filter</button>
+      </div>
+      @if (loading()) { <div class="erp-loading">Loading quotations...</div> }
+      @else if (quotations().length === 0) { <div class="erp-empty"><p>No quotations found.</p></div> }
+      @else {
+        <div class="erp-table-card erp-table-card--flush">
+          <table class="erp-table">
+            <thead><tr><th>Quotation No</th><th>Customer</th><th>Location</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              @for (quotation of quotations(); track quotation._id || $index) {
+                <tr>
+                  <td class="erp-doc-no">{{ quotation.quotationNo || '-' }}</td>
+                  <td>{{ customerName(quotation) }}</td>
+                  <td>{{ serviceLocation(quotation) }}</td>
+                  <td class="erp-money">{{ money(quotation.totalAmount) }} {{ quotation.currency || 'AED' }}</td>
+                  <td><span class="erp-badge">{{ quotation.status || 'DRAFT' }}</span></td>
+                  <td><a class="erp-icon-btn" [routerLink]="['/adminapp/quotation', quotation._id]" title="View quotation"><span class="material-icons-outlined">visibility</span></a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>

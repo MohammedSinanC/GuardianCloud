@@ -1,0 +1,60 @@
+<aside class="admin-sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="mobileOpen()">
+  <div class="admin-sidebar__header">
+    <div class="admin-sidebar__brand">
+      <span class="material-icons-outlined admin-sidebar__logo-icon">eco</span>
+      <span class="admin-sidebar__logo-text">GreenCloud Admin</span>
+    </div>
+    <button class="admin-sidebar__close" (click)="onClose()">
+      <span class="material-icons-outlined">close</span>
+    </button>
+  </div>
+
+  <nav class="admin-sidebar__nav">
+    @if (loading()) {
+    <div class="admin-sidebar__loading">
+      <span class="material-icons-outlined admin-sidebar__loading-icon">sync</span>
+    </div>
+    } @else {
+    @for (item of menuItems(); track item.key) {
+    @if (hasChildren(item)) {
+    <!-- Group with children -->
+    <div class="admin-sidebar__group">
+      <button class="admin-sidebar__link admin-sidebar__group-toggle" [class.expanded]="isExpanded(item)"
+        [class.group-active]="isGroupActive(item)" (click)="toggleGroup(item)">
+        <span class="material-icons-outlined admin-sidebar__link-icon">{{ item.icon }}</span>
+        <span class="admin-sidebar__link-label">{{ item.label }}</span>
+        <span class="admin-sidebar__group-badge">{{ item.children?.length ?? 0 }}</span>
+        <span class="material-icons-outlined admin-sidebar__chevron">expand_more</span>
+      </button>
+      @if (isExpanded(item)) {
+      <div class="admin-sidebar__children">
+        @for (child of item.children; track child.key) {
+        <a class="admin-sidebar__child" [class.active]="isActive(routeOf(child))" [href]="routeOf(child) || '#'"
+          (click)="navigate($event, routeOf(child))">
+          <span class="admin-sidebar__child-dot"></span>
+          <span class="material-icons-outlined admin-sidebar__child-icon">{{ child.icon }}</span>
+          <span class="admin-sidebar__child-label">{{ child.label }}</span>
+        </a>
+        }
+      </div>
+      }
+    </div>
+    } @else {
+    <!-- Direct screen -->
+    <a class="admin-sidebar__link" [class.active]="isActive(routeOf(item))" [href]="routeOf(item) || '#'"
+      (click)="navigate($event, routeOf(item))">
+      <span class="material-icons-outlined admin-sidebar__link-icon">{{ item.icon }}</span>
+      <span class="admin-sidebar__link-label">{{ item.label }}</span>
+    </a>
+    }
+    }
+    }
+  </nav>
+
+  <div class="admin-sidebar__footer">
+    <button class="admin-sidebar__logout" (click)="onLogout()">
+      <span class="material-icons-outlined admin-sidebar__link-icon">logout</span>
+      <span class="admin-sidebar__link-label">Logout</span>
+    </button>
+  </div>
+</aside>

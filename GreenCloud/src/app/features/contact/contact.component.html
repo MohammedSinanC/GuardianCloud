@@ -1,0 +1,98 @@
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <span class="badge">Contact Us</span>
+    <h1>Get in <span class="text-gradient">Touch</span></h1>
+    <p>We'd love to hear from you. Contact us for any inquiries or to book a service.</p>
+  </div>
+</section>
+
+<!-- Contact Content -->
+<section class="section">
+  <div class="container">
+    <div class="contact-grid">
+      <!-- Contact Info -->
+      <div class="contact-info">
+        <h2>Contact Information</h2>
+        <p class="contact-info__subtitle">Reach out to us through any of the following channels.</p>
+
+        <div class="contact-info__items">
+          <div class="contact-info__item">
+            <div class="contact-info__icon">
+              <span class="material-icons-outlined">phone</span>
+            </div>
+            <div>
+              <div class="contact-info__label">Phone</div>
+              <a [href]="'tel:' + company()?.phone">{{ company()?.phone }}</a>
+            </div>
+          </div>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon contact-info__icon--whatsapp">
+              <svg viewBox="0 0 32 32" fill="white" width="22" height="22">
+                <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.5 1.132 6.744 3.054 9.374L1.054 31.25l6.142-1.982A15.91 15.91 0 0 0 16.004 32C24.826 32 32 24.822 32 16S24.826 0 16.004 0z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="contact-info__label">WhatsApp</div>
+              <a
+                [href]="getWhatsAppLink()"
+                target="_blank"
+                rel="noopener"
+              >{{ company()?.whatsapp }}</a>
+            </div>
+          </div>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon">
+              <span class="material-icons-outlined">email</span>
+            </div>
+            <div>
+              <div class="contact-info__label">Email</div>
+              <a [href]="'mailto:' + company()?.email">{{ company()?.email }}</a>
+            </div>
+          </div>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon">
+              <span class="material-icons-outlined">location_on</span>
+            </div>
+            <div>
+              <div class="contact-info__label">Address</div>
+              <span>{{ company()?.address }}</span>
+            </div>
+          </div>
+
+          <div class="contact-info__item">
+            <div class="contact-info__icon">
+              <span class="material-icons-outlined">schedule</span>
+            </div>
+            <div>
+              <div class="contact-info__label">Working Hours</div>
+              <span>{{ company()?.workingHours }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Branch Links -->
+        <div class="contact-branches">
+          <h4>Our Branches</h4>
+          @for (loc of locations(); track loc.city) {
+            <div class="contact-branch">
+              <span class="material-icons-outlined">location_on</span>
+              <span>{{ loc.city }} - {{ loc.area }}</span>
+              <a [href]="'tel:' + loc.phone" class="contact-branch__phone">{{ loc.phone }}</a>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="contact-form-area">
+        <h2>Send Us a Message</h2>
+        <p>Fill out the form below and we'll get back to you promptly.</p>
+        <app-contact-form />
+      </div>
+    </div>
+  </div>
+</section>

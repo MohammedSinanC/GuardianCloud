@@ -1,0 +1,45 @@
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <span class="badge">Our Locations</span>
+    <h1>Serving All <span class="text-gradient">7 Emirates</span></h1>
+    <p>Find Al Waha Hygiene branches across the UAE. Visit us for professional hygiene solutions.</p>
+  </div>
+</section>
+
+<!-- Branches -->
+<section class="section">
+  <div class="container">
+    <div class="reveal">
+      <app-section-heading
+        badge="Our Branches"
+        title="Visit Us Anywhere in the UAE"
+        description="We have branches in major cities across all Emirates to serve you better."
+      />
+    </div>
+    <div class="branches-grid reveal">
+      @for (location of locations(); track location.city) {
+        <app-location-card [location]="location" />
+      }
+    </div>
+
+    <!-- UAE-wide coverage -->
+    <div class="branches-coverage reveal">
+      <div class="branches-coverage__inner">
+        <span class="material-icons-outlined branches-coverage__icon">public</span>
+        <h3>UAE-Wide Coverage</h3>
+        <p>
+          In addition to our branches, we provide services across all 7 Emirates.
+          Contact us for service availability in your area.
+        </p>
+        <a
+          [href]="'tel:' + company()?.phone"
+          class="btn btn--white btn--lg"
+        >
+          <span class="material-icons-outlined">phone</span>
+          {{ company()?.phone }}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

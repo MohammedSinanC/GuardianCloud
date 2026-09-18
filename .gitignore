@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+.angular/
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
+
+# Scratch / local test artifacts
+login.json
+dash.json
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.freebuff/
+
+# Local backup of old nested frontend repo
+GreenCloud/.git.bak/

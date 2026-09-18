@@ -1,0 +1,327 @@
+<div class="admin-layout">
+  <app-admin-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="erp-page">
+
+      @if (loading()) {
+      <div class="erp-loading">Loading lead...</div>
+      }
+
+      @if (!loading() && error() && !isEditing()) {
+      <div class="erp-error-box">
+        <span class="material-icons-outlined">error_outline</span> {{ error() }}
+        <a routerLink="/adminapp/leads" class="erp-btn erp-btn--ghost erp-btn--sm">Back to Leads</a>
+      </div>
+      }
+
+      @if (!loading() && (lead() || isNew())) {
+      <!-- ===== Header ===== -->
+      <div class="erp-page__header">
+        <div class="erp-page__title">
+          <h1>
+            <span class="material-icons-outlined">schedule</span>
+            {{ isNew() ? 'New Lead' : 'Lead ' + lead()?.leadNo }}
+            @if (!isNew()) {
+            <span [class]="statusClass(lead()?.status)">{{ statusLabel() }}</span>
+            }
+          </h1>
+          @if (!isNew() && lead()?.source) {
+          <p>Source: {{ sourceLabel(lead()?.source || '') }}</p>
+          }
+        </div>
+        <div class="erp-actions">
+          <!-- Lead actions -->
+          @if (isEditing()) {
+          <button class="erp-btn erp-btn--primary" (click)="saveDraft()" [disabled]="saving() || busy()">
+            <span class="material-icons-outlined">save</span>
+            {{ saving() ? 'Saving…' : 'Save as Draft' }}
+          </button>
+          <button class="erp-btn erp-btn--success" (click)="approveLead()" [disabled]="saving() || busy()">
+            <span class="material-icons-outlined">task_alt</span>
+            {{ busy() ? 'Processing…' : 'Approve' }}
+          </button>
+          @if (canReject()) {
+          <button class="erp-btn erp-btn--danger" (click)="openRejectDialog()" [disabled]="saving() || busy()">
+            <span class="material-icons-outlined">block</span> Reject
+          </button>
+          }
+          } @else if (lead()?.status === 'APPROVED') {
+          <button class="erp-btn erp-btn--primary" (click)="startEdit()">
+            <span class="material-icons-outlined">edit</span> Edit
+          </button>
+          } @else {
+          <button class="erp-btn erp-btn--primary" (click)="startEdit()">
+            <span class="material-icons-outlined">edit</span> Edit
+          </button>
+          }
+
+          @if (!isNew() && lead()?.status === 'DRAFT' && !isEditing()) {
+          <button class="erp-btn erp-btn--danger" (click)="deleteDraft()" [disabled]="busy()">
+            <span class="material-icons-outlined">delete</span> Delete
+          </button>
+          }
+
+          <a routerLink="/adminapp/leads" class="erp-btn erp-btn--ghost">
+            <span class="material-icons-outlined">arrow_back</span> Back
+          </a>
+        </div>
+      </div>
+
+      <!-- ===== ERP chain (after approval) ===== -->
+      @if (lead()?.status === 'APPROVED') {
+      <div class="erp-chain">
+        @if (lead()?.customerId) {
+        <a class="erp-chain__link" [routerLink]="['/adminapp/customers', lead()?.customerId]">
+          <span class="material-icons-outlined">business</span>
+          Customer: {{ approveResult()?.data?.customerCode || 'View Customer' }}
+        </a>
+        }
+        @if (lead()?.inquiryId) {
+        <a class="erp-chain__link" [routerLink]="['/adminapp/inquiries', lead()?.inquiryId]">
+          <span class="material-icons-outlined">assignment</span>
+          Inquiry: {{ approveResult()?.data?.inquiryNo || 'View Inquiry' }}
+        </a>
+        }
+      </div>
+      @if (approveResult()?.data?.tempPassword) {
+      <div class="erp-card">
+        <h3><span class="material-icons-outlined">key</span> Customer user created</h3>
+        <p style="margin:0;font-size:14px;color:#334155">
+          Login: <strong>{{ lead()?.email }}</strong> — temporary password:
+          <strong>{{ approveResult()?.data?.tempPassword }}</strong>
+          <span style="color:#64748b">(share securely; shown once)</span>
+        </p>
+      </div>
+      }
+      }
+
+      <!-- ===== Rejection reason banner ===== -->
+      @if (lead()?.status === 'REJECTED' && lead()?.rejectionReason) {
+      <div class="erp-error-box">
+        <span class="material-icons-outlined">block</span>
+        Rejected {{ formatDate(lead()?.rejectedDate || null) }} — {{ lead()?.rejectionReason }}
+      </div>
+      }
+
+      <!-- ===== Form (new / editing) ===== -->
+      @if (isEditing()) {
+      <div class="erp-card">
+        <h3><span class="material-icons-outlined">edit_note</span> Lead Information</h3>
+        @if (error()) {
+        <div class="erp-error-box">
+          <span class="material-icons-outlined">error_outline</span> {{ error() }}
+        </div>
+        }
+        <div class="erp-form-grid">
+          <div class="erp-form-group">
+            <label>Company / Customer Name <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.companyName" placeholder="e.g. ABC Facilities LLC" />
+          </div>
+          <div class="erp-form-group">
+            <label>Contact Person <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.contactPerson" placeholder="e.g. John Mathew" />
+          </div>
+          <div class="erp-form-group">
+            <label>Mobile <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.mobile" placeholder="+971 50 123 4567" />
+          </div>
+          <div class="erp-form-group">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="form.email" placeholder="name@company.com" />
+          </div>
+          <div class="erp-form-group">
+            <label>Source</label>
+            <select [(ngModel)]="form.source">
+              @for (s of sources; track s) {
+              <option [value]="s">{{ sourceLabel(s) }}</option>
+              }
+            </select>
+          </div>
+          <div class="erp-form-group">
+            <label>Service Required <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.serviceRequired" placeholder="e.g. General Pest Control" />
+          </div>
+          <div class="erp-form-group erp-form-group--full">
+            <label>Address</label>
+            <input type="text" [(ngModel)]="form.address" placeholder="Street, building, area" />
+          </div>
+          <div class="erp-form-group">
+            <label>Location</label>
+            <select [(ngModel)]="form.location">
+              <option value="">Select your location</option>
+              @for (location of locations(); track location.city) {
+              <option [value]="location.city">{{ location.city }}</option>
+              }
+            </select>
+          </div>
+          <div class="erp-form-group">
+            <label>Preferred Service Date</label>
+            <input type="date" [(ngModel)]="form.preferredDate" />
+          </div>
+          <div class="erp-form-group">
+            <label>Preferred Service Time</label>
+            <select [(ngModel)]="form.preferredTime">
+              @for (t of times; track t) {
+              <option [value]="t">{{ sourceLabel(t) }}</option>
+              }
+            </select>
+          </div>
+          <div class="erp-form-group">
+            <label>Link Existing Customer Account</label>
+            <select [ngModel]="selectedCustomerId()" (ngModelChange)="selectedCustomerId.set($event)"
+              [disabled]="loadingCustomers()">
+              <option value="">Create or match customer automatically</option>
+              @for (customer of existingCustomers(); track customer._id) {
+              <option [value]="customer._id">
+                {{ customer.customerCode }} — {{ customer.companyName }} ({{ customer.mobile }})
+              </option>
+              }
+            </select>
+            <small class="erp-form-help">
+              {{ loadingCustomers() ? 'Loading customer accounts…' : 'Reuse the customer login, ledger, and account history.' }}
+            </small>
+          </div>
+          <div class="erp-form-group erp-form-group--full">
+            <label>Description</label>
+            <textarea [(ngModel)]="form.description" placeholder="What problem is the customer facing?"></textarea>
+          </div>
+          <div class="erp-form-group erp-form-group--full">
+            <label>Notes</label>
+            <textarea [(ngModel)]="form.notes" placeholder="Internal notes (optional)"></textarea>
+          </div>
+        </div>
+        <div class="erp-dialog__footer" style="border:none;padding:16px 0 0">
+          <button class="erp-btn erp-btn--ghost" (click)="cancelEdit()" [disabled]="saving()">Cancel</button>
+          @if (isNew()) {
+          <button class="erp-btn erp-btn--primary" (click)="save(false)" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Save Draft' }}
+          </button>
+          <button class="erp-btn erp-btn--warning" (click)="save(true)" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Save & Submit' }}
+          </button>
+          } @else {
+          <button class="erp-btn erp-btn--primary" (click)="save(false)" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Save Changes' }}
+          </button>
+          }
+        </div>
+      </div>
+      } @else if (lead()) {
+      <!-- ===== Read-only details ===== -->
+      <div class="erp-detail-grid">
+        <div class="erp-field">
+          <div class="erp-field__label">Lead No</div>
+          <div class="erp-field__value erp-doc-no">{{ lead()?.leadNo }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Lead Date</div>
+          <div class="erp-field__value">{{ formatDate(lead()?.createdAt || null) }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Company / Customer</div>
+          <div class="erp-field__value">{{ lead()?.companyName }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Contact Person</div>
+          <div class="erp-field__value">{{ lead()?.contactPerson }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Mobile</div>
+          <div class="erp-field__value">{{ lead()?.mobile }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Email</div>
+          <div class="erp-field__value">{{ lead()?.email || '-' }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Address</div>
+          <div class="erp-field__value">{{ lead()?.address || '-' }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Location</div>
+          <div class="erp-field__value">{{ lead()?.location || '-' }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Service Required</div>
+          <div class="erp-field__value">{{ lead()?.serviceRequired || '-' }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Preferred Date</div>
+          <div class="erp-field__value">{{ formatDate(lead()?.preferredDate || null) }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Preferred Time</div>
+          <div class="erp-field__value">{{ sourceLabel(lead()?.preferredTime || '') || '-' }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Created By</div>
+          <div class="erp-field__value">{{ lead()?.createdByName || '-' }}</div>
+        </div>
+      </div>
+
+      @if (lead()?.description) {
+      <div class="erp-card">
+        <h3><span class="material-icons-outlined">description</span> Description</h3>
+        <p style="margin:0;font-size:14px;color:#334155;white-space:pre-wrap">{{ lead()?.description }}</p>
+      </div>
+      }
+      @if (lead()?.notes) {
+      <div class="erp-card">
+        <h3><span class="material-icons-outlined">sticky_note_2</span> Notes</h3>
+        <p style="margin:0;font-size:14px;color:#334155;white-space:pre-wrap">{{ lead()?.notes }}</p>
+      </div>
+      }
+
+      <!-- Audit trail -->
+      <div class="erp-card">
+        <h3><span class="material-icons-outlined">history</span> Workflow Audit</h3>
+        <div class="erp-detail-grid" style="margin-bottom:0">
+          <div class="erp-field">
+            <div class="erp-field__label">Approved By</div>
+            <div class="erp-field__value">{{ lead()?.approvedByName || '-' }}</div>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field__label">Approved Date</div>
+            <div class="erp-field__value">{{ formatDate(lead()?.approvedDate || null) }}</div>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field__label">Rejected By</div>
+            <div class="erp-field__value">{{ lead()?.rejectedByName || '-' }}</div>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field__label">Rejected Date</div>
+            <div class="erp-field__value">{{ formatDate(lead()?.rejectedDate || null) }}</div>
+          </div>
+        </div>
+      </div>
+      }
+      }
+    </div>
+  </div>
+
+  <!-- ===== Reject dialog (mandatory reason) ===== -->
+  @if (showRejectDialog()) {
+  <div class="erp-overlay" (click)="showRejectDialog.set(false)">
+    <div class="erp-dialog" (click)="$event.stopPropagation()">
+      <div class="erp-dialog__header">
+        <h3>Reject Lead</h3>
+        <button class="erp-dialog__close" (click)="showRejectDialog.set(false)">×</button>
+      </div>
+      <div class="erp-dialog__body">
+        <div class="erp-form-group">
+          <label>Rejection Reason <span class="req">*</span></label>
+          <textarea [(ngModel)]="rejectReason" placeholder="Explain why this lead is rejected..."
+            style="min-height:90px"></textarea>
+        </div>
+      </div>
+      <div class="erp-dialog__footer">
+        <button class="erp-btn erp-btn--ghost" (click)="showRejectDialog.set(false)" [disabled]="busy()">Cancel</button>
+        <button class="erp-btn erp-btn--danger" (click)="confirmReject()" [disabled]="busy() || !rejectReason().trim()">
+          {{ busy() ? 'Rejecting…' : 'Reject Lead' }}
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

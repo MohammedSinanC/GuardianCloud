@@ -1,0 +1,41 @@
+<div class="admin-layout">
+  <app-admin-sidebar
+    [collapsed]="sidebarCollapsed"
+    [mobileOpen]="mobileMenuOpen"
+    (closeSidebar)="closeMobileMenu()" />
+  <div class="admin-layout__main" [class.sidebar-collapsed]="sidebarCollapsed">
+    <app-admin-topbar (toggleSidebar)="toggleMobileMenu()" />
+    <div class="settings-container">
+      <div class="settings-header">
+        <h1>Settings</h1>
+        <p class="page-subtitle">Manage master data and application configuration</p>
+      </div>
+
+      <div class="settings-layout">
+        <!-- Left: 30% Menu -->
+        <div class="settings-menu">
+          <div class="settings-menu__title">
+            <span class="material-icons-outlined">tune</span>
+            Master Data
+          </div>
+          <nav class="settings-menu__list">
+            @for (item of settingsItems; track item.key) {
+              <button
+                class="settings-menu__item"
+                [class.active]="selectedItem() === item.key"
+                (click)="selectItem(item.key)">
+                <span class="material-icons-outlined settings-menu__item-icon">{{ item.icon }}</span>
+                <span class="settings-menu__item-label">{{ item.name }}</span>
+              </button>
+            }
+          </nav>
+        </div>
+
+        <!-- Right: 70% Content -->
+        <div class="settings-content">
+          <ng-container #contentContainer></ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
