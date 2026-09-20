@@ -8,12 +8,12 @@
 
   &:hover {
     box-shadow: var(--shadow-md);
-    border-color: transparent;
+    border-color: rgba(0, 144, 255, 0.4);
     transform: translateY(-4px);
   }
 
   &--main {
-    border-color: var(--primary);
+    border-color: var(--accent);
     border-width: 2px;
   }
 }
@@ -22,10 +22,10 @@
   position: absolute;
   top: -1px;
   right: 20px;
-  background: var(--primary);
+  background: var(--accent);
   color: white;
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   padding: 4px 12px;
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }

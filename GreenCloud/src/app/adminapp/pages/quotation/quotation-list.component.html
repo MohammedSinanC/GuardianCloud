@@ -22,11 +22,17 @@
       @else {
         <div class="erp-table-card erp-table-card--flush">
           <table class="erp-table">
-            <thead><tr><th>Quotation No</th><th>Customer</th><th>Location</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th>Quotation No</th><th>Inquiry No</th><th>Lead No</th><th>Customer</th><th>Location</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
             <tbody>
               @for (quotation of quotations(); track quotation._id || $index) {
                 <tr>
                   <td class="erp-doc-no">{{ quotation.quotationNo || '-' }}</td>
+                  <td>
+                    @if (inquiryNo(quotation)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/inquiries', quotation.inquiryId?._id || quotation.inquiryId]">{{ inquiryNo(quotation) }}</a>
+                    } @else { - }
+                  </td>
+                  <td>{{ leadNo(quotation) || '-' }}</td>
                   <td>{{ customerName(quotation) }}</td>
                   <td>{{ serviceLocation(quotation) }}</td>
                   <td class="erp-money">{{ money(quotation.totalAmount) }} {{ quotation.currency || 'AED' }}</td>

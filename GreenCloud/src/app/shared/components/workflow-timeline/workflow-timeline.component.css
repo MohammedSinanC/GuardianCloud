@@ -1,12 +1,28 @@
+/* Card shell — matches the ERP white-card look on every detail page */
 .workflow-history {
-  padding: 16px 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, .04);
+  padding: 20px;
+  margin-top: 18px;
 }
 
 .history-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 16px;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 800;
+  color: #0f172a;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #f1f5f9;
   margin: 0 0 16px;
+}
+
+.history-title .material-icons-outlined {
+  color: #0d9488;
+  font-size: 19px;
 }
 
 .history-loading,
@@ -18,7 +34,7 @@
 
 .history-table-wrap {
   overflow-x: auto;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #f1f5f9;
   border-radius: 8px;
 }
 

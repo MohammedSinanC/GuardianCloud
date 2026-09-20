@@ -1,6 +1,6 @@
 .section-heading {
   text-align: center;
-  max-width: 680px;
+  max-width: 720px;
   margin: 0 auto;
 
   &--light {
@@ -8,11 +8,15 @@
       color: white;
     }
     .section-heading__desc {
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255, 255, 255, 0.72);
     }
     .section-heading__badge {
-      background: rgba(255, 255, 255, 0.12);
-      color: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .section-heading__badge::before {
+      background: #6fc0ff;
     }
   }
 }
@@ -22,7 +26,7 @@
 }
 
 .section-heading__title {
-  font-size: var(--font-size-4xl);
+  font-size: var(--title-md);
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: var(--space-md);
@@ -38,7 +42,7 @@
 
 @media (max-width: 767px) {
   .section-heading__title {
-    font-size: var(--font-size-2xl);
+    font-size: 1.55rem;
   }
 
   .section-heading__desc {

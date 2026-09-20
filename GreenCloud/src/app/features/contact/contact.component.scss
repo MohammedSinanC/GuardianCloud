@@ -1,27 +1,3 @@
-/* Page Hero */
-.page-hero {
-  background: linear-gradient(135deg, var(--primary-50) 0%, #e8f5f4 100%);
-  padding: calc(var(--header-height) + 60px) 0 60px;
-  text-align: center;
-
-  .badge {
-    margin-bottom: var(--space-md);
-  }
-
-  h1 {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 800;
-    margin-bottom: var(--space-md);
-    color: var(--text-primary);
-  }
-
-  p {
-    font-size: var(--font-size-lg);
-    color: var(--text-secondary);
-    max-width: 600px;
-    margin: 0 auto;
-  }
-}
 
 /* Grid */
 .contact-grid {
@@ -63,7 +39,7 @@
   }
 
   a:hover {
-    color: var(--primary);
+    color: var(--accent);
   }
 }
 
@@ -98,6 +74,7 @@
 /* Branches */
 .contact-branches {
   background: var(--bg-soft);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   padding: var(--space-xl);
 
@@ -118,14 +95,14 @@
 
   .material-icons-outlined {
     font-size: 18px;
-    color: var(--primary);
+    color: var(--accent);
   }
 }
 
 .contact-branch__phone {
   margin-left: auto;
   font-weight: 600;
-  color: var(--primary) !important;
+  color: var(--accent) !important;
 
   &:hover {
     text-decoration: underline;
@@ -151,3 +128,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 767px) {}

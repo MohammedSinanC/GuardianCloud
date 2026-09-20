@@ -18,6 +18,28 @@ export async function create(req, res) {
   } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 }
 
+/**
+ * Assign the work: team, technician, schedule and description in one call.
+ * Allowed while the order has not started yet. Sets status to SCHEDULED on
+ * first assignment (DRAFT → SCHEDULED) so the list reflects work being planned.
+ */
+export async function assign(req, res) {
+  try {
+    const order = await WorkOrder.findById(req.params.id);
+    if (!order) return res.status(404).json({ success: false, message: "Work order not found" });
+    if (['WORK_STARTED', 'WORK_COMPLETED', 'CANCELLED', 'REJECTED'].includes(order.status)) return res.status(400).json({ success: false, message: "Work order cannot be assigned in its current status" });
+    const fields = ["assignedTeam", "assignedTechnician", "scheduledDate", "scheduledTime", "workDescription", "requiredMaterials", "serviceLocation"];
+    for (const key of fields) if (key in req.body) order[key] = req.body[key];
+    const a = actor(req);
+    const old = order.status;
+    if (order.status === 'DRAFT') order.status = 'SCHEDULED';
+    order.updatedBy = a.id; order.updatedByName = a.name;
+    await order.save();
+    if (order.status !== old) await recordHistory({ documentType: "WORK_ORDER", documentId: order._id, action: "ASSIGNED", oldStatus: old, newStatus: order.status, actorId: a.id, actorName: a.name });
+    res.json({ success: true, data: order });
+  } catch (err) { res.status(400).json({ success: false, message: err.message }); }
+}
+
 export async function list(req, res) {
   try {
     const { page = 1, limit = 20, search = "", status = "", customerId = "" } = req.query; const filter = {};
@@ -26,13 +48,16 @@ export async function list(req, res) {
     const skip = (Number(page) - 1) * Number(limit); const [data, total] = await Promise.all([WorkOrder.find(filter)
       .populate("customerId", "companyName contactPerson mobile")
       .populate("inquiryId", "inquiryNo customerName companyName mobile serviceLocation location serviceType pestTypes")
+      .populate("leadId", "leadNo")
+      .populate("quotationId", "quotationNo")
+      .populate("inspectionId", "inspectionNo")
       .sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(), WorkOrder.countDocuments(filter)]);
     res.json({ success: true, data, pagination: { total, page: Number(page), limit: Number(limit), totalPages: Math.ceil(total / Number(limit)) || 1 } });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 }
 
 export async function getById(req, res) {
-  try { const order = await WorkOrder.findById(req.params.id).lean(); if (!order) return res.status(404).json({ success: false, message: "Work order not found" }); const { WorkflowHistory } = await import("../models/workflow.model.js"); const history = await WorkflowHistory.find({ entityType: "WORK_ORDER", entityId: order._id }).sort({ createdAt: 1 }).lean(); res.json({ success: true, data: { ...order, workflowHistory: history } }); } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  try { const order = await WorkOrder.findById(req.params.id).lean(); if (!order) return res.status(404).json({ success: false, message: "Work order not found" }); const quotation = order.quotationId ? await Quotation.findById(order.quotationId).populate("inquiryId", "inquiryNo companyName customerName serviceType").populate("customerId", "companyName contactPerson mobile").lean() : null; const { WorkflowHistory } = await import("../models/workflow.model.js"); const history = await WorkflowHistory.find({ entityType: "WORK_ORDER", entityId: order._id }).sort({ createdAt: 1 }).lean(); res.json({ success: true, data: { ...order, quotation, workflowHistory: history } }); } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 }
 
 export async function update(req, res) {

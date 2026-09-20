@@ -22,6 +22,7 @@ export async function list(req, res) {
       Quotation.find(filter)
         .populate("customerId", "companyName contactPerson mobile email")
         .populate("inquiryId", "inquiryNo customerName companyName mobile serviceLocation location serviceType pestTypes")
+        .populate("leadId", "leadNo")
         .sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),
       Quotation.countDocuments(filter),
     ]);
@@ -33,9 +34,14 @@ export async function getById(req, res) {
   try {
     const quotation = await Quotation.findById(req.params.id).lean();
     if (!quotation) return res.status(404).json({ success: false, message: "Quotation not found" });
+    // Source documents for the detail page: the inquiry the quotation came from,
+    // and — when the flow went through a site inspection — that inspection's data.
+    const inquiry = quotation.inquiryId ? await Inquiry.findById(quotation.inquiryId, "inquiryNo customerName companyName contactPerson mobile email serviceType serviceLocation location building unit area pestTypes problemDescription preferredDate preferredTime siteInspectionRequired remarks status currentStageCode").lean() : null;
+    const inspection = quotation.inspectionId ? await SiteInspection.findById(quotation.inspectionId, "inspectionNo inspectionDate inspector inspectionType pestType affectedArea severity findings recommendations requiredTreatment estimatedWork checklistItems remarks status").lean() : null;
+    const workOrder = quotation.workOrderId ? await WorkOrder.findById(quotation.workOrderId, "workOrderNo status serviceType serviceLocation assignedTeam assignedTechnician scheduledDate scheduledTime workDescription").lean() : null;
     const { WorkflowHistory } = await import("../models/workflow.model.js");
     const history = await WorkflowHistory.find({ entityType: "QUOTATION", entityId: quotation._id }).sort({ createdAt: 1 }).lean();
-    res.json({ success: true, data: { ...quotation, workflowHistory: history } });
+    res.json({ success: true, data: { ...quotation, inquiry, inspection, workOrder, workflowHistory: history } });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 }
 
@@ -131,7 +137,30 @@ async function buildQuotationPdfData(quotationId) {
   const lead = quotation.leadId ? await Lead.findById(quotation.leadId).lean() : null;
   const customer = quotation.customerId ? await Customer.findById(quotation.customerId).lean() : null;
   const company = (await Company.findOne({ isActive: true }).lean()) || {};
-  return { company, quotation, customer, leadNo: lead?.leadNo || "", inquiryNo: inquiry?.inquiryNo || "", serviceLocation: inquiry?.serviceLocation || "", items: quotation.items || [] };
+  const fmtDate = (d) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "");
+  return {
+    company,
+    quotation: {
+      ...quotation,
+      quotationDate: fmtDate(quotation.createdAt),
+      validUntil: fmtDate(quotation.validUntil),
+      paymentStartDate: fmtDate(quotation.paymentStartDate),
+    },
+    customer,
+    leadNo: lead?.leadNo || "",
+    inquiryNo: inquiry?.inquiryNo || "",
+    serviceLocation: inquiry?.serviceLocation || inquiry?.location || "",
+    inquiry: inquiry
+      ? {
+          inquiryNo: inquiry.inquiryNo || "",
+          serviceType: inquiry.serviceType || "",
+          problemDescription: inquiry.problemDescription || "",
+          pestTypes: inquiry.pestTypes || [],
+        }
+      : null,
+    inspection: quotation.inspectionId ? await SiteInspection.findById(quotation.inspectionId, "inspectionNo inspectionDate inspectionType findings recommendations requiredTreatment severity").lean() : null,
+    items: quotation.items || [],
+  };
 }
 
 export async function pdf(req, res) {

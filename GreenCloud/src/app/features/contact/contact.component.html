@@ -1,5 +1,9 @@
 <!-- Page Hero -->
 <section class="page-hero">
+  <div class="page-hero__bg" aria-hidden="true">
+    <img src="/assets/images/services/facility-management.jpg" alt="" appParallax [parallaxSpeed]="0.12" />
+    <div class="page-hero__overlay"></div>
+  </div>
   <div class="container">
     <span class="badge">Contact Us</span>
     <h1>Get in <span class="text-gradient">Touch</span></h1>
@@ -12,7 +16,7 @@
   <div class="container">
     <div class="contact-grid">
       <!-- Contact Info -->
-      <div class="contact-info">
+      <div class="contact-info" appReveal revealVariant="left">
         <h2>Contact Information</h2>
         <p class="contact-info__subtitle">Reach out to us through any of the following channels.</p>
 

@@ -17,6 +17,8 @@ export interface SiteInspection {
   findings: string;
   pestType: string;
   affectedArea: string;
+  // Checklist rows generated from the Checklist master (Settings → Master Data)
+  checklistItems: { code: string; name: string; controlType: 'TEXTBOX' | 'CHECKBOX'; value: any; remarks: string }[];
   severity: string;
   recommendations: string;
   requiredTreatment: string;

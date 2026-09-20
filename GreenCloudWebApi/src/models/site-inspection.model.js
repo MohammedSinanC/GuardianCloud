@@ -25,6 +25,18 @@ const siteInspectionSchema = new mongoose.Schema(
     findings: { type: String, default: "" },
     pestType: { type: String, default: "" },
     affectedArea: { type: String, default: "" },
+    // Checklist captured during the inspection — rows generated from the
+    // Checklist master (Settings → Master Data). controlType decides how the
+    // UI renders the input; value holds the checkbox state or text answer.
+    checklistItems: [
+      {
+        code: { type: String, default: "" },
+        name: { type: String, default: "" },
+        controlType: { type: String, enum: ["TEXTBOX", "CHECKBOX"], default: "TEXTBOX" },
+        value: { type: mongoose.Schema.Types.Mixed, default: null },
+        remarks: { type: String, default: "" },
+      },
+    ],
     severity: { type: String, enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"], default: "MEDIUM" },
     recommendations: { type: String, default: "" },
     requiredTreatment: { type: String, default: "" },

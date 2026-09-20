@@ -4,11 +4,12 @@ import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
 import { Service } from '../../core/models/website-content.model';
 import { FaqItemComponent } from '../../shared/components/faq-item/faq-item.component';
+import { ParallaxDirective } from '../../shared/motion';
 
 @Component({
   selector: 'app-service-detail',
   standalone: true,
-  imports: [RouterLink, FaqItemComponent],
+  imports: [RouterLink, FaqItemComponent, ParallaxDirective],
   templateUrl: './service-detail.component.html',
   styleUrl: './service-detail.component.scss',
 })

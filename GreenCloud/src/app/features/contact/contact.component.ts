@@ -2,11 +2,12 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
 import { ContactFormComponent } from '../../shared/components/contact-form/contact-form.component';
+import { RevealDirective, ParallaxDirective } from '../../shared/motion';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [ContactFormComponent],
+  imports: [ContactFormComponent, RevealDirective, ParallaxDirective],
   templateUrl: './contact.component.html',
   styleUrl: './contact.component.scss',
 })

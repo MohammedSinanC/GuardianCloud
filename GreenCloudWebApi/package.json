@@ -11,7 +11,8 @@
     "seed:admin": "node scripts/create-admin.js",
     "seed:dummy": "node scripts/seed-dummy-data.js",
     "seed:leads": "node scripts/seed-leads.js",
-    "seed:rbac": "node scripts/seed-rbac.js"
+    "seed:rbac": "node scripts/seed-rbac.js",
+    "seed:master": "node scripts/seed-master-data.js"
   },
   "keywords": [
     "nodejs",
@@ -31,7 +32,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.1",
     "nodemailer": "^10.0.3",
-    "puppeteer": "^25.10.0"
+    "puppeteer": "^25.10.0",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

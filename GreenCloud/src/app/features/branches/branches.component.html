@@ -1,5 +1,9 @@
 <!-- Page Hero -->
 <section class="page-hero">
+  <div class="page-hero__bg" aria-hidden="true">
+    <img src="/assets/images/services/facade-cleaning.jpg" alt="" appParallax [parallaxSpeed]="0.12" />
+    <div class="page-hero__overlay"></div>
+  </div>
   <div class="container">
     <span class="badge">Our Locations</span>
     <h1>Serving All <span class="text-gradient">7 Emirates</span></h1>
@@ -10,21 +14,21 @@
 <!-- Branches -->
 <section class="section">
   <div class="container">
-    <div class="reveal">
+    <div appReveal>
       <app-section-heading
         badge="Our Branches"
         title="Visit Us Anywhere in the UAE"
         description="We have branches in major cities across all Emirates to serve you better."
       />
     </div>
-    <div class="branches-grid reveal">
+    <div class="branches-grid" appReveal>
       @for (location of locations(); track location.city) {
         <app-location-card [location]="location" />
       }
     </div>
 
     <!-- UAE-wide coverage -->
-    <div class="branches-coverage reveal">
+    <div class="branches-coverage" appReveal>
       <div class="branches-coverage__inner">
         <span class="material-icons-outlined branches-coverage__icon">public</span>
         <h3>UAE-Wide Coverage</h3>

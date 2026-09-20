@@ -175,10 +175,17 @@ export interface MasterDataItem {
   description?: string;
 }
 
+export interface ChecklistItem {
+  code: string;
+  name: string;
+  controlType: 'TEXTBOX' | 'CHECKBOX';
+}
+
 export interface WebsiteContent {
   company: CompanyInfo;
   pestTypes: MasterDataItem[];
   inspectionTypes: MasterDataItem[];
+  checklists: ChecklistItem[];
   serviceTypes: MasterDataItem[];
   contractTypes: MasterDataItem[];
   navigation: Navigation;

@@ -9,13 +9,134 @@
         <div class="erp-page__header">
           <div class="erp-page__title"><h1><span class="material-icons-outlined">request_quote</span> {{ q.quotationNo }} <span class="erp-badge">{{ q.status }}</span></h1><p>Quotation details and workflow history</p></div>
           <div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/quotation">Back</a>
-            @if (q.status === 'DRAFT' || q.status === 'REJECTED') { <button class="erp-btn erp-btn--warning" (click)="submit()" [disabled]="busy()">Submit</button> }
+            @if (q.status === 'DRAFT' || q.status === 'REJECTED') { <button class="erp-btn erp-btn--warning" (click)="submit()" [disabled]="busy()" [title]="(q.items || []).length ? '' : 'Add quotation items first'">Submit</button> }
             @if (q.status === 'PENDING_APPROVAL' || q.status === 'SENT') { <button class="erp-btn erp-btn--success" (click)="approve()" [disabled]="busy()">Approve</button><button class="erp-btn erp-btn--danger" (click)="showReject.set(true)" [disabled]="busy()">Reject</button> }
+            @if (q.status === 'APPROVED') { <button class="erp-btn erp-btn--primary" (click)="downloadPdf()" [disabled]="downloadingPdf()"><span class="material-icons-outlined">picture_as_pdf</span>{{ downloadingPdf() ? 'Preparing…' : 'Download PDF' }}</button> }
           </div>
         </div>
         @if (error()) { <div class="erp-error-box">{{ error() }}</div> }
         <div class="erp-summary-row"><div class="erp-summary-card"><div class="erp-summary-card__label">Subtotal</div><div class="erp-summary-card__value">{{ q.subtotal || 0 }} {{ q.currency || 'AED' }}</div></div><div class="erp-summary-card"><div class="erp-summary-card__label">VAT</div><div class="erp-summary-card__value">{{ q.taxAmount || 0 }} {{ q.currency || 'AED' }}</div></div><div class="erp-summary-card"><div class="erp-summary-card__label">Grand Total</div><div class="erp-summary-card__value erp-summary-card__value--teal">{{ q.totalAmount || 0 }} {{ q.currency || 'AED' }}</div></div></div>
-        <div class="erp-card"><h3>Quotation Items</h3><div class="erp-table-card erp-table-card--flush"><table class="erp-table"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>@for (item of q.items || []; track $index) { <tr><td>{{ item.description }}</td><td>{{ item.quantity }}</td><td>{{ item.unitPrice }}</td><td>{{ item.totalPrice }}</td></tr> }</tbody></table></div></div>
+
+        <!-- Source: Inquiry -->
+        @if (q.inquiry) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">support_agent</span> Inquiry Information
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/inquiries', q.inquiry._id]">Open Inquiry</a>
+            </h3>
+            <div class="erp-detail-grid">
+              <div class="erp-field"><div class="erp-field__label">Inquiry No</div><div class="erp-field__value erp-doc-no">{{ q.inquiry.inquiryNo || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Customer</div><div class="erp-field__value">{{ q.inquiry.companyName || q.inquiry.customerName || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Contact Person</div><div class="erp-field__value">{{ q.inquiry.contactPerson || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Mobile</div><div class="erp-field__value">{{ q.inquiry.mobile || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Service Type</div><div class="erp-field__value">{{ q.inquiry.serviceType || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Location</div><div class="erp-field__value">{{ q.inquiry.serviceLocation || q.inquiry.location || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Building</div><div class="erp-field__value">{{ q.inquiry.building || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Unit / Area</div><div class="erp-field__value">{{ q.inquiry.unit || q.inquiry.area || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Preferred Date</div><div class="erp-field__value">{{ q.inquiry.preferredDate ? (q.inquiry.preferredDate | date:'dd MMM yyyy') : '-' }} {{ q.inquiry.preferredTime }}</div></div>
+              <div class="erp-field erp-form-group--full"><div class="erp-field__label">Pest Types</div><div class="erp-field__value">
+                @for (pest of q.inquiry.pestTypes || []; track pest) { <span class="erp-badge erp-badge--pest">{{ pest }}</span> }
+                @if (!(q.inquiry.pestTypes || []).length) { - }
+              </div></div>
+              <div class="erp-field erp-form-group--full"><div class="erp-field__label">Problem Description</div><div class="erp-field__value">{{ q.inquiry.problemDescription || '-' }}</div></div>
+            </div>
+          </div>
+        }
+
+        <!-- Source: Site Inspection (only when the flow passed through one) -->
+        @if (q.inspection) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">fact_check</span> Site Inspection
+              <span class="erp-badge">{{ q.inspection.status }}</span>
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/site-inspection', q.inspection._id]">Open Inspection</a>
+            </h3>
+            <div class="erp-detail-grid">
+              <div class="erp-field"><div class="erp-field__label">Inspection No</div><div class="erp-field__value erp-doc-no">{{ q.inspection.inspectionNo || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Inspection Date</div><div class="erp-field__value">{{ q.inspection.inspectionDate ? (q.inspection.inspectionDate | date:'dd MMM yyyy') : '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Inspector</div><div class="erp-field__value">{{ q.inspection.inspector || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Inspection Type</div><div class="erp-field__value">{{ q.inspection.inspectionType || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Pest Type</div><div class="erp-field__value">{{ q.inspection.pestType || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Affected Area</div><div class="erp-field__value">{{ q.inspection.affectedArea || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Severity</div><div class="erp-field__value"><span class="erp-badge">{{ q.inspection.severity || '-' }}</span></div></div>
+              <div class="erp-field"><div class="erp-field__label">Estimated Work</div><div class="erp-field__value">{{ q.inspection.estimatedWork || '-' }}</div></div>
+              <div class="erp-field erp-form-group--full"><div class="erp-field__label">Findings</div><div class="erp-field__value">{{ q.inspection.findings || '-' }}</div></div>
+              <div class="erp-field erp-form-group--full"><div class="erp-field__label">Recommendations</div><div class="erp-field__value">{{ q.inspection.recommendations || '-' }}</div></div>
+              <div class="erp-field erp-form-group--full"><div class="erp-field__label">Required Treatment</div><div class="erp-field__value">{{ q.inspection.requiredTreatment || '-' }}</div></div>
+            </div>
+            @if ((q.inspection.checklistItems || []).length > 0) {
+              <h3 class="erp-subheading">Checklist</h3>
+              <div class="erp-table-card erp-table-card--flush"><table class="erp-table">
+                <thead><tr><th style="width:44px">#</th><th>Checklist Item</th><th style="width:120px">Result</th><th>Remarks</th></tr></thead>
+                <tbody>
+                  @for (row of q.inspection.checklistItems; track $index) {
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td>{{ row.name }}</td>
+                      <td>
+                        @if (row.controlType === 'CHECKBOX') {
+                          <span class="material-icons-outlined" [style.color]="row.value === true ? '#16a34a' : '#cbd5e1'">{{ row.value === true ? 'check_box' : 'check_box_outline_blank' }}</span>
+                        } @else { {{ row.value || '-' }} }
+                      </td>
+                      <td>{{ row.remarks || '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table></div>
+            }
+          </div>
+        }
+
+        <!-- Quotation Items: editable before submit, read-only after -->        <!-- Downstream: Work Order (auto-created on approval) -->
+        @if (q.workOrder) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">assignment</span> Work Order
+              <span class="erp-badge">{{ q.workOrder.status }}</span>
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/work-orders', q.workOrder._id]">Open Work Order</a>
+            </h3>
+            <div class="erp-detail-grid">
+              <div class="erp-field"><div class="erp-field__label">Work Order No</div><div class="erp-field__value erp-doc-no">{{ q.workOrder.workOrderNo || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Service Type</div><div class="erp-field__value">{{ q.workOrder.serviceType || '-' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Assigned Team</div><div class="erp-field__value">{{ q.workOrder.assignedTeam || 'Not assigned' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Technician</div><div class="erp-field__value">{{ q.workOrder.assignedTechnician || 'Not assigned' }}</div></div>
+              <div class="erp-field"><div class="erp-field__label">Scheduled</div><div class="erp-field__value">{{ q.workOrder.scheduledDate ? (q.workOrder.scheduledDate | date:'dd MMM yyyy') : 'Not scheduled' }} {{ q.workOrder.scheduledTime }}</div></div>
+              @if (q.workOrder.workDescription) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Work Description</div><div class="erp-field__value">{{ q.workOrder.workDescription }}</div></div> }
+            </div>
+          </div>
+        }
+
+        <div class="erp-card"><h3>Quotation Items
+            @if (canEditItems()) {
+              <button class="erp-btn erp-btn--ghost erp-source-link erp-item-add" type="button" (click)="addItemRow()"><span class="material-icons-outlined">add</span> Add Item</button>
+            }
+          </h3>
+          @if (canEditItems()) {
+            <div class="erp-table-card erp-table-card--flush"><table class="erp-table erp-items-table">
+              <thead><tr><th style="width:40px">#</th><th>Description</th><th style="width:90px">Qty</th><th style="width:130px">Rate ({{ q.currency || 'AED' }})</th><th style="width:130px">Amount</th><th style="width:56px"></th></tr></thead>
+              <tbody>
+                @for (row of itemRows(); track $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td><input class="erp-item-input" type="text" placeholder="e.g. General pest control treatment" [ngModel]="row.description" (ngModelChange)="updateItemRow($index, 'description', $event)" /></td>
+                    <td><input class="erp-item-input erp-item-input--num" type="number" min="1" [ngModel]="row.quantity" (ngModelChange)="updateItemRow($index, 'quantity', $event)" /></td>
+                    <td><input class="erp-item-input erp-item-input--num" type="number" min="0" step="0.01" [ngModel]="row.unitPrice" (ngModelChange)="updateItemRow($index, 'unitPrice', $event)" /></td>
+                    <td class="erp-money">{{ (row.quantity || 0) * (row.unitPrice || 0) | number:'1.2-2' }}</td>
+                    <td><button type="button" class="erp-item-remove" (click)="removeItemRow($index)" title="Remove item"><span class="material-icons-outlined">delete</span></button></td>
+                  </tr>
+                }
+                @if (itemRows().length === 0) { <tr><td colspan="6" class="erp-empty-cell">No items yet — click <strong>Add Item</strong> to build the quotation.</td></tr> }
+              </tbody>
+            </table></div>
+            <div class="erp-items-footer">
+              <div class="erp-items-totals">
+                <div class="erp-items-totals__row"><span>Subtotal</span><span class="erp-money">{{ itemTotals().subtotal | number:'1.2-2' }} {{ q.currency || 'AED' }}</span></div>
+                <div class="erp-items-totals__row"><span>VAT ({{ q.taxRate ?? 5 }}%)</span><span class="erp-money">{{ itemTotals().tax | number:'1.2-2' }} {{ q.currency || 'AED' }}</span></div>
+                <div class="erp-items-totals__row erp-items-totals__row--total"><span>Grand Total</span><span class="erp-money">{{ itemTotals().total | number:'1.2-2' }} {{ q.currency || 'AED' }}</span></div>
+              </div>
+              <button class="erp-btn erp-btn--primary" type="button" (click)="saveItems()" [disabled]="busy() || itemRows().length === 0">Save Items</button>
+            </div>
+          } @else {
+            <div class="erp-table-card erp-table-card--flush"><table class="erp-table"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>@for (item of q.items || []; track $index) { <tr><td>{{ item.description }}</td><td>{{ item.quantity }}</td><td>{{ item.unitPrice }}</td><td>{{ item.totalPrice }}</td></tr> } @if (!(q.items || []).length) { <tr><td colspan="4">No items recorded.</td></tr> }</tbody></table></div>
+          }
+        </div>
         <app-workflow-timeline entityType="QUOTATION" [entityId]="q._id" />
       }
     </div>

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HttpClientService } from '../../core/services/http-client.service';
 
-export interface WorkOrder { _id: string; workOrderNo: string; quotationId: string; inquiryId: string; leadId: string | null; inspectionId: string | null; customerId: string; invoiceId: string | null; serviceType: string; serviceLocation: string; assignedTeam: string; assignedTechnician: string; scheduledDate: string | null; scheduledTime: string; workDescription: string; requiredMaterials: string; remarks: string; startedAt: string | null; completedAt: string | null; completionNotes: string; materialsUsed: string; customerConfirmation: string; status: string; workflowHistory?: any[]; }
+export interface WorkOrder { _id: string; workOrderNo: string; quotationId: any; inquiryId: any; leadId: any; inspectionId: any; customerId: any; invoiceId: string | null; serviceType: string; serviceLocation: string; assignedTeam: string; assignedTechnician: string; scheduledDate: string | null; scheduledTime: string; workDescription: string; requiredMaterials: string; remarks: string; startedAt: string | null; completedAt: string | null; completionNotes: string; materialsUsed: string; customerConfirmation: string; status: string; workflowHistory?: any[]; quotation?: any; }
 
 @Injectable({ providedIn: 'root' })
 export class WorkOrderService {
@@ -11,6 +11,8 @@ export class WorkOrderService {
   getById(id: string) { return firstValueFrom(this.http.get<{ success: boolean; data: WorkOrder }>(`/work-orders/${id}`)); }
   create(data: Partial<WorkOrder>) { return firstValueFrom(this.http.post<{ success: boolean; data: WorkOrder }>('/work-orders', data, { toastAction: 'workOrder.create' })); }
   update(id: string, data: Partial<WorkOrder>) { return firstValueFrom(this.http.put<{ success: boolean; data: WorkOrder }>(`/work-orders/${id}`, data, { toastAction: 'workOrder.update' })); }
+  /** Assign team/technician/schedule — also transitions DRAFT → SCHEDULED */
+  assign(id: string, data: Partial<WorkOrder>) { return firstValueFrom(this.http.post<{ success: boolean; data: WorkOrder }>(`/work-orders/${id}/assign`, data, { toastAction: 'workOrder.assign' })); }
   submit(id: string) { return firstValueFrom(this.http.post<{ success: boolean; data: WorkOrder }>(`/work-orders/${id}/submit`, {}, { toastAction: 'workOrder.submit' })); }
   approve(id: string) { return firstValueFrom(this.http.post(`/work-orders/${id}/approve`, {}, { toastAction: 'workOrder.approve' })); }
   reject(id: string, reason: string) { return firstValueFrom(this.http.post(`/work-orders/${id}/reject`, { reason }, { toastAction: 'workOrder.reject' })); }

@@ -43,4 +43,6 @@ export class QuotationListComponent implements OnInit {
   money(value: number) { return (Number(value) || 0).toLocaleString('en-AE', { minimumFractionDigits: 2 }); }
   customerName(q: any) { return q.customerId?.companyName || q.inquiryId?.companyName || q.inquiryId?.customerName || '-'; }
   serviceLocation(q: any) { return q.inquiryId?.serviceLocation || q.inquiryId?.location || '-'; }
+  inquiryNo(q: any) { return q.inquiryId?.inquiryNo || ''; }
+  leadNo(q: any) { return q.leadId?.leadNo || ''; }
 }

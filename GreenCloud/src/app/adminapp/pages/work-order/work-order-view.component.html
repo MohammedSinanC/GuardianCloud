@@ -6,12 +6,112 @@
       @if (loading()) { <div class="erp-loading">Loading work order...</div> }
       @if (!loading() && !order()) { <div class="erp-error-box">{{ error() || 'Work order not found' }}</div> }
       @if (order(); as o) {
-        <div class="erp-page__header"><div class="erp-page__title"><h1><span class="material-icons-outlined">assignment</span> {{ o.workOrderNo }} <span class="erp-badge">{{ o.status }}</span></h1><p>{{ o.serviceType || 'Work order' }} · {{ o.serviceLocation || 'Location not set' }}</p></div><div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/work-orders">Back</a>@if (o.status === 'APPROVED' || o.status === 'SCHEDULED') {<button class="erp-btn erp-btn--success" (click)="start()" [disabled]="busy()">Start Work</button>}@if (o.status === 'WORK_STARTED') {<button class="erp-btn erp-btn--warning" (click)="showComplete.set(true)" [disabled]="busy()">Complete Work</button>}@if (o.status === 'PENDING_APPROVAL') {<button class="erp-btn erp-btn--success" (click)="approve()" [disabled]="busy()">Approve</button>}</div></div>
+        <div class="erp-page__header"><div class="erp-page__title"><h1><span class="material-icons-outlined">assignment</span> {{ o.workOrderNo }} <span class="erp-badge">{{ o.status }}</span></h1><p>{{ o.serviceType || 'Work order' }} · {{ o.serviceLocation || 'Location not set' }}</p></div><div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/work-orders">Back</a>@if (editing()) {<button class="erp-btn erp-btn--primary" (click)="saveEdit()" [disabled]="busy()"><span class="material-icons-outlined">save</span> {{ busy() ? 'Saving…' : 'Save Changes' }}</button>@if (o.status !== 'DRAFT') {<button class="erp-btn erp-btn--ghost" (click)="cancelEdit()" [disabled]="busy()">Cancel</button>}} @else {<button class="erp-btn erp-btn--ghost" (click)="startEdit()"><span class="material-icons-outlined">edit</span> Edit</button>}@if (canAssign() && !editing()) {<button class="erp-btn erp-btn--primary" (click)="openAssign()"><span class="material-icons-outlined">engineering</span> Assign Work</button>}@if (o.status === 'APPROVED' || o.status === 'SCHEDULED') {<button class="erp-btn erp-btn--success" (click)="start()" [disabled]="busy()">Start Work</button>}@if (o.status === 'WORK_STARTED') {<button class="erp-btn erp-btn--warning" (click)="showComplete.set(true)" [disabled]="busy()">Complete Work</button>}@if (o.status === 'PENDING_APPROVAL') {<button class="erp-btn erp-btn--success" (click)="approve()" [disabled]="busy()">Approve</button>}</div></div>
         @if (error()) { <div class="erp-error-box">{{ error() }}</div> }
-        <div class="erp-detail-grid"><div class="erp-field"><div class="erp-field__label">Quotation</div><div class="erp-field__value"><a [routerLink]="['/adminapp/quotation', o.quotationId]">View quotation</a></div></div><div class="erp-field"><div class="erp-field__label">Assigned Team</div><div class="erp-field__value">{{ o.assignedTeam || '-' }}</div></div><div class="erp-field"><div class="erp-field__label">Technician</div><div class="erp-field__value">{{ o.assignedTechnician || '-' }}</div></div><div class="erp-field"><div class="erp-field__label">Scheduled Date</div><div class="erp-field__value">{{ o.scheduledDate || '-' }} {{ o.scheduledTime }}</div></div><div class="erp-field erp-form-group--full"><div class="erp-field__label">Work Description</div><div class="erp-field__value">{{ o.workDescription || '-' }}</div></div><div class="erp-field erp-form-group--full"><div class="erp-field__label">Completion Notes</div><div class="erp-field__value">{{ o.completionNotes || '-' }}</div></div></div>
+        @if (editing()) {
+        <div class="erp-card" style="margin-bottom:16px">
+          <h3><span class="material-icons-outlined" style="vertical-align:middle">edit</span> Edit Work Order</h3>
+          <div class="erp-form-grid">
+            <div class="erp-form-group"><label>Service Type</label><input [(ngModel)]="editForm.serviceType" placeholder="e.g. Pest Control" /></div>
+            <div class="erp-form-group"><label>Service Location</label><input [(ngModel)]="editForm.serviceLocation" placeholder="e.g. Building A, Dubai" /></div>
+            <div class="erp-form-group"><label>Assigned Team</label><input [(ngModel)]="editForm.assignedTeam" placeholder="e.g. Team Alpha" /></div>
+            <div class="erp-form-group"><label>Assigned Technician</label><input [(ngModel)]="editForm.assignedTechnician" placeholder="e.g. Rahul K." /></div>
+            <div class="erp-form-group"><label>Scheduled Date</label><input type="date" [(ngModel)]="editForm.scheduledDate" /></div>
+            <div class="erp-form-group"><label>Scheduled Time</label><input [(ngModel)]="editForm.scheduledTime" placeholder="e.g. 09:00 AM" /></div>
+            <div class="erp-form-group erp-form-group--full"><label>Work Description</label><textarea [(ngModel)]="editForm.workDescription" rows="3" placeholder="Describe the work to be performed..."></textarea></div>
+            <div class="erp-form-group erp-form-group--full"><label>Required Materials</label><textarea [(ngModel)]="editForm.requiredMaterials" rows="2" placeholder="Materials or chemicals needed..."></textarea></div>
+            <div class="erp-form-group erp-form-group--full"><label>Remarks</label><textarea [(ngModel)]="editForm.remarks" rows="2" placeholder="Internal remarks..."></textarea></div>
+          </div>
+        </div>
+        } @else {
+        <div class="erp-detail-grid">
+          <div class="erp-field"><div class="erp-field__label">Work Order</div><div class="erp-field__value erp-doc-no">{{ o.workOrderNo || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Service Type</div><div class="erp-field__value">{{ o.serviceType || orderServiceType(o) || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Service Location</div><div class="erp-field__value">{{ o.serviceLocation || orderLocation(o) || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Customer</div><div class="erp-field__value">{{ o.customerId?.companyName || o.customerId?.contactPerson || '-' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Assigned Team</div><div class="erp-field__value">{{ o.assignedTeam || 'Not assigned' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Technician</div><div class="erp-field__value">{{ o.assignedTechnician || 'Not assigned' }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Scheduled Date</div><div class="erp-field__value">{{ o.scheduledDate ? (o.scheduledDate | date:'dd MMM yyyy') : 'Not scheduled' }} {{ o.scheduledTime }}</div></div>
+          <div class="erp-field"><div class="erp-field__label">Required Materials</div><div class="erp-field__value">{{ o.requiredMaterials || '-' }}</div></div>
+          @if (o.remarks) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Remarks</div><div class="erp-field__value">{{ o.remarks }}</div></div> }
+          <div class="erp-field erp-form-group--full"><div class="erp-field__label">Work Description</div><div class="erp-field__value">{{ o.workDescription || '-' }}</div></div>
+          @if (o.completionNotes) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Completion Notes</div><div class="erp-field__value">{{ o.completionNotes }}</div></div> }
+          @if (o.materialsUsed) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Materials Used</div><div class="erp-field__value">{{ o.materialsUsed }}</div></div> }
+        </div>
+        }
+
+        <!-- Quotation data (source document) -->
+        @if (o.quotation; as qt) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">request_quote</span> Quotation
+              <span class="erp-badge">{{ qt.status }}</span>
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/quotation', qt._id]">Open Quotation</a>
+            </h3>
+            <div class="erp-summary-row">
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Quotation No</div><div class="erp-summary-card__value erp-doc-no" style="font-size:16px">{{ qt.quotationNo || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Subtotal</div><div class="erp-summary-card__value" style="font-size:16px">{{ qt.subtotal || 0 }} {{ qt.currency || 'AED' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">VAT</div><div class="erp-summary-card__value" style="font-size:16px">{{ qt.taxAmount || 0 }} {{ qt.currency || 'AED' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Grand Total</div><div class="erp-summary-card__value erp-summary-card__value--teal" style="font-size:16px">{{ qt.totalAmount || 0 }} {{ qt.currency || 'AED' }}</div></div>
+            </div>
+            @if ((qt.items || []).length > 0) {
+              <h3 class="erp-subheading">Quotation Items</h3>
+              <div class="erp-table-card erp-table-card--flush"><table class="erp-table">
+                <thead><tr><th style="width:40px">#</th><th>Description</th><th style="width:70px">Qty</th><th style="width:110px">Rate</th><th style="width:120px">Amount</th></tr></thead>
+                <tbody>
+                  @for (item of qt.items; track $index) {
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td>{{ item.description }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td class="erp-money">{{ item.unitPrice | number:'1.2-2' }}</td>
+                      <td class="erp-money">{{ item.totalPrice | number:'1.2-2' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table></div>
+            }
+            <div class="erp-detail-grid" style="margin-top:14px">
+              @if (qt.inquiryId?.inquiryNo) { <div class="erp-field"><div class="erp-field__label">Inquiry No</div><div class="erp-field__value erp-doc-no">{{ qt.inquiryId.inquiryNo }}</div></div> }
+              @if (qt.customerId?.companyName || qt.customerId?.contactPerson) { <div class="erp-field"><div class="erp-field__label">Customer</div><div class="erp-field__value">{{ qt.customerId?.companyName || qt.customerId?.contactPerson }}</div></div> }
+              @if (qt.createdAt) { <div class="erp-field"><div class="erp-field__label">Quotation Date</div><div class="erp-field__value">{{ qt.createdAt | date:'dd MMM yyyy' }}</div></div> }
+              @if (qt.validUntil) { <div class="erp-field"><div class="erp-field__label">Valid Until</div><div class="erp-field__value">{{ qt.validUntil | date:'dd MMM yyyy' }}</div></div> }
+              @if (qt.paymentTypeName) { <div class="erp-field"><div class="erp-field__label">Payment Plan</div><div class="erp-field__value">{{ qt.paymentTypeName }}</div></div> }
+              @if (qt.paymentStartDate) { <div class="erp-field"><div class="erp-field__label">Payment Start</div><div class="erp-field__value">{{ qt.paymentStartDate | date:'dd MMM yyyy' }}</div></div> }
+              @if (qt.paymentEndDate) { <div class="erp-field"><div class="erp-field__label">Payment End</div><div class="erp-field__value">{{ qt.paymentEndDate | date:'dd MMM yyyy' }}</div></div> }
+              @if (qt.durationMonths) { <div class="erp-field"><div class="erp-field__label">Contract Duration</div><div class="erp-field__value">{{ qt.durationMonths }} months</div></div> }
+              @if (qt.numberOfPayments) { <div class="erp-field"><div class="erp-field__label">Number of Payments</div><div class="erp-field__value">{{ qt.numberOfPayments }}{{ qt.paymentFrequency ? ' · ' + qt.paymentFrequency : '' }}</div></div> }
+              @if (qt.taxRate) { <div class="erp-field"><div class="erp-field__label">Tax Rate</div><div class="erp-field__value">{{ qt.taxRate }}%</div></div> }
+              @if (qt.salesPerson) { <div class="erp-field"><div class="erp-field__label">Sales Person</div><div class="erp-field__value">{{ qt.salesPerson }}</div></div> }
+              @if (qt.createdByName) { <div class="erp-field"><div class="erp-field__label">Created By</div><div class="erp-field__value">{{ qt.createdByName }}</div></div> }
+              @if (qt.approvedDate) { <div class="erp-field"><div class="erp-field__label">Approved On</div><div class="erp-field__value">{{ qt.approvedDate | date:'dd MMM yyyy' }}</div></div> }
+              @if (qt.terms) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Payment Terms</div><div class="erp-field__value">{{ qt.terms }}</div></div> }
+              @if (qt.notes) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Notes</div><div class="erp-field__value">{{ qt.notes }}</div></div> }
+              @if (qt.remarks) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Remarks</div><div class="erp-field__value">{{ qt.remarks }}</div></div> }
+            </div>
+            @if ((qt.attachments || []).length > 0) {
+              <h3 class="erp-subheading">Quotation Attachments</h3>
+              <div class="erp-attachment-list">
+                @for (file of qt.attachments; track $index) {
+                  <a class="erp-attachment-item" [href]="file.fileUrl" target="_blank" rel="noopener">
+                    <span class="material-icons-outlined">attach_file</span>
+                    <span>{{ file.fileName || 'Attachment' }}</span>
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
         <app-workflow-timeline entityType="WORK_ORDER" [entityId]="o._id" />
       }
     </div>
   </div>
 </div>
+@if (showAssign()) { <div class="erp-overlay" (click)="closeAssign()"><div class="erp-dialog erp-dialog--wide" (click)="$event.stopPropagation()"><div class="erp-dialog__header"><h3>Assign Work</h3><button class="erp-dialog__close" (click)="closeAssign()">×</button></div><div class="erp-dialog__body"><div class="erp-form-grid">
+  <div class="erp-form-group"><label>Assigned Team</label><input [(ngModel)]="assignForm.assignedTeam" placeholder="e.g. Team Alpha" /></div>
+  <div class="erp-form-group"><label>Assigned Technician</label><input [(ngModel)]="assignForm.assignedTechnician" placeholder="e.g. Rahul K." /></div>
+  <div class="erp-form-group"><label>Scheduled Date</label><input type="date" [(ngModel)]="assignForm.scheduledDate" /></div>
+  <div class="erp-form-group"><label>Scheduled Time</label><input [(ngModel)]="assignForm.scheduledTime" placeholder="e.g. 09:00 AM" /></div>
+  <div class="erp-form-group erp-form-group--full"><label>Work Description</label><textarea [(ngModel)]="assignForm.workDescription" rows="3" placeholder="Describe the work to be performed..."></textarea></div>
+  <div class="erp-form-group erp-form-group--full"><label>Required Materials</label><textarea [(ngModel)]="assignForm.requiredMaterials" rows="2" placeholder="Materials or chemicals needed..."></textarea></div>
+</div></div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="closeAssign()">Cancel</button><button class="erp-btn erp-btn--primary" (click)="saveAssign()" [disabled]="busy()">{{ busy() ? 'Saving…' : 'Save Assignment' }}</button></div></div></div> }
 @if (showComplete()) { <div class="erp-overlay"><div class="erp-dialog"><div class="erp-dialog__header"><h3>Complete Work</h3><button class="erp-dialog__close" (click)="showComplete.set(false)">×</button></div><div class="erp-dialog__body"><div class="erp-form-group"><label>Completion Notes *</label><textarea [(ngModel)]="completionNotes"></textarea></div><div class="erp-form-group"><label>Materials Used</label><textarea [(ngModel)]="materialsUsed"></textarea></div><div class="erp-form-group"><label>Customer Confirmation</label><input [(ngModel)]="customerConfirmation" /></div></div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="showComplete.set(false)">Cancel</button><button class="erp-btn erp-btn--success" (click)="complete()" [disabled]="!completionNotes.trim() || busy()">Complete Work</button></div></div></div> }

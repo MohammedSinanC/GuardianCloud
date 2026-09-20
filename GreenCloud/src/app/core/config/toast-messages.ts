@@ -89,6 +89,15 @@ export const TOAST_MESSAGES = {
     reject:   { success: 'Lead rejected.',                               error: 'Unable to reject the lead.' },
   },
 
+  // ===== ERP: SITE INSPECTION =====
+  inspection: {
+    create:   { success: 'Site inspection created successfully.',     error: 'Unable to create the site inspection.' },
+    update:   { success: 'Site inspection saved successfully.',       error: 'Unable to save the site inspection.' },
+    submit:   { success: 'Inspection submitted for approval.',        error: 'Unable to submit the inspection. Check mandatory fields.' },
+    approve:  { success: 'Inspection approved successfully. Quotation created.', error: 'Unable to approve the inspection.' },
+    reject:   { success: 'Inspection rejected.',                      error: 'Rejection reason is required.' },
+  },
+
   // ===== ERP: CUSTOMER =====
   customer: {
     create:   { success: 'Customer created successfully.',               error: 'Unable to create the customer.' },
@@ -101,6 +110,18 @@ export const TOAST_MESSAGES = {
     approve:  { success: 'Invoice approved successfully. Ledger updated.', error: 'Unable to approve the invoice.' },
     cancel:   { success: 'Invoice cancelled successfully.',              error: 'Unable to cancel the invoice.' },
     send:     { success: 'Invoice sent to customer successfully.',       error: 'Unable to send the invoice to the customer.' },
+  },
+
+  // ===== ERP: WORK ORDER =====
+  workOrder: {
+    create:   { success: 'Work order created successfully.',        error: 'Unable to create the work order. The quotation must be approved first.' },
+    update:   { success: 'Work order updated successfully.',        error: 'Unable to update the work order.' },
+    assign:   { success: 'Work assigned successfully.',             error: 'Unable to assign the work. Check team and schedule details.' },
+    submit:   { success: 'Work order submitted for approval.',      error: 'Unable to submit the work order.' },
+    approve:  { success: 'Work order approved successfully.',       error: 'Unable to approve the work order.' },
+    reject:   { success: 'Work order rejected.',                    error: 'Rejection reason is required.' },
+    start:    { success: 'Work started successfully.',              error: 'Unable to start the work.' },
+    complete: { success: 'Work completed successfully. Invoice drafted.', error: 'Unable to complete the work. Completion notes are required.' },
   },
 
   // ===== MASTER DATA =====

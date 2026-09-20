@@ -19,6 +19,9 @@ import ledgerRoutes from "./routes/ledger.routes.js"
 import siteInspectionRoutes from "./routes/site-inspection.routes.js"
 import workOrderRoutes from "./routes/work-order.routes.js"
 import receiptRoutes from "./routes/receipt.routes.js"
+import swaggerUi from "swagger-ui-express"
+import swaggerJsdoc from "swagger-jsdoc"
+import swaggerDefinition from "./docs/swagger.js"
 
 const app = express();
 dotenv.config();
@@ -54,6 +57,14 @@ app.use("/api/ledgers", ledgerRoutes)
 app.use("/api/site-inspections", siteInspectionRoutes)
 app.use("/api/work-orders", workOrderRoutes)
 app.use("/api/receipts", receiptRoutes)
+
+// API documentation — Swagger UI at /api-docs, raw OpenAPI 3 spec at /api-docs.json
+const openapiSpec = swaggerJsdoc(swaggerDefinition)
+app.get("/api-docs.json", (req, res) => res.json(openapiSpec))
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpec, {
+  customSiteTitle: "GreenCloud API Docs",
+  swaggerOptions: { persistAuthorization: true },
+}))
 
 console.log(`Lead routes: /api/leads`);
 console.log(`Customer routes: /api/customers`);

@@ -11,6 +11,7 @@ import { UnitMasterComponent } from './unit-master/unit-master.component';
 import { LocationMasterComponent } from './location-master/location-master.component';
 import { PaymentTypeMasterComponent } from './payment-type-master/payment-type-master.component';
 import { InspectionTypesMasterComponent } from './inspection-types-master/inspection-types-master.component';
+import { ChecklistMasterComponent } from './checklist-master/checklist-master.component';
 interface SettingsItem {
   key: string;
   name: string;
@@ -40,6 +41,7 @@ export class AdminSettingsComponent implements AfterViewInit {
     { key: 'company-master', name: 'Company Master', icon: 'business', component: CompanyMasterComponent },
     { key: 'pest-types', name: 'Pest Types', icon: 'bug_report', component: PestTypesMasterComponent },
     { key: 'inspection-types', name: 'Inspection Types', icon: 'fact_check', component: InspectionTypesMasterComponent },
+    { key: 'checklists', name: 'Checklist', icon: 'checklist', component: ChecklistMasterComponent },
     { key: 'service-types', name: 'Service Types', icon: 'home_repair_service', component: ServiceTypesMasterComponent },
     { key: 'contract-types', name: 'Contract Types', icon: 'description', component: ContractTypesMasterComponent },
     { key: 'service-category', name: 'Service Category', icon: 'category', component: ServiceCategoryComponent },

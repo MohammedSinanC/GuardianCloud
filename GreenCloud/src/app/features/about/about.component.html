@@ -1,5 +1,9 @@
 <!-- Page Hero -->
 <section class="page-hero">
+  <div class="page-hero__bg" aria-hidden="true">
+    <img src="/assets/images/about/about-team.jpg" alt="" appParallax [parallaxSpeed]="0.12" />
+    <div class="page-hero__overlay"></div>
+  </div>
   <div class="container">
     <span class="badge">About Us</span>
     <h1>Professional <span class="text-gradient">Hygiene & Facility Solutions</span></h1>
@@ -11,9 +15,9 @@
 <section class="section">
   <div class="container">
     @if (about()) {
-      <div class="about-main reveal">
+      <div class="about-main" appReveal>
         <div class="about-main__images">
-          <div class="about-main__image-main">
+          <div class="about-main__image-main" appReveal revealVariant="mask">
             <img
               [src]="about()!.image"
               [alt]="about()!.title"
@@ -55,7 +59,7 @@
 <section class="about-mv section">
   <div class="container">
     @if (about()) {
-      <div class="about-mv__grid reveal">
+      <div class="about-mv__grid" appReveal>
         <div class="about-mv__card">
           <div class="about-mv__icon">
             <span class="material-icons-outlined">flag</span>
@@ -78,8 +82,8 @@
 <!-- Stats -->
 <section class="about-stats section">
   <div class="container">
-    <div class="about-stats__grid reveal">
-      @for (stat of animatedStats(); track stat.label) {
+    <div class="about-stats__grid">
+      @for (stat of statistics(); track stat.label) {
         <app-statistic-card
           [value]="stat.value"
           [suffix]="stat.suffix"
@@ -94,14 +98,14 @@
 <!-- Why Choose Us -->
 <section class="about-why section">
   <div class="container">
-    <div class="reveal">
+    <div appReveal>
       <app-section-heading
         badge="Why Choose Us"
         title="Trusted by Thousands"
         description="We deliver consistent quality and reliability across every service."
       />
     </div>
-    <div class="about-why__grid reveal">
+    <div class="about-why__grid" appReveal>
       @for (item of whyChooseUs(); track item.title) {
         <div class="about-why__card">
           <span class="material-icons-outlined about-why__icon">{{ item.icon }}</span>

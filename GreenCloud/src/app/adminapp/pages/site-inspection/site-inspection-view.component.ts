@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HttpClientService } from '../../../core/services/http-client.service';
 import { ContentService } from '../../../core/services/content.service';
+import { ConfirmService } from '../../../core/services/confirm.service';
 import { SiteInspectionService, SiteInspection } from '../../services/site-inspection.service';
 import { WorkflowTimelineComponent } from '../../../shared/components/workflow-timeline/workflow-timeline.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
@@ -25,6 +26,7 @@ export class SiteInspectionViewComponent implements OnInit {
   private service = inject(SiteInspectionService);
   private httpClient = inject(HttpClientService);
   private contentService = inject(ContentService);
+  private confirmService = inject(ConfirmService);
   inspection = signal<SiteInspection | null>(null);
   users = signal<any[]>([]);
   loading = signal(true);
@@ -41,6 +43,9 @@ export class SiteInspectionViewComponent implements OnInit {
 
   /** Inspection Type dropdown source — Inspection Types master data */
   readonly inspectionTypeOptions = computed(() => this.contentService.inspectionTypes());
+
+  /** Checklist master rows source — Checklist master data */
+  readonly checklistMaster = computed(() => this.contentService.checklists());
 
   /** Dropdown options incl. the stored inspection type if it no longer matches a master entry */
   readonly inspectionTypeSelectOptions = computed(() => {
@@ -136,6 +141,76 @@ export class SiteInspectionViewComponent implements OnInit {
     this.inspection.set({ ...current, [field]: value });
   }
 
+  // ── Checklist (from Checklist master, Settings → Master Data) ──
+  /** Codes removed this session — keeps "Add Checklist" from resurrecting deleted rows */
+  removedChecklistCodes = signal<Set<string>>(new Set());
+
+  /** Current checklist rows (source of truth lives on the inspection document) */
+  readonly checklistRows = computed(() => this.inspection()?.checklistItems || []);
+
+  /** "Add Checklist" button — generates one row per master item with the right control type.
+   *  Re-clicking merges: existing answers are kept, new master items appended, removed codes excluded. */
+  generateChecklist() {
+    const master = this.checklistMaster();
+    if (!master.length) {
+      this.error.set('No checklist items found in master data. Add items in Settings → Master Data → Checklist first.');
+      return;
+    }
+    this.error.set('');
+    const current = this.inspection();
+    if (!current) return;
+    const existing = current.checklistItems || [];
+    const removed = this.removedChecklistCodes();
+    const byCode = new Map(existing.map((row) => [row.code, row]));
+    const masterCodes = new Set(master.map((m) => m.code));
+    const rows: SiteInspection['checklistItems'] = master
+      .filter((m) => !removed.has(m.code))
+      .map((m) => byCode.get(m.code) ?? ({
+        code: m.code,
+        name: m.name,
+        controlType: (m.controlType === 'CHECKBOX' ? 'CHECKBOX' : 'TEXTBOX') as 'CHECKBOX' | 'TEXTBOX',
+        value: m.controlType === 'CHECKBOX' ? false : '',
+        remarks: '',
+      }));
+    // Keep saved rows that no longer exist in master (unless removed this session)
+    for (const row of existing) {
+      if (!masterCodes.has(row.code) && !removed.has(row.code)) rows.push(row);
+    }
+    this.inspection.set({ ...current, checklistItems: rows });
+  }
+
+  /** Remove a checklist row from the inspection */
+  removeChecklistRow(index: number) {
+    const current = this.inspection();
+    if (!current) return;
+    const rows = [...(current.checklistItems || [])];
+    const removedRow = rows[index];
+    if (!removedRow) return;
+    rows.splice(index, 1);
+    const removed = new Set(this.removedChecklistCodes());
+    removed.add(removedRow.code);
+    this.removedChecklistCodes.set(removed);
+    this.inspection.set({ ...current, checklistItems: rows });
+  }
+
+  updateChecklistValue(index: number, value: any) {
+    const current = this.inspection();
+    if (!current) return;
+    const rows = [...(current.checklistItems || [])];
+    if (!rows[index]) return;
+    rows[index] = { ...rows[index], value };
+    this.inspection.set({ ...current, checklistItems: rows });
+  }
+
+  updateChecklistRemarks(index: number, remarks: string) {
+    const current = this.inspection();
+    if (!current) return;
+    const rows = [...(current.checklistItems || [])];
+    if (!rows[index]) return;
+    rows[index] = { ...rows[index], remarks };
+    this.inspection.set({ ...current, checklistItems: rows });
+  }
+
   // ── Site image upload: converted to base64 and persisted in MongoDB ──
   // Stored in the existing attachments array as { fileName, fileUrl (base64 data URL), fileType, uploadedAt }
   readonly maxImageBytes = 5 * 1024 * 1024;
@@ -178,10 +253,30 @@ export class SiteInspectionViewComponent implements OnInit {
     }
   }
 
-  removeImage(index: number) {
+  /** Delete an attachment: confirm → persist immediately to the backend */
+  async removeImage(index: number) {
     const current = this.inspection();
     if (!current) return;
-    this.updateField('attachments', (current.attachments || []).filter((_, i) => i !== index));
+    const image = (current.attachments || [])[index];
+    if (!image) return;
+    const confirmed = await this.confirmService.confirm({
+      title: 'Delete Attachment',
+      message: `Delete "${image.fileName || 'this image'}"? This cannot be undone.`,
+      confirmText: 'Delete',
+      type: 'danger',
+    });
+    if (!confirmed) return;
+    const remaining = (current.attachments || []).filter((_, i) => i !== index);
+    this.saving.set(true);
+    try {
+      // Persist right away so the file is gone without needing Save
+      await this.service.update(current._id, { attachments: remaining });
+      this.updateField('attachments', remaining);
+    } catch (e: any) {
+      this.error.set(e?.error?.message || 'Unable to delete the attachment');
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   inputDate(value: string | null | undefined): string {
@@ -199,6 +294,7 @@ export class SiteInspectionViewComponent implements OnInit {
     try {
       await this.service.update(item._id, {
         inspectionDate: item.inspectionDate,
+        checklistItems: item.checklistItems || [],
         location: item.location,
         inspector: item.inspector,
         inspectionType: item.inspectionType,
@@ -225,6 +321,23 @@ export class SiteInspectionViewComponent implements OnInit {
     if (!item) return;
     this.saving.set(true);
     try {
+      // Persist the draft (incl. checklist answers) before moving the workflow forward
+      await this.service.update(item._id, {
+        inspectionDate: item.inspectionDate,
+        location: item.location,
+        inspector: item.inspector,
+        inspectionType: item.inspectionType,
+        findings: item.findings,
+        pestType: item.pestType,
+        affectedArea: item.affectedArea,
+        checklistItems: item.checklistItems || [],
+        severity: item.severity,
+        recommendations: item.recommendations,
+        requiredTreatment: item.requiredTreatment,
+        estimatedWork: item.estimatedWork,
+        remarks: item.remarks,
+        attachments: item.attachments || [],
+      });
       await this.service.submit(item._id);
       await this.load(item._id);
     } catch (e: any) {

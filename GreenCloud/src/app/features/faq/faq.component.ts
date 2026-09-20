@@ -3,11 +3,12 @@ import { RouterLink } from '@angular/router';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
 import { FaqItemComponent } from '../../shared/components/faq-item/faq-item.component';
+import { RevealDirective, ParallaxDirective } from '../../shared/motion';
 
 @Component({
   selector: 'app-faq',
   standalone: true,
-  imports: [RouterLink, FaqItemComponent],
+  imports: [RouterLink, FaqItemComponent, RevealDirective, ParallaxDirective],
   templateUrl: './faq.component.html',
   styleUrl: './faq.component.scss',
 })

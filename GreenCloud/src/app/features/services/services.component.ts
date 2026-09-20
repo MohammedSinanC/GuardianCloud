@@ -3,11 +3,12 @@ import { RouterLink } from '@angular/router';
 import { ContentService } from '../../core/services/content.service';
 import { SeoService } from '../../core/services/seo.service';
 import { ServiceCardComponent } from '../../shared/components/service-card/service-card.component';
+import { RevealDirective, ParallaxDirective } from '../../shared/motion';
 
 @Component({
   selector: 'app-services',
   standalone: true,
-  imports: [RouterLink, ServiceCardComponent],
+  imports: [RouterLink, ServiceCardComponent, RevealDirective, ParallaxDirective],
   templateUrl: './services.component.html',
   styleUrl: './services.component.scss',
 })

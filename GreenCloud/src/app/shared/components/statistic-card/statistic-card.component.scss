@@ -1,11 +1,25 @@
 .stat-card {
+  position: relative;
   text-align: center;
-  padding: var(--space-xl);
+  padding: var(--space-xl) var(--space-md);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--primary));
 }
 
 .stat-card__value {
   font-size: var(--font-size-5xl);
   font-weight: 800;
+  letter-spacing: -0.03em;
   color: var(--primary);
   line-height: 1;
   margin-bottom: var(--space-sm);
@@ -13,19 +27,19 @@
 
 .stat-card__suffix {
   font-size: var(--font-size-3xl);
-  color: var(--primary-light);
+  color: var(--accent);
 }
 
 .stat-card__label {
   font-size: var(--font-size-base);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .stat-card__desc {
   font-size: var(--font-size-sm);
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 767px) {

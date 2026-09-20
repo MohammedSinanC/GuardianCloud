@@ -1,5 +1,6 @@
 /* ── Service Card ──────────────────────────────────────── */
 .service-card {
+  position: relative;
   background: var(--bg-white);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
@@ -8,22 +9,41 @@
   display: flex;
   flex-direction: column;
 
+  /* Accent top line revealed on hover */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--primary));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition-normal);
+    z-index: 1;
+  }
+
   &:hover {
-    box-shadow: var(--shadow-md);
-    border-color: transparent;
-    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(0, 144, 255, 0.4);
+    transform: translateY(-4px);
+
+    &::before {
+      transform: scaleX(1);
+    }
 
     .service-card__image {
-      transform: scale(1.05);
+      transform: scale(1.03);
     }
 
     .service-card__link {
-      color: var(--primary-dark);
+      color: var(--accent);
       gap: 10px;
     }
 
     .service-card__icon {
-      background: var(--primary);
+      background: var(--accent);
       color: white;
     }
   }
@@ -39,7 +59,7 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 10;
-  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 50%, #e8f5f4 100%);
+  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 50%, #dbe7f7 100%);
 }
 
 .service-card__image {
@@ -47,20 +67,21 @@
   height: 100%;
   object-fit: cover;
   transition: transform var(--transition-slow);
-  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 50%, #e8f5f4 100%);
+  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-50) 50%, #dbe7f7 100%);
 }
 
 .service-card__category {
   position: absolute;
   top: 12px;
   left: 12px;
-  padding: 4px 12px;
+  padding: 5px 12px;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary);
+  border: 1px solid rgba(27, 68, 125, 0.1);
 }
 
 .service-card__body {
@@ -92,12 +113,13 @@
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--space-sm);
+  letter-spacing: -0.01em;
 }
 
 .service-card__desc {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.65;
   margin-bottom: var(--space-md);
   flex: 1;
 }
@@ -107,7 +129,7 @@
   align-items: center;
   gap: 6px;
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary);
   transition: all var(--transition-fast);
 

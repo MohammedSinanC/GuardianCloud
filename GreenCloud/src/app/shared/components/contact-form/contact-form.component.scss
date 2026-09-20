@@ -1,8 +1,9 @@
 .contact-form-wrap {
   background: var(--bg-white);
   border-radius: var(--radius-lg);
-  padding: var(--space-xl);
+  padding: var(--space-2xl) var(--space-xl);
   border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .contact-form__grid {
@@ -41,8 +42,8 @@
   outline: none;
 
   &:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(11, 122, 117, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 144, 255, 0.14);
   }
 
   &::placeholder {

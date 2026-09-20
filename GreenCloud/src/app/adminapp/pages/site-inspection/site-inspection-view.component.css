@@ -114,6 +114,140 @@
     grid-column: auto;
 }
 
+/* ── Inspection checklist (full-width card, master-data rows) ── */
+.checklist-card {
+    /* full width inside the 2-col details-grid */
+    grid-column: 1 / -1;
+}
+
+.checklist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.checklist-header h2 {
+    margin-bottom: 0;
+}
+
+.checklist-add-btn {
+    padding: 8px 14px;
+    min-height: 36px;
+}
+
+.checklist-table-wrap {
+    overflow-x: auto;
+    margin-top: 14px;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+}
+
+.checklist-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.checklist-table thead th {
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.checklist-table tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f8fafc;
+    vertical-align: middle;
+}
+
+.checklist-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.checklist-table tbody tr:hover td {
+    background: #fafcfe;
+}
+
+.checklist-col-num {
+    width: 44px;
+    color: #94a3b8;
+}
+
+.checklist-name {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.checklist-col-input {
+    width: 220px;
+}
+
+.checklist-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #0d9488;
+    cursor: pointer;
+    display: block;
+}
+
+.checklist-checkbox:disabled {
+    cursor: default;
+}
+
+.checklist-text {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 13px;
+}
+
+.checklist-remarks {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 13px;
+}
+
+.checklist-col-remove {
+    width: 48px;
+    text-align: center;
+}
+
+.checklist-remove {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: .18s ease;
+}
+
+.checklist-remove:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.checklist-remove .material-icons-outlined {
+    font-size: 17px;
+}
+
+.checklist-empty {
+    margin: 12px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
 /* ── Site image upload (base64 preview + remove) ── */
 .image-upload-area {
     position: relative;

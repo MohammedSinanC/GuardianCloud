@@ -1,5 +1,9 @@
 <!-- Services Page Hero -->
 <section class="page-hero">
+  <div class="page-hero__bg" aria-hidden="true">
+    <img src="/assets/images/services/facility-management.jpg" alt="" appParallax [parallaxSpeed]="0.12" />
+    <div class="page-hero__overlay"></div>
+  </div>
   <div class="container">
     <span class="badge">Our Services</span>
     <h1>Professional <span class="text-gradient">Hygiene Solutions</span></h1>
@@ -11,7 +15,7 @@
 <section class="section">
   <div class="container">
     <!-- Category Filter -->
-    <div class="services-filters">
+    <div class="services-filters" appReveal>
       @for (cat of categories(); track cat.id) {
         <button
           class="services-filter"
@@ -24,7 +28,7 @@
     </div>
 
     <!-- Services Grid -->
-    <div class="services-grid">
+    <div class="services-grid" appReveal>
       @for (service of filteredServices(); track service.id) {
         <app-service-card [service]="service" />
       }

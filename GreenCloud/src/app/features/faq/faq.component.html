@@ -1,5 +1,9 @@
 <!-- Page Hero -->
 <section class="page-hero">
+  <div class="page-hero__bg" aria-hidden="true">
+    <img src="/assets/images/services/hvac.jpg" alt="" appParallax [parallaxSpeed]="0.12" />
+    <div class="page-hero__overlay"></div>
+  </div>
   <div class="container">
     <span class="badge">FAQ</span>
     <h1>Frequently Asked <span class="text-gradient">Questions</span></h1>
@@ -10,8 +14,7 @@
 <!-- FAQ List -->
 <section class="section">
   <div class="container">
-    <div class="faq-page__grid">
-      <div class="faq-page__list">
+    <div class="faq-page__grid">        <div class="faq-page__list" appReveal>
         @for (item of faq(); track item.question) {
           <app-faq-item [item]="item" />
         }

@@ -23,11 +23,31 @@
       @else {
         <div class="erp-table-card erp-table-card--flush">
           <table class="erp-table">
-            <thead><tr><th>Work Order</th><th>Service</th><th>Location</th><th>Technician</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th>Work Order</th><th>Lead No</th><th>Inquiry No</th><th>Site Inspection</th><th>Quotation</th><th>Service</th><th>Location</th><th>Technician</th><th>Status</th><th>Action</th></tr></thead>
             <tbody>
               @for (order of orders(); track order._id || $index) {
                 <tr>
                   <td class="erp-doc-no">{{ order.workOrderNo || '-' }}</td>
+                  <td>
+                    @if (leadNo(order)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/leads', refId(order.leadId)]">{{ leadNo(order) }}</a>
+                    } @else { - }
+                  </td>
+                  <td>
+                    @if (inquiryNo(order)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/inquiries', refId(order.inquiryId)]">{{ inquiryNo(order) }}</a>
+                    } @else { - }
+                  </td>
+                  <td>
+                    @if (inspectionNo(order)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/site-inspection', refId(order.inspectionId)]">{{ inspectionNo(order) }}</a>
+                    } @else { - }
+                  </td>
+                  <td>
+                    @if (quotationNo(order)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/quotation', refId(order.quotationId)]">{{ quotationNo(order) }}</a>
+                    } @else { - }
+                  </td>
                   <td>{{ serviceType(order) }}</td>
                   <td>{{ location(order) }}</td>
                   <td>{{ order.assignedTechnician || order.assignedTeam || '-' }}</td>

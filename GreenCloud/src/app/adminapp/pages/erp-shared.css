@@ -394,6 +394,25 @@
 }
 
 /* ===== Searchable dropdown (typeahead) ===== */
+
+/* "Open source document" link inside card headers (quotation view) */
+.erp-source-link {
+  margin-left: auto;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.erp-subheading {
+  margin-top: 16px;
+}
+
+.erp-badge--pest {
+  display: inline-block;
+  margin: 0 4px 4px 0;
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .erp-typeahead {
   position: relative;
 }
@@ -757,6 +776,103 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ===== Quotation items editor (before submit) ===== */
+.erp-item-add {
+  color: #0d9488;
+  border-color: #99f6e4;
+}
+
+.erp-item-add:hover {
+  background: #f0fdfa;
+}
+
+.erp-items-table td {
+  padding: 6px 10px;
+}
+
+.erp-item-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  color: #1e293b;
+}
+
+.erp-item-input:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.14);
+}
+
+.erp-item-input--num {
+  text-align: right;
+}
+
+.erp-item-remove {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.erp-item-remove:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.erp-item-remove .material-icons-outlined {
+  font-size: 17px;
+}
+
+.erp-empty-cell {
+  text-align: center;
+  color: #94a3b8;
+  padding: 18px !important;
+}
+
+.erp-items-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.erp-items-totals {
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.erp-items-totals__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.erp-items-totals__row--total {
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0d9488;
+}
+
 @media (max-width: 768px) {
 
   .admin-layout__main,
@@ -773,10 +889,40 @@
     flex-direction: column;
     gap: 10px;
   }
-}
-
-@media (max-width: 640px) {
+}@media (max-width: 640px) {
   .erp-form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Quotation attachment chips (work order / quotation detail pages). */
+.erp-attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.erp-attachment-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.erp-attachment-item .material-icons-outlined {
+  font-size: 16px;
+}
+
+.erp-attachment-item:hover {
+  background: #f0fdfa;
+  border-color: #99f6e4;
 }

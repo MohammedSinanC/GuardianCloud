@@ -1,10 +1,30 @@
-<!-- ==================== HERO SECTION ==================== -->
+<!-- ==================== HERO SECTION (Cinematic / Enterprise Tech) ==================== -->
 <section class="hero">
-  <div class="hero__bg-shapes">
-    <div class="hero__shape hero__shape--1"></div>
-    <div class="hero__shape hero__shape--2"></div>
-    <div class="hero__shape hero__shape--3"></div>
+  <!-- Cinematic background video (pauses off-screen; static gradient behind it) -->
+  <video
+    class="hero__video"
+    appVideoBg
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="metadata"
+    poster="/assets/images/hero/hero-main.jpg"
+    aria-hidden="true"
+  >
+    <source src="/assets/media/hero/hero-bg.mp4" type="video/mp4" />
+  </video>
+
+  <!-- Technical decorative layers (mid parallax plane) -->
+  <div class="hero__decor" aria-hidden="true">
+    <div class="hero__grid" appParallax [parallaxSpeed]="0.1"></div>
+    <div class="hero__glow hero__glow--1"></div>
+    <div class="hero__glow hero__glow--2"></div>
+    <div class="hero__ring hero__ring--1"></div>
+    <div class="hero__ring hero__ring--2"></div>
+    <div class="hero__beam"></div>
   </div>
+
   <div class="hero__inner container">
     <div class="hero__content">
       @if (hero()) {
@@ -20,15 +40,15 @@
             {{ hero()!.primaryButton }}
             <span class="material-icons-outlined">arrow_forward</span>
           </a>
-          <a [routerLink]="hero()!.secondaryRoute" class="btn btn--secondary btn--lg">
+          <a [routerLink]="hero()!.secondaryRoute" class="btn btn--outline-light btn--lg">
             {{ hero()!.secondaryButton }}
           </a>
         </div>
       }
     </div>
 
-    <div class="hero__visual">
-      <div class="hero__image-wrap">
+    <div class="hero__visual" appParallax [parallaxSpeed]="0.06">
+      <div class="hero__image-wrap" appReveal revealVariant="mask">
         <img
           [src]="hero()?.image || '/assets/images/hero/hero-main.jpg'"
           alt="Al Waha Hygiene - Professional Hygiene Solutions"
@@ -51,12 +71,22 @@
       }
     </div>
   </div>
+
+  <div class="hero__scroll-hint" aria-hidden="true">
+    <span class="hero__scroll-label">Scroll to explore</span>
+    <span class="hero__scroll-line"></span>
+    <span class="material-icons-outlined">keyboard_double_arrow_down</span>
+  </div>
+
+  <svg class="section-curve" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path d="M0,42 C240,78 480,4 760,22 C1020,38 1240,12 1440,34 L1440,70 L0,70 Z" fill="#ffffff"></path>
+  </svg>
 </section>
 
-<!-- ==================== TRUST SECTION ==================== -->
+<!-- ==================== TRUST STRIP (Type A — White) ==================== -->
 <section class="home-trust">
   <div class="container">
-    <div class="home-trust__grid reveal">
+    <div class="home-trust__grid" appReveal>
       @for (item of trust(); track item.title) {
         <div class="home-trust__item">
           <span class="material-icons-outlined home-trust__icon">{{ item.icon }}</span>
@@ -70,22 +100,22 @@
   </div>
 </section>
 
-<!-- ==================== SERVICES SECTION ==================== -->
-<section class="home-services section">
+<!-- ==================== SERVICES SECTION (Type A — White) ==================== -->
+<section class="home-services section section--white">
   <div class="container">
-    <div class="reveal">
+    <div appReveal>
       <app-section-heading
         badge="What We Offer"
         title="Our Professional Services"
         description="Comprehensive hygiene, pest control, cleaning, and facility management solutions for homes and businesses."
       />
     </div>
-    <div class="home-services__grid reveal">
+    <div class="home-services__grid" appReveal>
       @for (service of services(); track service.id) {
         <app-service-card [service]="service" />
       }
     </div>
-    <div class="home-services__cta reveal">
+    <div class="home-services__cta" appReveal>
       <a routerLink="/services" class="btn btn--secondary btn--lg">
         View All Services
         <span class="material-icons-outlined">arrow_forward</span>
@@ -94,11 +124,12 @@
   </div>
 </section>
 
-<!-- ==================== ABOUT SECTION ==================== -->
-<section class="home-about section">
+<!-- ==================== ABOUT SECTION (Type D — Image/Content Split) ==================== -->
+<section class="home-about section section--soft">
   <div class="container">
-    <div class="home-about__grid reveal">
-      <div class="home-about__images">
+    <div class="home-about__grid">
+      <div class="home-about__images" appReveal revealVariant="left">
+        <div class="home-about__image-frame" aria-hidden="true"></div>
         @if (about()) {
           <div class="home-about__image-main">
             <img
@@ -118,9 +149,10 @@
               height="200"
             />
           </div>
+          <div class="home-about__image-accent" aria-hidden="true"></div>
         }
       </div>
-      <div class="home-about__content">
+      <div class="home-about__content" appReveal revealVariant="right" [revealDelay]="1">
         @if (about()) {
           <span class="badge">{{ about()!.badge }}</span>
           <h2 class="home-about__title">{{ about()!.title }}</h2>
@@ -144,11 +176,11 @@
   </div>
 </section>
 
-<!-- ==================== STATISTICS SECTION ==================== -->
-<section class="home-stats section">
+<!-- ==================== STATISTICS SECTION (Type B — Soft Metrics) ==================== -->
+<section class="home-stats section section--subtle">
   <div class="container">
-    <div class="home-stats__grid reveal">
-      @for (stat of animatedStats(); track stat.label) {
+    <div class="home-stats__grid">
+      @for (stat of statistics(); track stat.label) {
         <app-statistic-card
           [value]="stat.value"
           [suffix]="stat.suffix"
@@ -160,17 +192,17 @@
   </div>
 </section>
 
-<!-- ==================== WHY CHOOSE US ==================== -->
-<section class="home-why section">
+<!-- ==================== WHY CHOOSE US (Type B — Light Gray/Blue) ==================== -->
+<section class="home-why section section--soft">
   <div class="container">
-    <div class="reveal">
+    <div appReveal>
       <app-section-heading
         badge="Why Choose Us"
         title="Trusted by Thousands"
         description="We deliver consistent quality and reliability across every service."
       />
     </div>
-    <div class="home-why__grid reveal">
+    <div class="home-why__grid" appReveal>
       @for (item of whyChooseUs(); track item.title) {
         <div class="home-why__card">
           <div class="home-why__card-icon">
@@ -184,17 +216,18 @@
   </div>
 </section>
 
-<!-- ==================== HOW IT WORKS ==================== -->
-<section class="home-process section">
+<!-- ==================== HOW IT WORKS (Type C — Dark Navy / Technology) ==================== -->
+<section class="home-process section section--dark section--grid">
   <div class="container">
-    <div class="reveal">
+    <div appReveal>
       <app-section-heading
         badge="How It Works"
         title="Simple 4-Step Process"
         description="Getting started with our services is easy and hassle-free."
+        [light]="true"
       />
     </div>
-    <div class="home-process__steps reveal">
+    <div class="home-process__steps" appReveal>
       @for (step of processSteps(); track step.step) {
         <div class="home-process__step">
           <div class="home-process__number">{{ step.step }}</div>
@@ -212,19 +245,23 @@
       }
     </div>
   </div>
+
+  <svg class="section-curve" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path d="M0,36 C260,66 520,8 800,26 C1060,40 1260,14 1440,30 L1440,70 L0,70 Z" fill="#ffffff"></path>
+  </svg>
 </section>
 
-<!-- ==================== LOCATIONS SECTION ==================== -->
-<section class="home-locations section">
+<!-- ==================== LOCATIONS SECTION (Type B — Subtle + Grid) ==================== -->
+<section class="home-locations section section--white">
   <div class="container">
-    <div class="reveal">
+    <div appReveal>
       <app-section-heading
         badge="Our Locations"
         title="Serving All 7 Emirates"
         description="Visit us at any of our branches across the UAE."
       />
     </div>
-    <div class="home-locations__grid reveal">
+    <div class="home-locations__grid" appReveal>
       @for (location of locations(); track location.city) {
         <div class="home-location-mini">
           <span class="material-icons-outlined home-location-mini__icon">location_on</span>
@@ -235,7 +272,7 @@
         </div>
       }
     </div>
-    <div class="home-locations__cta reveal">
+    <div class="home-locations__cta" appReveal>
       <a routerLink="/branches" class="btn btn--secondary btn--lg">
         View All Branches
         <span class="material-icons-outlined">arrow_forward</span>
@@ -244,17 +281,17 @@
   </div>
 </section>
 
-<!-- ==================== TESTIMONIALS SECTION ==================== -->
-<section class="home-testimonials section">
+<!-- ==================== TESTIMONIALS SECTION (Type A — White, Scrollable) ==================== -->
+<section class="home-testimonials section section--soft">
   <div class="container">
-    <div class="reveal">
+    <div appReveal>
       <app-section-heading
         badge="Testimonials"
         title="What Our Clients Say"
         description="Trusted by thousands of homes and businesses across the UAE."
       />
     </div>
-    <div class="home-testimonials__scroll reveal">
+    <div class="home-testimonials__scroll" appReveal>
       <div class="home-testimonials__track">
         @for (testimonial of testimonials(); track testimonial.id) {
           <app-testimonial-card [testimonial]="testimonial" />
@@ -264,11 +301,11 @@
   </div>
 </section>
 
-<!-- ==================== FAQ SECTION ==================== -->
-<section class="home-faq section">
+<!-- ==================== FAQ SECTION (Type A — White Split) ==================== -->
+<section class="home-faq section section--white">
   <div class="container">
     <div class="home-faq__grid">
-      <div class="home-faq__info reveal">
+      <div class="home-faq__info" appReveal>
         <span class="badge">FAQ</span>
         <h2>Frequently Asked Questions</h2>
         <p>Find answers to common questions about our services, pricing, and processes.</p>
@@ -277,7 +314,7 @@
           <span class="material-icons-outlined">arrow_forward</span>
         </a>
       </div>
-      <div class="home-faq__list reveal">
+      <div class="home-faq__list" appReveal>
         @for (item of faq().slice(0, 5); track item.question) {
           <app-faq-item [item]="item" />
         }
@@ -286,11 +323,24 @@
   </div>
 </section>
 
-<!-- ==================== CTA SECTION ==================== -->
+<!-- ==================== CTA SECTION (Type C — Cinematic Video) ==================== -->
 <section class="home-cta">
+  <video
+    class="home-cta__video"
+    appVideoBg
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="none"
+    poster="/assets/images/services/deep-cleaning.jpg"
+    aria-hidden="true"
+  >
+    <source src="/assets/media/cta/cta-bg.mp4" type="video/mp4" />
+  </video>
   <div class="home-cta__overlay"></div>
   <div class="container home-cta__inner">
-    <div class="home-cta__content reveal">
+    <div class="home-cta__content" appReveal>
       <h2 class="home-cta__title">Need Professional Hygiene Services?</h2>
       <p class="home-cta__desc">
         Let our experts take care of your cleaning, pest control and facility needs.
@@ -305,8 +355,7 @@
           [href]="getWhatsAppLink()"
           target="_blank"
           rel="noopener"
-          class="btn btn--secondary btn--lg"
-          style="border-color: rgba(255,255,255,0.4); color: white;"
+          class="btn btn--outline-light btn--lg"
         >
           <svg viewBox="0 0 32 32" fill="currentColor" width="20" height="20">
             <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.5 1.132 6.744 3.054 9.374L1.054 31.25l6.142-1.982A15.91 15.91 0 0 0 16.004 32C24.826 32 32 24.822 32 16S24.826 0 16.004 0z"/>

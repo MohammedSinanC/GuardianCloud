@@ -9,7 +9,8 @@
 
   &:hover {
     box-shadow: var(--shadow-md);
-    border-color: transparent;
+    border-color: rgba(0, 144, 255, 0.4);
+    transform: translateY(-4px);
   }
 }
 
@@ -42,7 +43,7 @@
   width: 44px;
   height: 44px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
   display: flex;
   align-items: center;

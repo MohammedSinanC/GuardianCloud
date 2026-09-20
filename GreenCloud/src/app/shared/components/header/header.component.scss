@@ -1,129 +1,189 @@
-/* ── Header ────────────────────────────────────────────── */
+/* ═════════════════════════════════════════════════════════
+   Floating Centered Glass Navigation
+   — pill container overlapping the hero, compact on scroll
+   ═════════════════════════════════════════════════════════ */
+
 .header {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92%, 1360px);
   z-index: 1000;
-  height: var(--header-height);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid transparent;
-  transition: all var(--transition-normal);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(16px) saturate(1.35);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 10px 34px rgba(7, 26, 47, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition:
+    top 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out),
+    background 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out);
+}
 
-  &--scrolled {
-    background: rgba(255, 255, 255, 0.98);
-    border-bottom-color: var(--border);
-    box-shadow: var(--shadow-sm);
-  }
+.header--scrolled {
+  top: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 14px 40px rgba(7, 26, 47, 0.18);
 }
 
 .header__inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 100%;
-  gap: var(--space-md);
+  height: 78px;
+  padding: 0 28px;
+  gap: var(--space-lg);
+  transition: height 0.3s var(--ease-out);
 }
 
-.header__logo {
-  flex-shrink: 0;
+.header--scrolled .header__inner {
+  height: 64px;
+  padding: 0 24px;
 }
 
-.header__actions {
-  flex-shrink: 0;
-}
+/* ── Logo ─────────────────────────────────────────────── */
 
-/* ── Logo ──────────────────────────────────────────────── */
 .header__logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 1.25rem;
+  gap: 11px;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
+  text-decoration: none;
+  flex-shrink: 0;
   transition: opacity var(--transition-fast);
+}
 
-  &:hover {
-    opacity: 0.8;
-  }
+.header__logo:hover {
+  opacity: 0.85;
 }
 
 .header__logo-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  border-radius: var(--radius-sm);
-  color: white;
-
-  .material-icons-outlined {
-    font-size: 22px;
-  }
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 120%);
+  border-radius: 12px;
+  color: #fff;
+  box-shadow: var(--shadow-blue);
 }
 
-.header__logo-text {
-  color: var(--text-primary);
+.header__logo-icon .material-icons-outlined {
+  font-size: 22px;
 }
 
-/* ── Desktop Nav ───────────────────────────────────────── */
+/* ── Desktop Nav (visually centered) ──────────────────── */
+
 .header__nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 .header__nav-link {
-  display: inline-block;
-  padding: 10px 16px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 15px;
+  border-radius: 12px;
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
   text-decoration: none;
   white-space: nowrap;
-  cursor: pointer;
-
-  &:hover {
-    color: var(--primary);
-    background: var(--primary-50);
-  }
-
-  &.active {
-    color: var(--primary);
-    font-weight: 600;
-    background: var(--primary-50);
-  }
+  transition:
+    color 0.25s var(--ease-out),
+    background 0.25s var(--ease-out),
+    transform 0.25s var(--ease-out);
 }
 
-/* ── Actions ───────────────────────────────────────────── */
+.header__nav-link::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s var(--ease-out);
+}
+
+.header__nav-link:hover {
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.header__nav-link:hover::after {
+  transform: scaleX(0.6);
+}
+
+.header__nav-link.active {
+  color: var(--accent);
+  background: rgba(0, 144, 255, 0.08);
+}
+
+.header__nav-link.active::after {
+  transform: scaleX(1);
+}
+
+/* ── Actions ──────────────────────────────────────────── */
+
 .header__actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  flex-shrink: 0;
 }
 
 .header__phone {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
-  transition: color var(--transition-fast);
+  text-decoration: none;
+  transition: color 0.25s var(--ease-out);
+}
 
-  .material-icons-outlined {
-    font-size: 18px;
-    color: var(--primary);
-  }
+.header__phone .material-icons-outlined {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  font-size: 17px;
+  color: var(--accent);
+  background: var(--primary-50);
+  border-radius: 50%;
+  transition: all 0.25s var(--ease-out);
+}
 
-  &:hover {
-    color: var(--primary);
-  }
+.header__phone:hover {
+  color: var(--accent);
+}
+
+.header__phone:hover .material-icons-outlined {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-blue);
 }
 
 .header__phone-text {
@@ -136,74 +196,84 @@
   text-decoration: none;
 }
 
-/* ── Hamburger ─────────────────────────────────────────── */
+/* ── Hamburger ────────────────────────────────────────── */
+
 .header__hamburger {
   display: none;
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 36px;
-  height: 36px;
-  padding: 6px;
+  width: 42px;
+  height: 42px;
+  padding: 9px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+}
 
-  &:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-    border-radius: var(--radius-xs);
-  }
+.header__hamburger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .header__hamburger-line {
   display: block;
   width: 100%;
   height: 2px;
-  background: var(--text-primary);
+  background: var(--primary);
   border-radius: 2px;
-  transition: all var(--transition-normal);
-
-  &.open {
-    &:nth-child(1) {
-      transform: rotate(45deg) translate(5px, 5px);
-    }
-    &:nth-child(2) {
-      opacity: 0;
-    }
-    &:nth-child(3) {
-      transform: rotate(-45deg) translate(5px, -5px);
-    }
-  }
+  transition: all 0.3s var(--ease-out);
 }
 
-/* ── Mobile Menu ───────────────────────────────────────── */
+.header__hamburger-line.open:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.header__hamburger-line.open:nth-child(2) {
+  opacity: 0;
+}
+
+.header__hamburger-line.open:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* ── Mobile drawer (sits outside the pill in the DOM so
+      position: fixed tracks the viewport, not the blur) ── */
+
 .header__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(7, 26, 47, 0.55);
+  backdrop-filter: blur(3px);
   z-index: 998;
   animation: fadeIn 0.25s ease;
 }
 
 .header__mobile {
   position: fixed;
-  top: var(--header-height);
+  top: 0;
   right: 0;
   bottom: 0;
-  width: 300px;
-  max-width: 85vw;
-  background: var(--bg-white);
+  width: 340px;
+  max-width: 88vw;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   z-index: 999;
   transform: translateX(100%);
-  transition: transform var(--transition-normal);
+  transition: transform 0.3s var(--ease-out);
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  border-left: 1px solid var(--border-light);
+}
 
-  &--open {
-    transform: translateX(0);
-  }
+.header__mobile--open {
+  transform: translateX(0);
 }
 
 .header__mobile-inner {
-  padding: var(--space-lg);
+  padding: calc(var(--header-height) + 20px) 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -213,17 +283,20 @@
   display: block;
   padding: 14px 16px;
   font-size: var(--font-size-base);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
+  text-decoration: none;
+  border-radius: 12px;
+  border-left: 3px solid transparent;
+  transition: all 0.25s var(--ease-out);
+}
 
-  &:hover,
-  &.active {
-    color: var(--primary);
-    background: var(--primary-50);
-    font-weight: 600;
-  }
+.header__mobile-link:hover,
+.header__mobile-link.active {
+  color: var(--accent);
+  background: rgba(0, 144, 255, 0.08);
+  border-left-color: var(--accent);
+  padding-left: 22px;
 }
 
 .header__mobile-actions {
@@ -235,7 +308,8 @@
   gap: 10px;
 }
 
-/* ── Animations ────────────────────────────────────────── */
+/* ── Animations ───────────────────────────────────────── */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -245,7 +319,32 @@
   }
 }
 
-/* ── Responsive ────────────────────────────────────────── */
+/* ── Reduced motion ───────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .header__inner,
+  .header__nav-link,
+  .header__nav-link::after,
+  .header__mobile {
+    transition: none;
+  }
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .header__nav-link {
+    padding: 8px 11px;
+    font-size: 0.84rem;
+  }
+
+  .header__nav-link::after {
+    left: 11px;
+    right: 11px;
+  }
+}
+
 @media (max-width: 1023px) {
   .header__nav,
   .header__actions {
@@ -258,6 +357,25 @@
 }
 
 @media (max-width: 767px) {
+  .header {
+    width: 94%;
+    top: 16px;
+    border-radius: 18px;
+  }
+
+  .header--scrolled {
+    top: 10px;
+  }
+
+  .header__inner {
+    height: 66px;
+    padding: 0 18px;
+  }
+
+  .header--scrolled .header__inner {
+    height: 60px;
+  }
+
   .header__mobile {
     width: 100%;
     max-width: 100%;

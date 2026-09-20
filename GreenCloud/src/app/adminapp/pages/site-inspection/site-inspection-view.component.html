@@ -210,17 +210,78 @@
                   <div class="image-tile">
                     <img [src]="img.fileUrl" [alt]="img.fileName || 'Site image'" />
                     @if (isEditing()) {
-                      <button type="button" class="image-remove" (click)="removeImage($index)" title="Remove image">
-                        <span class="material-icons-outlined">close</span>
+                      <button type="button" class="image-remove" (click)="removeImage($index)" title="Delete attachment" [disabled]="saving()">
+                        <span class="material-icons-outlined">delete</span>
                       </button>
                     }
                   </div>
                 }
               </div>
             } @else if (isEditing()) {
-              <p class="image-hint">No site images yet — upload photos of the affected areas.</p>
+              <p class="image-hint">No site images yet — upload photos of the affected areas. Uploaded images can be deleted with the trash button.</p>
             } @else {
               <p class="image-hint">No site images uploaded.</p>
+            }
+          </section>
+
+          <!-- Checklist (full width) — rows generated from Checklist master -->
+          <section class="detail-card detail-card--full checklist-card">
+            <div class="checklist-header">
+              <h2><span class="material-icons-outlined">checklist</span> Inspection Checklist</h2>
+              @if (isEditing()) {
+                <button class="btn-action btn-action--draft checklist-add-btn" type="button" (click)="generateChecklist()">
+                  <span class="material-icons-outlined">add</span>
+                  Add Checklist
+                </button>
+              }
+            </div>
+            @if (checklistRows().length > 0) {
+              <div class="checklist-table-wrap">
+                <table class="checklist-table">
+                  <thead>
+                    <tr>
+                      <th class="checklist-col-num">#</th>
+                      <th>Checklist Item</th>
+                      <th class="checklist-col-input">Result</th>
+                      <th>Remarks</th>
+                      @if (isEditing()) { <th class="checklist-col-remove"></th> }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of checklistRows(); track row.code; let i = $index) {
+                      <tr>
+                        <td class="checklist-col-num">{{ i + 1 }}</td>
+                        <td class="checklist-name">{{ row.name }}</td>
+                        <td class="checklist-col-input">
+                          @if (row.controlType === 'CHECKBOX') {
+                            <input type="checkbox" class="checklist-checkbox" [ngModel]="row.value === true" [disabled]="!isEditing()" (ngModelChange)="updateChecklistValue(i, $event)" />
+                          } @else {
+                            <input type="text" class="detail-input checklist-text" [ngModel]="row.value || ''" [disabled]="!isEditing()" (ngModelChange)="updateChecklistValue(i, $event)" />
+                          }
+                        </td>
+                        <td>
+                          <input type="text" class="detail-input checklist-remarks" [ngModel]="row.remarks || ''" [disabled]="!isEditing()" (ngModelChange)="updateChecklistRemarks(i, $event)" />
+                        </td>
+                        @if (isEditing()) {
+                          <td class="checklist-col-remove">
+                            <button type="button" class="checklist-remove" (click)="removeChecklistRow(i)" title="Remove row">
+                              <span class="material-icons-outlined">delete</span>
+                            </button>
+                          </td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="checklist-empty">
+                @if (isEditing()) {
+                  No checklist rows — click <strong>Add Checklist</strong> to load items from the Checklist master.
+                } @else {
+                  No checklist recorded for this inspection.
+                }
+              </p>
             }
           </section>
         </div>

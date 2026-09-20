@@ -1,5 +1,5 @@
 <header class="header" [class.header--scrolled]="isScrolled()">
-  <div class="header__inner container">
+  <div class="header__inner">
     <!-- Logo -->
     <a routerLink="/" class="header__logo" (click)="closeMobileMenu()">
       <span class="header__logo-icon">
@@ -8,7 +8,7 @@
       <span class="header__logo-text">{{ navigation()?.logo }}</span>
     </a>
 
-    <!-- Desktop Navigation -->
+    <!-- Desktop Navigation (visually centered) -->
     @if (navigation()) {
       <nav class="header__nav" aria-label="Main navigation">
         @for (link of navigation()!.links; track link.route) {
@@ -24,7 +24,7 @@
       </nav>
     }
 
-    <!-- Desktop CTA -->
+    <!-- Desktop Actions -->
     <div class="header__actions">
       <a
         [href]="'tel:' + company()?.phone"
@@ -51,48 +51,48 @@
       <span class="header__hamburger-line" [class.open]="isMobileMenuOpen()"></span>
     </button>
   </div>
+</header>
 
-  <!-- Mobile Menu Overlay -->
-  @if (isMobileMenuOpen()) {
-    <div class="header__overlay" (click)="closeMobileMenu()"></div>
-  }
+<!-- Mobile Menu Overlay (outside the glass pill so position:fixed tracks the viewport) -->
+@if (isMobileMenuOpen()) {
+  <div class="header__overlay" (click)="closeMobileMenu()"></div>
+}
 
-  <!-- Mobile Menu -->
-  <div class="header__mobile" [class.header__mobile--open]="isMobileMenuOpen()">
-    <div class="header__mobile-inner">
-      @if (navigation()) {
-        @for (link of navigation()!.links; track link.route) {
-          <a
-            class="header__mobile-link"
-            [routerLink]="link.route"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: link.isHome ?? false }"
-            (click)="closeMobileMenu()"
-          >
-            {{ link.label }}
-          </a>
-        }
-      }
-
-      <div class="header__mobile-actions">
-        <a [href]="'tel:' + company()?.phone" class="btn btn--primary" style="width:100%">
-          <span class="material-icons-outlined">phone</span>
-          Call Now
-        </a>
+<!-- Mobile Menu Panel -->
+<div class="header__mobile" [class.header__mobile--open]="isMobileMenuOpen()">
+  <div class="header__mobile-inner">
+    @if (navigation()) {
+      @for (link of navigation()!.links; track link.route) {
         <a
-          [href]="getWhatsAppLink()"
-          target="_blank"
-          rel="noopener"
-          class="btn btn--secondary"
-          style="width:100%"
+          class="header__mobile-link"
+          [routerLink]="link.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: link.isHome ?? false }"
+          (click)="closeMobileMenu()"
         >
-          <span class="material-icons-outlined">chat</span>
-          WhatsApp
+          {{ link.label }}
         </a>
-        <a routerLink="/contact" class="btn btn--dark" style="width:100%" (click)="closeMobileMenu()">
-          {{ navigation()?.ctaLabel }}
-        </a>
-      </div>
+      }
+    }
+
+    <div class="header__mobile-actions">
+      <a [href]="'tel:' + company()?.phone" class="btn btn--primary" style="width:100%">
+        <span class="material-icons-outlined">phone</span>
+        Call Now
+      </a>
+      <a
+        [href]="getWhatsAppLink()"
+        target="_blank"
+        rel="noopener"
+        class="btn btn--secondary"
+        style="width:100%"
+      >
+        <span class="material-icons-outlined">chat</span>
+        WhatsApp
+      </a>
+      <a routerLink="/contact" class="btn btn--dark" style="width:100%" (click)="closeMobileMenu()">
+        {{ navigation()?.ctaLabel }}
+      </a>
     </div>
   </div>
-</header>
+</div>

@@ -4,7 +4,7 @@ import Quotation from "../models/quotation.model.js";
 import { withTransaction } from "../utils/tx.js";
 import { actor, assertTransition, recordHistory } from "../services/document-workflow.service.js";
 
-const editable = ["inspectionDate", "location", "inspector", "inspectionType", "findings", "pestType", "affectedArea", "severity", "recommendations", "requiredTreatment", "estimatedWork", "attachments", "remarks"];
+const editable = ["inspectionDate", "location", "inspector", "inspectionType", "findings", "pestType", "affectedArea", "checklistItems", "severity", "recommendations", "requiredTreatment", "estimatedWork", "attachments", "remarks"];
 
 export async function create(req, res) {
   try {

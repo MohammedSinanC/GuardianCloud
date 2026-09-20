@@ -31,6 +31,7 @@ export class ContentService {
   readonly seo = computed(() => this.contentSignal()?.seo ?? null);
   readonly pestTypes = computed(() => this.contentSignal()?.pestTypes ?? []);
   readonly inspectionTypes = computed(() => this.contentSignal()?.inspectionTypes ?? []);
+  readonly checklists = computed(() => this.contentSignal()?.checklists ?? []);
   readonly serviceTypes = computed(() => this.contentSignal()?.serviceTypes ?? []);
   readonly contractTypes = computed(() => this.contentSignal()?.contractTypes ?? []);
   readonly loading = computed(() => this.contentSignal() === null);
