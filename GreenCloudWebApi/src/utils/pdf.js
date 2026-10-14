@@ -9,6 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Handlebars helpers used by the document templates
 handlebars.registerHelper("add", (a, b) => Number(a) + Number(b));
 handlebars.registerHelper("fmt", (n) => Number(n || 0).toLocaleString("en-AE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+handlebars.registerHelper("fmtDate", (d) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"));
 
 // Browser instance is cached — launching Chromium per request is too slow
 let browserPromise = null;

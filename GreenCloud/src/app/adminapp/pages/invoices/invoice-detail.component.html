@@ -32,7 +32,7 @@
           <div class="erp-actions">
             <!-- Status-driven buttons (rule #10): valid for current status only -->
             @if (invoice()?.status === 'DRAFT') {
-              <button class="erp-btn erp-btn--primary" (click)="approve()" [disabled]="busy()">
+              <button class="erp-btn erp-btn--primary" (click)="approve()" [disabled]="busy() || !scheduleReady()" [title]="scheduleReady() ? 'Approve invoice' : 'Select a payment type to generate the payment schedule first'">
                 <span class="material-icons-outlined">task_alt</span> Approve
               </button>
               <button class="erp-btn erp-btn--danger" (click)="cancel()" [disabled]="busy()">
@@ -85,7 +85,7 @@
           }
         </div>
 
-        <!-- ===== Amounts ===== -->
+        <!-- ===== 1) INVOICE DETAILS FIRST — amounts ===== -->
         <div class="erp-summary-row">
           <div class="erp-summary-card">
             <div class="erp-summary-card__label">Subtotal</div>
@@ -101,34 +101,204 @@
           </div>
         </div>
 
-        <!-- ===== Items ===== -->
+        <!-- ===== 1) Invoice items (editable before approval) ===== -->
         <div class="erp-card">
-          <h3><span class="material-icons-outlined">list_alt</span> Invoice Items</h3>
-          <div class="erp-table-card erp-table-card--flush">
-            <table class="erp-table">
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th style="text-align:right">Qty</th>
-                  <th style="text-align:right">Rate</th>
-                  <th style="text-align:right">Amount</th>
-                </tr>
-              </thead>
+          <h3><span class="material-icons-outlined">list_alt</span> Invoice Items
+            @if (canEditItems() && !editingItems()) {
+              <button class="erp-btn erp-btn--ghost erp-source-link" type="button" (click)="startEditItems()">
+                <span class="material-icons-outlined">edit</span> Edit Items
+              </button>
+            }
+            @if (editingItems()) {
+              <button class="erp-btn erp-btn--ghost erp-source-link erp-item-add" type="button" (click)="addItemRow()">
+                <span class="material-icons-outlined">add</span> Add Item
+              </button>
+            }
+          </h3>
+          @if (editingItems()) {
+            <div class="erp-table-card erp-table-card--flush"><table class="erp-table erp-items-table">
+              <thead><tr><th style="width:40px">#</th><th>Description</th><th style="width:90px">Qty</th><th style="width:130px">Rate ({{ invoice()?.currency || 'AED' }})</th><th style="width:130px">Amount</th><th style="width:56px"></th></tr></thead>
               <tbody>
-                @for (item of invoice()?.items; track $index) {
+                @for (row of itemRows(); track $index) {
                   <tr>
-                    <td>{{ item.description }}</td>
-                    <td style="text-align:right">{{ item.quantity }}</td>
-                    <td style="text-align:right" class="erp-money">{{ money(item.unitPrice) }}</td>
-                    <td style="text-align:right" class="erp-money">{{ money(item.totalPrice) }}</td>
+                    <td>{{ $index + 1 }}</td>
+                    <td><input class="erp-item-input" type="text" placeholder="e.g. General pest control treatment" [ngModel]="row.description" (ngModelChange)="updateItemRow($index, 'description', $event)" /></td>
+                    <td><input class="erp-item-input erp-item-input--num" type="number" min="1" [ngModel]="row.quantity" (ngModelChange)="updateItemRow($index, 'quantity', $event)" /></td>
+                    <td><input class="erp-item-input erp-item-input--num" type="number" min="0" step="0.01" [ngModel]="row.unitPrice" (ngModelChange)="updateItemRow($index, 'unitPrice', $event)" /></td>
+                    <td class="erp-money">{{ (row.quantity || 0) * (row.unitPrice || 0) | number:'1.2-2' }}</td>
+                    <td><button type="button" class="erp-item-remove" (click)="removeItemRow($index)" title="Remove item"><span class="material-icons-outlined">delete</span></button></td>
+                  </tr>
+                }
+                @if (itemRows().length === 0) { <tr><td colspan="6" class="erp-empty-cell">No items yet — click <strong>Add Item</strong> to build the invoice.</td></tr> }
+              </tbody>
+            </table></div>
+            <div class="erp-items-footer">
+              <div class="erp-items-totals">
+                <div class="erp-items-totals__row"><span>Subtotal</span><span class="erp-money">{{ itemTotals().subtotal | number:'1.2-2' }} {{ invoice()?.currency || 'AED' }}</span></div>
+                <div class="erp-items-totals__row"><span>VAT ({{ invoice()?.taxRate ?? 5 }}%)</span><span class="erp-money">{{ itemTotals().tax | number:'1.2-2' }} {{ invoice()?.currency || 'AED' }}</span></div>
+                <div class="erp-items-totals__row erp-items-totals__row--total"><span>Grand Total</span><span class="erp-money">{{ itemTotals().total | number:'1.2-2' }} {{ invoice()?.currency || 'AED' }}</span></div>
+              </div>
+              <div class="erp-actions">
+                <button class="erp-btn erp-btn--ghost" type="button" (click)="cancelEditItems()" [disabled]="busy()">Cancel</button>
+                <button class="erp-btn erp-btn--primary" type="button" (click)="saveItems()" [disabled]="busy() || !itemsValid()" title="Description and quantity ≥ 1 required per item">Save Items</button>
+              </div>
+            </div>
+          } @else {
+            <div class="erp-table-card erp-table-card--flush">
+              <table class="erp-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th style="text-align:right">Qty</th>
+                    <th style="text-align:right">Rate</th>
+                    <th style="text-align:right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of invoice()?.items; track $index) {
+                    <tr>
+                      <td>{{ item.description }}</td>
+                      <td style="text-align:right">{{ item.quantity }}</td>
+                      <td style="text-align:right" class="erp-money">{{ money(item.unitPrice) }}</td>
+                      <td style="text-align:right" class="erp-money">{{ money(item.totalPrice) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+          @if (!canEditItems()) {
+            <p class="erp-req-hint" style="margin-top:10px">Items are locked after approval.</p>
+          }
+        </div>
+
+        <!-- ===== 1) PAYMENT & COLLECTION (payment type → terms → schedule → approve) ===== -->
+        <div class="erp-card">
+          <h3><span class="material-icons-outlined">calendar_month</span> Payment Type & Schedule
+            @if (invoice()?.paymentTypeName) {
+              <span class="erp-badge erp-badge--approved">{{ invoice()?.paymentTypeName }}</span>
+            }
+          </h3>
+
+          <!-- Payment Type selection (mandatory before approval) -->
+          <div class="erp-form-grid" style="margin-bottom:6px">
+            <div class="erp-form-group">
+              <label class="erp-req">Payment Type</label>
+              <select
+                class="erp-select"
+                [ngModel]="selectedPaymentTypeId()"
+                (ngModelChange)="selectPaymentType($event)"
+                [disabled]="!canSelectPaymentType() || busy()">
+                <option value="">— Select payment type —</option>
+                @for (t of paymentTypes(); track t._id) {
+                  <option [value]="t._id">{{ t.name }} ({{ t.frequency }})</option>
+                }
+              </select>
+              @if (!canSelectPaymentType()) {
+                <span class="erp-req-hint">Locked after approval.</span>
+              } @else if (scheduleReady()) {
+                <span class="erp-req-hint" style="color:#16a34a">Terms loaded — schedule ready for review before approval.</span>
+              } @else {
+                <span class="erp-req-hint">Required before the invoice can be approved — selecting it loads the terms and generates the schedule automatically.</span>
+              }
+            </div>
+          </div>
+
+          <!-- Automatically loaded payment terms -->
+          @if (invoice()?.paymentTermsPlan; as plan) {
+            <div class="erp-summary-row" style="margin:6px 0 2px">
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Frequency</div><div class="erp-summary-card__value" style="font-size:15px">{{ plan.frequency }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Installments</div><div class="erp-summary-card__value" style="font-size:15px">{{ plan.numberOfPayments }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Interval</div><div class="erp-summary-card__value" style="font-size:15px">{{ plan.intervalMonths }} months</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Grace Period</div><div class="erp-summary-card__value" style="font-size:15px">{{ plan.gracePeriodDays }} days</div></div>
+            </div>
+          }
+
+          @if (scheduleLoading()) {
+            <div class="erp-loading">Loading payment schedule...</div>
+          }
+
+          @if (!scheduleLoading() && schedule().length === 0) {
+            <div class="erp-req-hint" style="display:flex;align-items:center;gap:8px;margin:6px 0 0">
+              <span class="material-icons-outlined" style="font-size:18px">warning_amber</span>
+              No payment schedule yet — select a Payment Type above to generate it. Approval is blocked until the schedule totals the invoice amount.
+            </div>
+          }
+
+          <!-- Schedule preview / collection grid -->
+          @if (schedule().length > 0) {
+            <div class="erp-table-card erp-table-card--flush" style="margin-top:10px"><table class="erp-table">
+              <thead><tr>
+                <th style="width:44px">#</th><th style="width:64px">Pay %</th><th style="text-align:right">Amount</th>
+                <th>Expected Date</th><th>Due Date</th>
+                <th style="width:80px">Grace</th><th>Final Due</th>
+                <th style="text-align:right">Received</th><th style="text-align:right">Outstanding</th>
+                <th style="width:100px">Status</th><th style="width:170px">Actions</th>
+              </tr></thead>
+              <tbody>
+                @for (s of schedule(); track s._id) {
+                  <tr>
+                    <td>{{ s.paymentNo }}</td>
+                    <td>{{ s.percentage }}%</td>
+                    <td class="erp-money">{{ money(s.amount) }}</td>
+                    <td>{{ s.paymentDate | date:'dd MMM yyyy' }}</td>
+                    <td>{{ s.dueDate | date:'dd MMM yyyy' }}</td>
+                    <td>{{ s.graceDays > 0 ? s.graceDays + 'd' : '—' }}</td>
+                    <td>{{ (s.finalDueDate | date:'dd MMM yyyy') || '—' }}</td>
+                    <td class="erp-money">{{ money(s.paidAmount) }}</td>
+                    <td class="erp-money">{{ money(s.outstandingAmount) }}</td>
+                    <td><span [class]="scheduleStatusClass(s)">{{ scheduleStatusLabel(s) }}</span></td>
+                    <td>
+                      <div class="erp-actions">
+                        @if (s.outstandingAmount > 0.009 && invoice()?.status !== 'CANCELLED') {
+                          <button class="erp-btn erp-btn--primary erp-btn--sm" type="button" (click)="openPayDialog(s)" [disabled]="busy()">Receive</button>
+                        }
+                      </div>
+                    </td>
                   </tr>
                 }
               </tbody>
-            </table>
-          </div>
+            </table></div>
+
+            <!-- Collection summary -->
+            @if (scheduleSummary(); as sum) {
+              <div class="erp-summary-row" style="margin-top:12px">
+                <div class="erp-summary-card"><div class="erp-summary-card__label">Total Scheduled</div><div class="erp-summary-card__value erp-money">{{ money(sum.totalScheduled) }} {{ invoice()?.currency || 'AED' }}</div></div>
+                <div class="erp-summary-card"><div class="erp-summary-card__label">Total Received</div><div class="erp-summary-card__value erp-money" style="color:#16a34a">{{ money(sum.totalReceived) }} {{ invoice()?.currency || 'AED' }}</div></div>
+                <div class="erp-summary-card"><div class="erp-summary-card__label">Outstanding</div><div class="erp-summary-card__value erp-money" style="color:#dc2626">{{ money(sum.totalOutstanding) }} {{ invoice()?.currency || 'AED' }}</div></div>
+                <div class="erp-summary-card"><div class="erp-summary-card__label">Overdue</div><div class="erp-summary-card__value erp-money" style="color:#b45309">{{ money(sum.overdueAmount) }} {{ invoice()?.currency || 'AED' }}</div></div>
+                <div class="erp-summary-card"><div class="erp-summary-card__label">Next Payment</div><div class="erp-summary-card__value" style="font-size:15px">@if (sum.next) { {{ sum.next.paymentNo }} · {{ money(sum.next.outstandingAmount) }} · {{ sum.next.dueDate | date:'dd MMM yyyy' }} } @else { — }</div></div>
+              </div>
+            }
+          }
+
+          <!-- Payment receipts history -->
+          @if (receipts().length > 0) {
+            <h3 class="erp-subheading">Payment Receipts</h3>
+            <div class="erp-table-card erp-table-card--flush"><table class="erp-table">
+              <thead><tr><th>Receipt No</th><th>Date</th><th>Method</th><th>Reference</th><th style="text-align:right">Amount</th><th style="width:190px">Actions</th></tr></thead>
+              <tbody>
+                @for (r of receipts(); track r._id) {
+                  <tr>
+                    <td class="erp-doc-no">{{ r.receiptNo }}</td>
+                    <td>{{ r.receiptDate | date:'dd MMM yyyy' }}</td>
+                    <td>{{ r.paymentMethod }}</td>
+                    <td>{{ r.referenceNo || '—' }}</td>
+                    <td class="erp-money">{{ money(r.amount) }}</td>
+                    <td>
+                      <div class="erp-actions">
+                        <a class="erp-btn erp-btn--ghost erp-btn--sm" [routerLink]="['/adminapp/receipts', r._id]" title="View receipt">View</a>
+                        <button class="erp-btn erp-btn--ghost erp-btn--sm" type="button" (click)="downloadReceipt(r)" [disabled]="busy()" title="Download PDF">PDF</button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table></div>
+          }
         </div>
 
-        <!-- ===== Payment info ===== -->
+        <!-- ===== 1) Payment info ===== -->
         @if (invoice()?.bankDetails || invoice()?.notes) {
           <div class="erp-card">
             <h3><span class="material-icons-outlined">account_balance</span> Payment Information</h3>
@@ -140,7 +310,223 @@
             }
           </div>
         }
+
+        <!-- ===== 2) INQUIRY ===== -->
+        @if (invoice()?.inquiry; as inq) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">assignment</span> Inquiry
+              <span [class]="statusClass(inq.status)">{{ inq.status }}</span>
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/inquiries', inq._id]">Open Inquiry</a>
+            </h3>
+            <div class="erp-summary-row">
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Inquiry No</div><div class="erp-summary-card__value erp-doc-no" style="font-size:16px">{{ inq.inquiryNo || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Service Type</div><div class="erp-summary-card__value" style="font-size:16px">{{ inq.serviceType || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Contact</div><div class="erp-summary-card__value" style="font-size:16px">{{ inq.contactPerson || inq.customerName || inq.companyName || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Mobile</div><div class="erp-summary-card__value" style="font-size:16px">{{ inq.mobile || '-' }}</div></div>
+            </div>
+            <div class="erp-detail-grid" style="margin-top:14px">
+              @if (inq.companyName) { <div class="erp-field"><div class="erp-field__label">Company</div><div class="erp-field__value">{{ inq.companyName }}</div></div> }
+              @if (inq.customerName) { <div class="erp-field"><div class="erp-field__label">Customer</div><div class="erp-field__value">{{ inq.customerName }}</div></div> }
+              @if (inq.email) { <div class="erp-field"><div class="erp-field__label">Email</div><div class="erp-field__value">{{ inq.email }}</div></div> }
+              @if (inq.serviceLocation || inq.location) { <div class="erp-field"><div class="erp-field__label">Service Location</div><div class="erp-field__value">{{ inq.serviceLocation || inq.location }}</div></div> }
+              @if (inq.contract) { <div class="erp-field"><div class="erp-field__label">Contract</div><div class="erp-field__value">{{ inq.contract }}</div></div> }
+              @if (inq.preferredDate) { <div class="erp-field"><div class="erp-field__label">Preferred Date</div><div class="erp-field__value">{{ inq.preferredDate | date:'dd MMM yyyy' }}{{ inq.preferredTime ? ' · ' + inq.preferredTime : '' }}</div></div> }
+              @if (inq.source) { <div class="erp-field"><div class="erp-field__label">Source</div><div class="erp-field__value">{{ inq.source }}</div></div> }
+              @if (inq.createdByName) { <div class="erp-field"><div class="erp-field__label">Created By</div><div class="erp-field__value">{{ inq.createdByName }}</div></div> }
+              @if (inq.createdAt) { <div class="erp-field"><div class="erp-field__label">Inquiry Date</div><div class="erp-field__value">{{ inq.createdAt | date:'dd MMM yyyy' }}</div></div> }
+              @if ((inq.pestTypes || []).length > 0) {
+                <div class="erp-field erp-form-group--full"><div class="erp-field__label">Pest Types</div>
+                  <div class="erp-field__value">
+                    @for (pest of inq.pestTypes; track pest) { <span class="erp-badge erp-badge--pest">{{ pest }}</span> }
+                  </div>
+                </div>
+              }
+              @if (inq.problemDescription) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Problem Description</div><div class="erp-field__value">{{ inq.problemDescription }}</div></div> }
+              @if (inq.remarks) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Remarks</div><div class="erp-field__value">{{ inq.remarks }}</div></div> }
+            </div>
+          </div>
+        }
+
+        <!-- ===== 3) QUOTATION ===== -->
+        @if (invoice()?.quotation; as qt) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">request_quote</span> Quotation
+              <span [class]="statusClass(qt.status)">{{ qt.status }}</span>
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/quotation', qt._id]">Open Quotation</a>
+            </h3>
+            <div class="erp-summary-row">
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Quotation No</div><div class="erp-summary-card__value erp-doc-no" style="font-size:16px">{{ qt.quotationNo || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Subtotal</div><div class="erp-summary-card__value" style="font-size:16px">{{ money(qt.subtotal) }} {{ qt.currency || 'AED' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">VAT</div><div class="erp-summary-card__value" style="font-size:16px">{{ money(qt.taxAmount) }} {{ qt.currency || 'AED' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Grand Total</div><div class="erp-summary-card__value erp-summary-card__value--teal" style="font-size:16px">{{ money(qt.totalAmount) }} {{ qt.currency || 'AED' }}</div></div>
+            </div>
+            @if ((qt.items || []).length > 0) {
+              <h3 class="erp-subheading">Quotation Items</h3>
+              <div class="erp-table-card erp-table-card--flush"><table class="erp-table">
+                <thead><tr><th style="width:40px">#</th><th>Description</th><th style="width:70px">Qty</th><th style="width:110px">Rate</th><th style="width:120px">Amount</th></tr></thead>
+                <tbody>
+                  @for (item of qt.items; track $index) {
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td>{{ item.description }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td class="erp-money">{{ money(item.unitPrice) }}</td>
+                      <td class="erp-money">{{ money(item.totalPrice) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table></div>
+            }
+            <div class="erp-detail-grid" style="margin-top:14px">
+              @if (qt.createdAt) { <div class="erp-field"><div class="erp-field__label">Quotation Date</div><div class="erp-field__value">{{ qt.createdAt | date:'dd MMM yyyy' }}</div></div> }
+              @if (qt.validUntil) { <div class="erp-field"><div class="erp-field__label">Valid Until</div><div class="erp-field__value">{{ qt.validUntil | date:'dd MMM yyyy' }}</div></div> }
+              @if (qt.paymentTypeName) { <div class="erp-field"><div class="erp-field__label">Payment Plan</div><div class="erp-field__value">{{ qt.paymentTypeName }}</div></div> }
+              @if (qt.durationMonths) { <div class="erp-field"><div class="erp-field__label">Contract Duration</div><div class="erp-field__value">{{ qt.durationMonths }} months</div></div> }
+              @if (qt.taxRate) { <div class="erp-field"><div class="erp-field__label">Tax Rate</div><div class="erp-field__value">{{ qt.taxRate }}%</div></div> }
+              @if (qt.salesPerson) { <div class="erp-field"><div class="erp-field__label">Sales Person</div><div class="erp-field__value">{{ qt.salesPerson }}</div></div> }
+              @if (qt.terms) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Payment Terms</div><div class="erp-field__value">{{ qt.terms }}</div></div> }
+            </div>
+          </div>
+        }
+
+        <!-- ===== 4) SITE INSPECTION (view-only: details + checklist + images) ===== -->
+        @if (invoice()?.siteInspection; as insp) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">travel_explore</span> Site Inspection
+              <span [class]="statusClass(insp.status)">{{ insp.status }}</span>
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/site-inspection', insp._id]">Open Inspection</a>
+            </h3>
+            <div class="erp-summary-row">
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Inspection No</div><div class="erp-summary-card__value erp-doc-no" style="font-size:16px">{{ insp.inspectionNo || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Inspection Date</div><div class="erp-summary-card__value" style="font-size:16px">{{ (insp.inspectionDate | date:'dd MMM yyyy') || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Inspector</div><div class="erp-summary-card__value" style="font-size:16px">{{ insp.inspector || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Severity</div><div class="erp-summary-card__value" style="font-size:16px">{{ insp.severity || '-' }}</div></div>
+            </div>
+            <div class="erp-detail-grid" style="margin-top:14px">
+              @if (insp.inspectionType) { <div class="erp-field"><div class="erp-field__label">Inspection Type</div><div class="erp-field__value">{{ insp.inspectionType }}</div></div> }
+              @if (insp.pestType) { <div class="erp-field"><div class="erp-field__label">Pest Type</div><div class="erp-field__value">{{ insp.pestType }}</div></div> }
+              @if (insp.affectedArea) { <div class="erp-field"><div class="erp-field__label">Affected Area</div><div class="erp-field__value">{{ insp.affectedArea }}</div></div> }
+              @if (insp.location) { <div class="erp-field"><div class="erp-field__label">Location</div><div class="erp-field__value">{{ insp.location }}</div></div> }
+              @if (insp.requiredTreatment) { <div class="erp-field"><div class="erp-field__label">Required Treatment</div><div class="erp-field__value">{{ insp.requiredTreatment }}</div></div> }
+              @if (insp.estimatedWork) { <div class="erp-field"><div class="erp-field__label">Estimated Work</div><div class="erp-field__value">{{ insp.estimatedWork }}</div></div> }
+              @if (insp.findings) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Findings</div><div class="erp-field__value">{{ insp.findings }}</div></div> }
+              @if (insp.recommendations) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Recommendations</div><div class="erp-field__value">{{ insp.recommendations }}</div></div> }
+              @if (insp.remarks) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Remarks</div><div class="erp-field__value">{{ insp.remarks }}</div></div> }
+            </div>
+
+            @if ((insp.checklistItems || []).length > 0) {
+              <h3 class="erp-subheading">Inspection Checklist</h3>
+              <div class="erp-table-card erp-table-card--flush"><table class="erp-table">
+                <thead><tr><th style="width:40px">#</th><th>Checklist Item</th><th style="width:110px">Result</th><th>Remarks</th></tr></thead>
+                <tbody>
+                  @for (row of insp.checklistItems; track $index) {
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td>{{ row.name }}</td>
+                      <td>
+                        @if (row.controlType === 'CHECKBOX') {
+                          @if (row.value === true) {
+                            <span class="material-icons-outlined" style="color:#16a34a;vertical-align:middle">check_box</span>
+                          } @else {
+                            <span class="material-icons-outlined" style="color:#94a3b8;vertical-align:middle">check_box_outline_blank</span>
+                          }
+                        } @else {
+                          <span>{{ row.value || '-' }}</span>
+                        }
+                      </td>
+                      <td>{{ row.remarks || '-' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table></div>
+            }
+
+            @if ((insp.attachments || []).length > 0) {
+              <h3 class="erp-subheading">Inspection Images</h3>
+              <div class="erp-evidence-grid">
+                @for (img of insp.attachments; track $index) {
+                  <a class="erp-evidence-thumb" [href]="img.fileUrl" target="_blank" rel="noopener">
+                    <img [src]="img.fileUrl" [alt]="img.fileName || 'Inspection image'" loading="lazy" />
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ===== 5) WORK ORDER ===== -->
+        @if (invoice()?.workOrder; as wo) {
+          <div class="erp-card">
+            <h3><span class="material-icons-outlined" style="vertical-align:middle">assignment_turned_in</span> Work Order
+              <span [class]="statusClass(wo.status)">{{ wo.status }}</span>
+              <a class="erp-btn erp-btn--ghost erp-source-link" [routerLink]="['/adminapp/work-orders', wo._id]">Open Work Order</a>
+            </h3>
+            <div class="erp-summary-row">
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Work Order No</div><div class="erp-summary-card__value erp-doc-no" style="font-size:16px">{{ wo.workOrderNo || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Technician</div><div class="erp-summary-card__value" style="font-size:16px">{{ wo.assignedTechnician || '-' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Scheduled</div><div class="erp-summary-card__value" style="font-size:16px">{{ (wo.scheduledDate | date:'dd MMM yyyy') || '-' }}{{ wo.scheduledTime ? ' · ' + wo.scheduledTime : '' }}</div></div>
+              <div class="erp-summary-card"><div class="erp-summary-card__label">Service Type</div><div class="erp-summary-card__value" style="font-size:16px">{{ wo.serviceType || '-' }}</div></div>
+            </div>
+            <div class="erp-detail-grid" style="margin-top:14px">
+              @if (wo.serviceLocation) { <div class="erp-field"><div class="erp-field__label">Service Location</div><div class="erp-field__value">{{ wo.serviceLocation }}</div></div> }
+              @if (wo.assignedTeam) { <div class="erp-field"><div class="erp-field__label">Assigned Team</div><div class="erp-field__value">{{ wo.assignedTeam }}</div></div> }
+              @if (wo.startedAt) { <div class="erp-field"><div class="erp-field__label">Work Started</div><div class="erp-field__value">{{ wo.startedAt | date:'dd MMM yyyy' }}</div></div> }
+              @if (wo.completedAt) { <div class="erp-field"><div class="erp-field__label">Work Completed</div><div class="erp-field__value">{{ wo.completedAt | date:'dd MMM yyyy' }}</div></div> }
+              @if (wo.workDescription) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Work Description</div><div class="erp-field__value">{{ wo.workDescription }}</div></div> }
+              @if (wo.requiredMaterials) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Required Materials</div><div class="erp-field__value">{{ wo.requiredMaterials }}</div></div> }
+              @if (wo.remarks) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Remarks</div><div class="erp-field__value">{{ wo.remarks }}</div></div> }
+            </div>
+          </div>
+        }
       }
     </div>
   </div>
 </div>
+
+<!-- ===== Receive Payment dialog ===== -->
+@if (payDialog()) {
+  <div class="erp-overlay" (click)="closePayDialog()">
+    <div class="erp-dialog" (click)="$event.stopPropagation()" style="max-width:520px">
+      <div class="erp-dialog__header">
+        <h3><span class="material-icons-outlined">payments</span> Receive Payment</h3>
+        <button class="erp-dialog__close" type="button" (click)="closePayDialog()">×</button>
+      </div>
+      @if (payRow(); as row) {
+        <div class="erp-dialog__body">
+          <div class="erp-req-hint" style="margin:0 0 12px">
+            Installment {{ row.paymentNo }} · Scheduled {{ money(row.amount) }} · Received {{ money(row.paidAmount) }} · <strong>Outstanding {{ money(row.outstandingAmount) }}</strong>
+          </div>
+          <div class="erp-form-grid">
+            <div class="erp-form-group">
+              <label class="erp-req">Amount ({{ invoice()?.currency || 'AED' }})</label>
+              <input type="number" min="0.01" [max]="row.outstandingAmount" [ngModel]="payAmount()" (ngModelChange)="payAmount.set($event)" placeholder="e.g. {{ row.outstandingAmount }}" />
+            </div>
+            <div class="erp-form-group">
+              <label class="erp-req">Payment Method</label>
+              <select class="erp-select" [ngModel]="payMethod()" (ngModelChange)="payMethod.set($event)">
+                @for (m of paymentMethods; track m) { <option [value]="m">{{ m }}</option> }
+              </select>
+            </div>
+            <div class="erp-form-group">
+              <label>Payment Date</label>
+              <input type="date" [ngModel]="payDate()" (ngModelChange)="payDate.set($event)" />
+            </div>
+            <div class="erp-form-group">
+              <label>Transaction / Reference No</label>
+              <input type="text" [ngModel]="payReference()" (ngModelChange)="payReference.set($event)" placeholder="Bank ref / cheque no" />
+              <span class="erp-req-hint">Duplicate references are rejected.</span>
+            </div>
+            <div class="erp-form-group erp-form-group--full">
+              <label>Remarks</label>
+              <textarea rows="2" [ngModel]="payRemarks()" (ngModelChange)="payRemarks.set($event)" placeholder="Optional notes"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="erp-dialog__footer">
+          <button class="erp-btn erp-btn--ghost" type="button" (click)="closePayDialog()" [disabled]="busy()">Cancel</button>
+          <button class="erp-btn erp-btn--primary" type="button" (click)="confirmPay()" [disabled]="busy() || !payValid()">Save Payment & Generate Receipt</button>
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -39,6 +39,7 @@
           <thead>
             <tr>
               <th>Inquiry No</th>
+              <th>Lead No</th>
               <th>Customer</th>
               <th>Contact</th>
               <th>Location</th>
@@ -53,6 +54,13 @@
             @for (inquiry of inquiries(); track inquiry._id || $index) {
             <tr>
               <td class="inquiry-no">{{ inquiry.inquiryNo || '-' }}</td>
+              <td>
+                @if (inquiry.leadNo && inquiry.leadId) {
+                <a class="lead-no" [routerLink]="['/adminapp/leads', inquiry.leadId]" title="Open the source lead">{{ inquiry.leadNo }}</a>
+                } @else {
+                <span class="muted">-</span>
+                }
+              </td>
               <td>{{ inquiry.customerName || inquiry.companyName || '-' }}</td>
               <td>{{ inquiry.mobile || '-' }}</td>
               <td>{{ inquiry.serviceLocation || inquiry.location || '-' }}</td>

@@ -1,5 +1,6 @@
 import express from "express";
-import { create, list, getById, approve, reject, post, cancel, pdf, send } from "../controllers/invoice.controller.js";
+import { create, list, getById, update, approve, reject, post, cancel, pdf, send } from "../controllers/invoice.controller.js";
+import { selectPaymentType, getInvoiceSchedule, collectPayment, receiptPdf } from "../controllers/invoice-payment.controller.js";
 import adminAuth from "../middleware/admin-auth.middleware.js";
 
 const router = express.Router();
@@ -55,6 +56,132 @@ router.get("/", list);
  *         description: Invoice not found
  */
 router.get("/:id", getById);
+
+/**
+ * @openapi
+ * /api/invoices/{id}:
+ *   put:
+ *     summary: Edit a draft invoice (items and details) before approval
+ *     tags: [Invoices]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { $ref: "#/components/schemas/MongoId" }
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     description: { type: string }
+ *                     quantity: { type: number }
+ *                     unitPrice: { type: number }
+ *               dueDate: { type: string, format: date }
+ *               notes: { type: string }
+ *               bankDetails: { type: string }
+ *               paymentTerms: { type: string }
+ *     responses:
+ *       200:
+ *         description: Invoice updated
+ *       400:
+ *         description: Invalid items or invoice already approved
+ *       404:
+ *         description: Invoice not found
+ */
+router.put("/:id", update);
+
+/**
+ * @openapi
+ * /api/invoices/{id}/payment-type:
+ *   put:
+ *     summary: Select payment type — loads terms and generates the payment schedule
+ *     tags: [Invoices]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [paymentTypeId]
+ *             properties:
+ *               paymentTypeId: { $ref: "#/components/schemas/MongoId" }
+ *     responses:
+ *       200:
+ *         description: Payment type selected and schedule generated
+ *       400:
+ *         description: Invalid payment type or invoice not editable
+ */
+router.put("/:id/payment-type", selectPaymentType);
+
+/**
+ * @openapi
+ * /api/invoices/{id}/payment-schedule:
+ *   get:
+ *     summary: Invoice payment schedule with derived statuses, collection summary and receipts
+ *     tags: [Invoices]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Schedule rows, summary and receipt list
+ */
+router.get("/:id/payment-schedule", getInvoiceSchedule);
+
+/**
+ * @openapi
+ * /api/invoices/{id}/collect:
+ *   post:
+ *     summary: Record a payment against an installment — receipt, schedule, invoice and ledger updated in one transaction
+ *     tags: [Invoices]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [scheduleId, amount]
+ *             properties:
+ *               scheduleId: { $ref: "#/components/schemas/MongoId" }
+ *               amount: { type: number }
+ *               paymentMethod: { type: string, enum: [CASH, BANK_TRANSFER, CARD, CHEQUE, ONLINE, OTHER] }
+ *               referenceNo: { type: string }
+ *               remarks: { type: string }
+ *               paymentDate: { type: string, format: date }
+ *     responses:
+ *       200:
+ *         description: Payment recorded with receipt generated
+ *       400:
+ *         description: Invalid amount or overpayment
+ *       409:
+ *         description: Duplicate reference
+ */
+router.post("/:id/collect", collectPayment);
+
+/**
+ * @openapi
+ * /api/invoices/{id}/receipts/{receiptId}/pdf:
+ *   get:
+ *     summary: Download a payment receipt PDF
+ *     tags: [Invoices]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: PDF file stream
+ */
+router.get("/:id/receipts/:receiptId/pdf", receiptPdf);
 
 /**
  * @openapi

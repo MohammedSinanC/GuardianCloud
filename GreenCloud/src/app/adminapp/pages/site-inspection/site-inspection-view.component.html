@@ -99,13 +99,19 @@
           <section class="detail-card detail-card--half">
             <h2><span class="material-icons-outlined">event</span> Inspection Details</h2>
             @if (isEditing()) {
+              @if (missingInspectionFields().length) {
+                <div class="erp-error-box">
+                  <span class="material-icons-outlined">error_outline</span>
+                  Missing mandatory fields: {{ missingInspectionFields().join(', ') }}
+                </div>
+              }
               <div class="info-grid">
-                <div class="info-item">
-                  <label class="label" for="inspectionDate">Inspection Date</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('inspectionDate')">
+                  <label class="label" for="inspectionDate">Inspection Date <span class="req">*</span></label>
                   <input id="inspectionDate" type="date" class="detail-input" [ngModel]="inputDate(item.inspectionDate)" (ngModelChange)="updateField('inspectionDate', $event)" />
                 </div>
-                <div class="info-item">
-                  <label class="label" for="inspectionType">Inspection Type</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('inspectionType')">
+                  <label class="label" for="inspectionType">Inspection Type <span class="req">*</span></label>
                   <select id="inspectionType" class="detail-input" [ngModel]="item.inspectionType" (ngModelChange)="updateField('inspectionType', $event)">
                     <option value="">Select inspection type</option>
                     @for (type of inspectionTypeSelectOptions(); track type.code) {
@@ -113,12 +119,12 @@
                     }
                   </select>
                 </div>
-                <div class="info-item">
-                  <label class="label" for="pestType">Pest Type</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('pestType')">
+                  <label class="label" for="pestType">Pest Type <span class="req">*</span></label>
                   <input id="pestType" type="text" class="detail-input" [ngModel]="item.pestType" (ngModelChange)="updateField('pestType', $event)" />
                 </div>
-                <div class="info-item">
-                  <label class="label" for="severity">Severity</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('severity')">
+                  <label class="label" for="severity">Severity <span class="req">*</span></label>
                   <select id="severity" class="detail-input" [ngModel]="item.severity" (ngModelChange)="updateField('severity', $event)">
                     <option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option>
                   </select>
@@ -131,8 +137,8 @@
                   <label class="label" for="estimatedWork">Estimated Work</label>
                   <input id="estimatedWork" type="text" class="detail-input" [ngModel]="item.estimatedWork" (ngModelChange)="updateField('estimatedWork', $event)" />
                 </div>
-                <div class="info-item info-item--wide">
-                  <label class="label" for="inspector">Inspector (from User Master)</label>
+                <div class="info-item info-item--wide" [class.info-item--invalid]="isMissing('inspector')">
+                  <label class="label" for="inspector">Inspector (from User Master) <span class="req">*</span></label>
                   <div class="inspection-typeahead">
                     <input
                       type="text"
@@ -159,14 +165,22 @@
                     }
                   </div>
                 </div>
-                <label class="label description-label" for="findings">Findings</label>
-                <textarea id="findings" class="detail-textarea" rows="4" [ngModel]="item.findings" (ngModelChange)="updateField('findings', $event)"></textarea>
-                <label class="label description-label" for="recommendations">Recommendations</label>
-                <textarea id="recommendations" class="detail-textarea" rows="3" [ngModel]="item.recommendations" (ngModelChange)="updateField('recommendations', $event)"></textarea>
-                <label class="label description-label" for="requiredTreatment">Required Treatment</label>
-                <input id="requiredTreatment" type="text" class="detail-input" [ngModel]="item.requiredTreatment" (ngModelChange)="updateField('requiredTreatment', $event)" />
-                <label class="label description-label" for="remarks">Remarks</label>
-                <textarea id="remarks" class="detail-textarea" rows="2" [ngModel]="item.remarks" (ngModelChange)="updateField('remarks', $event)"></textarea>
+                <div class="info-item info-item--wide" [class.info-item--invalid]="isMissing('findings')">
+                  <label class="label" for="findings">Findings <span class="req">*</span></label>
+                  <textarea id="findings" class="detail-textarea" rows="4" [ngModel]="item.findings" (ngModelChange)="updateField('findings', $event)"></textarea>
+                </div>
+                <div class="info-item info-item--wide" [class.info-item--invalid]="isMissing('recommendations')">
+                  <label class="label" for="recommendations">Recommendations <span class="req">*</span></label>
+                  <textarea id="recommendations" class="detail-textarea" rows="3" [ngModel]="item.recommendations" (ngModelChange)="updateField('recommendations', $event)"></textarea>
+                </div>
+                <div class="info-item info-item--wide">
+                  <label class="label" for="requiredTreatment">Required Treatment</label>
+                  <input id="requiredTreatment" type="text" class="detail-input" [ngModel]="item.requiredTreatment" (ngModelChange)="updateField('requiredTreatment', $event)" />
+                </div>
+                <div class="info-item info-item--wide">
+                  <label class="label" for="remarks">Remarks</label>
+                  <textarea id="remarks" class="detail-textarea" rows="2" [ngModel]="item.remarks" (ngModelChange)="updateField('remarks', $event)"></textarea>
+                </div>
               </div>
             } @else {
               <div class="info-grid">
@@ -192,40 +206,9 @@
             }
           </section>
 
-          <section class="detail-card detail-card--half">
-            <h2><span class="material-icons-outlined">photo_camera</span> Site Images</h2>
-            @if (isEditing()) {
-              <div class="image-upload-area">
-                <input id="siteImages" type="file" accept="image/*" multiple class="image-input" (change)="onImagesSelected($event)" />
-                <label for="siteImages" class="image-upload-label">
-                  <span class="material-icons-outlined">add_photo_alternate</span>
-                  <strong>Upload site images</strong>
-                  <small>JPG, PNG or WebP · up to 5MB each</small>
-                </label>
-              </div>
-            }
-            @if ((item.attachments || []).length > 0) {
-              <div class="image-grid">
-                @for (img of item.attachments; track $index) {
-                  <div class="image-tile">
-                    <img [src]="img.fileUrl" [alt]="img.fileName || 'Site image'" />
-                    @if (isEditing()) {
-                      <button type="button" class="image-remove" (click)="removeImage($index)" title="Delete attachment" [disabled]="saving()">
-                        <span class="material-icons-outlined">delete</span>
-                      </button>
-                    }
-                  </div>
-                }
-              </div>
-            } @else if (isEditing()) {
-              <p class="image-hint">No site images yet — upload photos of the affected areas. Uploaded images can be deleted with the trash button.</p>
-            } @else {
-              <p class="image-hint">No site images uploaded.</p>
-            }
-          </section>
-
-          <!-- Checklist (full width) — rows generated from Checklist master -->
-          <section class="detail-card detail-card--full checklist-card">
+          <!-- Checklist — half card, shares the row with Inspection Details.
+               Rows are generated from the Checklist master. -->
+          <section class="detail-card detail-card--half checklist-card">
             <div class="checklist-header">
               <h2><span class="material-icons-outlined">checklist</span> Inspection Checklist</h2>
               @if (isEditing()) {
@@ -282,6 +265,38 @@
                   No checklist recorded for this inspection.
                 }
               </p>
+            }
+          </section>
+
+          <section class="detail-card detail-card--full">
+            <h2><span class="material-icons-outlined">photo_camera</span> Site Images</h2>
+            @if (isEditing()) {
+              <div class="image-upload-area">
+                <input id="siteImages" type="file" accept="image/*" multiple class="image-input" (change)="onImagesSelected($event)" />
+                <label for="siteImages" class="image-upload-label">
+                  <span class="material-icons-outlined">add_photo_alternate</span>
+                  <strong>Upload site images</strong>
+                  <small>JPG, PNG or WebP · up to 5MB each</small>
+                </label>
+              </div>
+            }
+            @if ((item.attachments || []).length > 0) {
+              <div class="image-grid">
+                @for (img of item.attachments; track $index) {
+                  <div class="image-tile">
+                    <img [src]="img.fileUrl" [alt]="img.fileName || 'Site image'" />
+                    @if (isEditing()) {
+                      <button type="button" class="image-remove" (click)="removeImage($index)" title="Delete attachment" [disabled]="saving()">
+                        <span class="material-icons-outlined">delete</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            } @else if (isEditing()) {
+              <p class="image-hint">No site images yet — upload photos of the affected areas. Uploaded images can be deleted with the trash button.</p>
+            } @else {
+              <p class="image-hint">No site images uploaded.</p>
             }
           </section>
         </div>

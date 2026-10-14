@@ -46,7 +46,7 @@
 }
 
 .back-link:hover {
-    color: #0f766e;
+    color: #153A6B;
 }
 
 .back-link .material-icons-outlined {
@@ -166,21 +166,21 @@ h1 {
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    border: 1px solid #ccfbf1;
+    border: 1px solid #DBEAFE;
     border-radius: 12px;
-    background: #f0fdfa;
+    background: #F0F6FF;
     cursor: pointer;
 }
 
 .inspection-choice input {
     width: 18px;
     height: 18px;
-    accent-color: #0d9488;
+    accent-color: #1B447D;
 }
 
 .inspection-choice__box {
     display: flex;
-    color: #0f766e;
+    color: #153A6B;
 }
 
 .inspection-choice__box .material-icons-outlined {
@@ -189,7 +189,7 @@ h1 {
 
 .inspection-choice strong {
     display: block;
-    color: #134e4a;
+    color: #16365F;
     font-size: 14px;
 }
 
@@ -324,6 +324,14 @@ h1 {
     gap: 18px;
 }
 
+/* Blocks merged into another card (request metadata, inquiry description),
+   separated from the host card's fields by a hairline rule. */
+.request-info {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e5e7eb;
+}
+
 .detail-card {
     padding: 20px;
 }
@@ -335,8 +343,27 @@ h1 {
 }
 
 .detail-card h2 .material-icons-outlined {
-    color: #0d9488;
+    color: #1B447D;
     font-size: 19px;
+}
+
+/* Sub-heading for a block merged into a card (e.g. Inquiry Description
+   inside Service Details). */
+.detail-card .subheading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+}
+
+.detail-card .subheading .material-icons-outlined {
+    color: #1B447D;
+    font-size: 17px;
 }
 
 .detail-card--wide {
@@ -366,6 +393,44 @@ h1 {
     font-weight: 800;
     letter-spacing: .7px;
     text-transform: uppercase;
+}
+
+.label .req {
+    color: #dc2626;
+    margin-left: 2px;
+}
+
+/* ── Required-field validation ───────────────────────────────────────
+   Same visual language as the shared ERP form sheets: the alert names the
+   missing fields at the top of their card, and each missing field turns red
+   where it lives. */
+.erp-error-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+
+.info-item--invalid .label {
+    color: #b91c1c;
+}
+
+.info-item--invalid .detail-input,
+.info-item--invalid .detail-textarea {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .12);
+}
+
+.info-item--invalid .detail-input:focus,
+.info-item--invalid .detail-textarea:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .18);
 }
 
 .value {
@@ -402,8 +467,21 @@ h1 {
 
 .detail-input:focus,
 .detail-textarea:focus {
-    border-color: #0d9488;
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, .12);
+    border-color: #1B447D;
+    box-shadow: 0 0 0 3px rgba(27, 68, 125, .12);
+}
+
+/* Locked fields (carried over from the customer / lead record) stay fully
+   legible: light fill, dark semibold text, and a ⊘ cursor. */
+.detail-input:disabled,
+.detail-textarea:disabled {
+    background: #eef2f7;
+    border-color: #dbe3ec;
+    color: #0f172a;
+    -webkit-text-fill-color: #0f172a;
+    opacity: 1;
+    font-weight: 600;
+    cursor: not-allowed;
 }
 
 .description-label {
@@ -437,22 +515,22 @@ h1 {
 }
 
 .pest-option:hover {
-    border-color: #14b8a6;
-    color: #0f766e;
+    border-color: #0090FF;
+    color: #153A6B;
 }
 
 .pest-option--selected {
-    border-color: #0d9488;
-    background: #ccfbf1;
-    color: #115e59;
+    border-color: #1B447D;
+    background: #DBEAFE;
+    color: #1B447D;
 }
 
 .inspection-toggle {
     margin-top: 17px;
     padding: 13px 14px;
-    border: 1px solid #ccfbf1;
+    border: 1px solid #DBEAFE;
     border-radius: 10px;
-    background: #f0fdfa;
+    background: #F0F6FF;
 }
 
 .inspection-toggle__label {
@@ -466,12 +544,12 @@ h1 {
     width: 18px;
     height: 18px;
     margin-top: 1px;
-    accent-color: #0d9488;
+    accent-color: #1B447D;
 }
 
 .inspection-toggle strong {
     display: block;
-    color: #134e4a;
+    color: #16365F;
     font-size: 13px;
 }
 
@@ -493,7 +571,7 @@ h1 {
 .inspection-checkbox input {
     width: 16px;
     height: 16px;
-    accent-color: #0d9488;
+    accent-color: #1B447D;
 }
 
 .inspection-checkbox input:disabled {
@@ -501,7 +579,7 @@ h1 {
 }
 
 .inspection-checkbox span {
-    color: #134e4a;
+    color: #16365F;
     font-size: 13px;
     font-weight: 600;
 }
@@ -624,8 +702,8 @@ h1 {
 }
 
 .dialog-body textarea:focus {
-    border-color: #0d9488;
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, .12);
+    border-color: #1B447D;
+    box-shadow: 0 0 0 3px rgba(27, 68, 125, .12);
 }
 
 .dialog-footer {

@@ -29,6 +29,11 @@ export interface SiteInspection {
   attachments: { fileName: string; fileUrl: string; fileType: string; uploadedAt?: string }[];
   // Flattened by the backend list endpoint for ERP display
   inquiryNo?: string;
+  /** Source lead number (from the inspection's lead, falling back to the inquiry's) */
+  leadNo?: string;
+  /** Scheduling window requested on the linked inquiry */
+  preferredDate?: string | null;
+  preferredTime?: string;
   customerName?: string;
   siteLocation?: string;
   rejectionReason?: string;

@@ -96,7 +96,20 @@ export class SiteInspectionListComponent implements OnInit {
   }
 
   filter() { this.load(); }
+  /** Raw ref id whether the populate returned an object or the field holds a plain id */
+  refId(value: any) { return value && typeof value === 'object' ? value._id : value || ''; }
   toggleMobileMenu() { this.mobileMenuOpen = !this.mobileMenuOpen; }
   closeMobileMenu() { this.mobileMenuOpen = false; }
-  formatDate(value: string | null) { return value ? new Date(value).toLocaleDateString('en-GB') : '-'; }
+  formatDate(value: string | null | undefined) { return value ? new Date(value).toLocaleDateString('en-GB') : '-'; }
+
+  /**
+   * Preferred Time comes from the inquiry: usually one of the standard buckets
+   * (MORNING / AFTERNOON / EVENING / ANY), but the customer portal stores a clock
+   * time such as "14:30". Show buckets in title case and clock times as stored.
+   */
+  formatPreferredTime(value: string | undefined): string {
+    const time = (value || '').trim();
+    if (!time) return '-';
+    return /^[A-Z_]+$/.test(time) ? time.charAt(0) + time.slice(1).toLowerCase() : time;
+  }
 }

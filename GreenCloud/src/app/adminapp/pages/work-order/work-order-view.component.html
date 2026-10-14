@@ -6,19 +6,38 @@
       @if (loading()) { <div class="erp-loading">Loading work order...</div> }
       @if (!loading() && !order()) { <div class="erp-error-box">{{ error() || 'Work order not found' }}</div> }
       @if (order(); as o) {
-        <div class="erp-page__header"><div class="erp-page__title"><h1><span class="material-icons-outlined">assignment</span> {{ o.workOrderNo }} <span class="erp-badge">{{ o.status }}</span></h1><p>{{ o.serviceType || 'Work order' }} · {{ o.serviceLocation || 'Location not set' }}</p></div><div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/work-orders">Back</a>@if (editing()) {<button class="erp-btn erp-btn--primary" (click)="saveEdit()" [disabled]="busy()"><span class="material-icons-outlined">save</span> {{ busy() ? 'Saving…' : 'Save Changes' }}</button>@if (o.status !== 'DRAFT') {<button class="erp-btn erp-btn--ghost" (click)="cancelEdit()" [disabled]="busy()">Cancel</button>}} @else {<button class="erp-btn erp-btn--ghost" (click)="startEdit()"><span class="material-icons-outlined">edit</span> Edit</button>}@if (canAssign() && !editing()) {<button class="erp-btn erp-btn--primary" (click)="openAssign()"><span class="material-icons-outlined">engineering</span> Assign Work</button>}@if (o.status === 'APPROVED' || o.status === 'SCHEDULED') {<button class="erp-btn erp-btn--success" (click)="start()" [disabled]="busy()">Start Work</button>}@if (o.status === 'WORK_STARTED') {<button class="erp-btn erp-btn--warning" (click)="showComplete.set(true)" [disabled]="busy()">Complete Work</button>}@if (o.status === 'PENDING_APPROVAL') {<button class="erp-btn erp-btn--success" (click)="approve()" [disabled]="busy()">Approve</button>}</div></div>
+        <div class="erp-page__header"><div class="erp-page__title"><h1><span class="material-icons-outlined">assignment</span> {{ o.workOrderNo }} <span class="erp-badge">{{ o.status }}</span></h1><p>{{ o.serviceType || 'Work order' }} · {{ o.serviceLocation || 'Location not set' }}</p></div><div class="erp-actions"><a class="erp-btn erp-btn--ghost" routerLink="/adminapp/work-orders">Back</a>@if (editing()) {<button class="erp-btn erp-btn--primary" (click)="saveEdit()" [disabled]="busy() || !editFormValid()"><span class="material-icons-outlined">save</span> {{ busy() ? 'Saving…' : 'Save Changes' }}</button><button class="erp-btn erp-btn--ghost" (click)="cancelEdit()" [disabled]="busy()">Cancel</button>} @else {<button class="erp-btn erp-btn--ghost" (click)="startEdit()"><span class="material-icons-outlined">edit</span> Edit</button>}@if (canAssign()) {<button class="erp-btn erp-btn--primary" (click)="openAssign()" [disabled]="editing()"><span class="material-icons-outlined">engineering</span> Assign Work</button>}@if (o.status === 'APPROVED' || o.status === 'SCHEDULED') {<button class="erp-btn erp-btn--success" (click)="openStart()" [disabled]="busy()">Work Started</button>}@if (o.status === 'WORK_STARTED') {<button class="erp-btn erp-btn--warning" (click)="openComplete()" [disabled]="busy()">Work Completed</button>}@if (o.status === 'PENDING_APPROVAL') {<button class="erp-btn erp-btn--success" (click)="approve()" [disabled]="busy()">Approve</button>}</div></div>
         @if (error()) { <div class="erp-error-box">{{ error() }}</div> }
         @if (editing()) {
         <div class="erp-card" style="margin-bottom:16px">
           <h3><span class="material-icons-outlined" style="vertical-align:middle">edit</span> Edit Work Order</h3>
+          <p class="erp-req-hint">Fields marked <span class="erp-req">*</span> are required.</p>
           <div class="erp-form-grid">
-            <div class="erp-form-group"><label>Service Type</label><input [(ngModel)]="editForm.serviceType" placeholder="e.g. Pest Control" /></div>
-            <div class="erp-form-group"><label>Service Location</label><input [(ngModel)]="editForm.serviceLocation" placeholder="e.g. Building A, Dubai" /></div>
+            <div class="erp-form-group" [class.erp-form-group--invalid]="editForm.serviceType && !editForm.serviceType.trim()">
+              <label>Service Type <span class="erp-req">*</span></label>
+              <input [(ngModel)]="editForm.serviceType" placeholder="e.g. Pest Control" />
+            </div>
+            <div class="erp-form-group" [class.erp-form-group--invalid]="editForm.serviceLocation && !editForm.serviceLocation.trim()">
+              <label>Service Location <span class="erp-req">*</span></label>
+              <input [(ngModel)]="editForm.serviceLocation" placeholder="e.g. Building A, Dubai" />
+            </div>
             <div class="erp-form-group"><label>Assigned Team</label><input [(ngModel)]="editForm.assignedTeam" placeholder="e.g. Team Alpha" /></div>
-            <div class="erp-form-group"><label>Assigned Technician</label><input [(ngModel)]="editForm.assignedTechnician" placeholder="e.g. Rahul K." /></div>
-            <div class="erp-form-group"><label>Scheduled Date</label><input type="date" [(ngModel)]="editForm.scheduledDate" /></div>
-            <div class="erp-form-group"><label>Scheduled Time</label><input [(ngModel)]="editForm.scheduledTime" placeholder="e.g. 09:00 AM" /></div>
-            <div class="erp-form-group erp-form-group--full"><label>Work Description</label><textarea [(ngModel)]="editForm.workDescription" rows="3" placeholder="Describe the work to be performed..."></textarea></div>
+            <div class="erp-form-group" [class.erp-form-group--invalid]="editForm.assignedTechnician && !editForm.assignedTechnician.trim()">
+              <label>Assigned Technician <span class="erp-req">*</span></label>
+              <input [(ngModel)]="editForm.assignedTechnician" placeholder="e.g. Rahul K." />
+            </div>
+            <div class="erp-form-group" [class.erp-form-group--invalid]="editForm.scheduledDate === ''">
+              <label>Scheduled Date <span class="erp-req">*</span></label>
+              <input type="date" [(ngModel)]="editForm.scheduledDate" />
+            </div>
+            <div class="erp-form-group" [class.erp-form-group--invalid]="editForm.scheduledTime && !editForm.scheduledTime.trim()">
+              <label>Scheduled Time <span class="erp-req">*</span></label>
+              <input [(ngModel)]="editForm.scheduledTime" placeholder="e.g. 09:00 AM" />
+            </div>
+            <div class="erp-form-group erp-form-group--full" [class.erp-form-group--invalid]="editForm.workDescription && !editForm.workDescription.trim()">
+              <label>Work Description <span class="erp-req">*</span></label>
+              <textarea [(ngModel)]="editForm.workDescription" rows="3" placeholder="Describe the work to be performed..."></textarea>
+            </div>
             <div class="erp-form-group erp-form-group--full"><label>Required Materials</label><textarea [(ngModel)]="editForm.requiredMaterials" rows="2" placeholder="Materials or chemicals needed..."></textarea></div>
             <div class="erp-form-group erp-form-group--full"><label>Remarks</label><textarea [(ngModel)]="editForm.remarks" rows="2" placeholder="Internal remarks..."></textarea></div>
           </div>
@@ -37,6 +56,26 @@
           <div class="erp-field erp-form-group--full"><div class="erp-field__label">Work Description</div><div class="erp-field__value">{{ o.workDescription || '-' }}</div></div>
           @if (o.completionNotes) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Completion Notes</div><div class="erp-field__value">{{ o.completionNotes }}</div></div> }
           @if (o.materialsUsed) { <div class="erp-field erp-form-group--full"><div class="erp-field__label">Materials Used</div><div class="erp-field__value">{{ o.materialsUsed }}</div></div> }
+          @if ((o.workStartEvidence || []).length > 0) {
+            <div class="erp-field erp-form-group--full">
+              <div class="erp-field__label">Work Start Evidence</div>
+              <div class="erp-evidence-grid">
+                @for (img of o.workStartEvidence; track $index) {
+                  <a class="erp-evidence-thumb" [href]="img.data" target="_blank" rel="noopener"><img [src]="img.data" [alt]="img.fileName || 'Work start evidence'" loading="lazy" /></a>
+                }
+              </div>
+            </div>
+          }
+          @if ((o.workCompletionEvidence || []).length > 0) {
+            <div class="erp-field erp-form-group--full">
+              <div class="erp-field__label">Work Completion Evidence</div>
+              <div class="erp-evidence-grid">
+                @for (img of o.workCompletionEvidence; track $index) {
+                  <a class="erp-evidence-thumb" [href]="img.data" target="_blank" rel="noopener"><img [src]="img.data" [alt]="img.fileName || 'Work completion evidence'" loading="lazy" /></a>
+                }
+              </div>
+            </div>
+          }
         </div>
         }
 
@@ -106,12 +145,49 @@
     </div>
   </div>
 </div>
-@if (showAssign()) { <div class="erp-overlay" (click)="closeAssign()"><div class="erp-dialog erp-dialog--wide" (click)="$event.stopPropagation()"><div class="erp-dialog__header"><h3>Assign Work</h3><button class="erp-dialog__close" (click)="closeAssign()">×</button></div><div class="erp-dialog__body"><div class="erp-form-grid">
+@if (showAssign()) { <div class="erp-overlay" (click)="closeAssign()"><div class="erp-dialog erp-dialog--wide" (click)="$event.stopPropagation()"><div class="erp-dialog__header"><h3>Assign Work</h3><button class="erp-dialog__close" (click)="closeAssign()">×</button></div><div class="erp-dialog__body"><p class="erp-req-hint">Fields marked <span class="erp-req">*</span> are required.</p><div class="erp-form-grid">
   <div class="erp-form-group"><label>Assigned Team</label><input [(ngModel)]="assignForm.assignedTeam" placeholder="e.g. Team Alpha" /></div>
-  <div class="erp-form-group"><label>Assigned Technician</label><input [(ngModel)]="assignForm.assignedTechnician" placeholder="e.g. Rahul K." /></div>
-  <div class="erp-form-group"><label>Scheduled Date</label><input type="date" [(ngModel)]="assignForm.scheduledDate" /></div>
-  <div class="erp-form-group"><label>Scheduled Time</label><input [(ngModel)]="assignForm.scheduledTime" placeholder="e.g. 09:00 AM" /></div>
-  <div class="erp-form-group erp-form-group--full"><label>Work Description</label><textarea [(ngModel)]="assignForm.workDescription" rows="3" placeholder="Describe the work to be performed..."></textarea></div>
+  <div class="erp-form-group" [class.erp-form-group--invalid]="assignForm.assignedTechnician && !assignForm.assignedTechnician.trim()"><label>Assigned Technician <span class="erp-req">*</span></label><input [(ngModel)]="assignForm.assignedTechnician" placeholder="e.g. Rahul K." /></div>
+  <div class="erp-form-group" [class.erp-form-group--invalid]="assignForm.scheduledDate === ''"><label>Scheduled Date <span class="erp-req">*</span></label><input type="date" [(ngModel)]="assignForm.scheduledDate" /></div>
+  <div class="erp-form-group" [class.erp-form-group--invalid]="assignForm.scheduledTime && !assignForm.scheduledTime.trim()"><label>Scheduled Time <span class="erp-req">*</span></label><input [(ngModel)]="assignForm.scheduledTime" placeholder="e.g. 09:00 AM" /></div>
+  <div class="erp-form-group erp-form-group--full" [class.erp-form-group--invalid]="assignForm.workDescription && !assignForm.workDescription.trim()"><label>Work Description <span class="erp-req">*</span></label><textarea [(ngModel)]="assignForm.workDescription" rows="3" placeholder="Describe the work to be performed..."></textarea></div>
   <div class="erp-form-group erp-form-group--full"><label>Required Materials</label><textarea [(ngModel)]="assignForm.requiredMaterials" rows="2" placeholder="Materials or chemicals needed..."></textarea></div>
-</div></div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="closeAssign()">Cancel</button><button class="erp-btn erp-btn--primary" (click)="saveAssign()" [disabled]="busy()">{{ busy() ? 'Saving…' : 'Save Assignment' }}</button></div></div></div> }
-@if (showComplete()) { <div class="erp-overlay"><div class="erp-dialog"><div class="erp-dialog__header"><h3>Complete Work</h3><button class="erp-dialog__close" (click)="showComplete.set(false)">×</button></div><div class="erp-dialog__body"><div class="erp-form-group"><label>Completion Notes *</label><textarea [(ngModel)]="completionNotes"></textarea></div><div class="erp-form-group"><label>Materials Used</label><textarea [(ngModel)]="materialsUsed"></textarea></div><div class="erp-form-group"><label>Customer Confirmation</label><input [(ngModel)]="customerConfirmation" /></div></div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="showComplete.set(false)">Cancel</button><button class="erp-btn erp-btn--success" (click)="complete()" [disabled]="!completionNotes.trim() || busy()">Complete Work</button></div></div></div> }
+</div></div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="closeAssign()">Cancel</button><button class="erp-btn erp-btn--primary" (click)="saveAssign()" [disabled]="busy() || !assignFormValid()">{{ busy() ? 'Saving…' : 'Save Assignment' }}</button></div></div></div> }
+@if (showStart()) { <div class="erp-overlay"><div class="erp-dialog" (click)="$event.stopPropagation()"><div class="erp-dialog__header"><h3>Work Started — Evidence</h3><button class="erp-dialog__close" (click)="closeStart()">×</button></div><div class="erp-dialog__body">
+  <p class="erp-req-hint">Attach photos as evidence that the work has started (optional, up to 10 images).</p>
+  <label class="erp-upload-drop">
+    <input type="file" accept="image/*" multiple hidden (change)="onStartFilesChosen($event)" />
+    <span class="material-icons-outlined">add_photo_alternate</span>
+    <span>Click to add images — JPG, PNG, WebP</span>
+  </label>
+  @if (startEvidencePreviews.length > 0) {
+    <div class="erp-evidence-grid">
+      @for (src of startEvidencePreviews; track $index) {
+        <div class="erp-evidence-thumb erp-evidence-thumb--pending">
+          <img [src]="src" alt="Work start evidence preview" />
+          <button type="button" class="erp-evidence-remove" (click)="removeStartEvidence($index)" aria-label="Remove image">×</button>
+        </div>
+      }
+    </div>
+  }
+</div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="closeStart()">Cancel</button><button class="erp-btn erp-btn--success" (click)="confirmStart()" [disabled]="busy()">{{ busy() ? 'Starting…' : 'Confirm Work Started' }}</button></div></div></div> }
+@if (showComplete()) { <div class="erp-overlay"><div class="erp-dialog"><div class="erp-dialog__header"><h3>Work Completed</h3><button class="erp-dialog__close" (click)="showComplete.set(false)">×</button></div><div class="erp-dialog__body"><div class="erp-form-group"><label>Completion Notes *</label><textarea [(ngModel)]="completionNotes"></textarea></div><div class="erp-form-group"><label>Materials Used</label><textarea [(ngModel)]="materialsUsed"></textarea></div><div class="erp-form-group"><label>Customer Confirmation</label><input [(ngModel)]="customerConfirmation" /></div>
+  <div class="erp-form-group">
+    <label>Completion Evidence (optional, up to 10 images)</label>
+    <label class="erp-upload-drop">
+      <input type="file" accept="image/*" multiple hidden (change)="onCompleteFilesChosen($event)" />
+      <span class="material-icons-outlined">add_photo_alternate</span>
+      <span>Click to add images — JPG, PNG, WebP</span>
+    </label>
+    @if (completeEvidencePreviews.length > 0) {
+      <div class="erp-evidence-grid">
+        @for (src of completeEvidencePreviews; track $index) {
+          <div class="erp-evidence-thumb erp-evidence-thumb--pending">
+            <img [src]="src" alt="Work completion evidence preview" />
+            <button type="button" class="erp-evidence-remove" (click)="removeCompleteEvidence($index)" aria-label="Remove image">×</button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div><div class="erp-dialog__footer"><button class="erp-btn erp-btn--ghost" (click)="showComplete.set(false)">Cancel</button><button class="erp-btn erp-btn--success" (click)="complete()" [disabled]="!completionNotes.trim() || busy()">{{ busy() ? 'Completing…' : 'Confirm Work Completed' }}</button></div></div></div> }

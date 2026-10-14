@@ -11,6 +11,17 @@ const invoiceSchema = new mongoose.Schema(
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "customers", default: null, index: true },
     ledgerAccountId: { type: mongoose.Schema.Types.ObjectId, ref: "account_ledgers", default: null, index: true },
     status: { type: String, enum: ["DRAFT", "PENDING_APPROVAL", "APPROVED", "POSTED", "PARTIALLY_PAID", "PAID", "OVERDUE", "CANCELLED"], default: "DRAFT", index: true },
+    // Payment & collection workflow: the selected payment type drives the
+    // installment plan generated for this invoice.
+    paymentTypeId: { type: mongoose.Schema.Types.ObjectId, ref: "payment_type_masters", default: null },
+    paymentTypeName: { type: String, default: "" },
+    paymentTermsPlan: {
+      frequency: { type: String, default: "" },
+      numberOfPayments: { type: Number, default: 0 },
+      intervalMonths: { type: Number, default: 0 },
+      gracePeriodDays: { type: Number, default: 0 },
+      installmentPlan: [{ type: Number }],
+    },
     paymentTerms: { type: String, default: "" },
     bankDetails: { type: String, default: "" },
     reference: { type: String, default: "" },

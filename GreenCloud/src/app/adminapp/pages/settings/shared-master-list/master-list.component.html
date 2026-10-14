@@ -1,0 +1,104 @@
+<div class="master-page">
+  <div class="master-header">
+    <h2>{{ config.title }}</h2>
+    <button class="btn-add" (click)="openAdd()"><span class="material-icons-outlined">add</span> {{ addLabel }}</button>
+  </div>
+
+  @if (config.info) {
+    <div class="info-banner">
+      <span class="material-icons-outlined">info</span>
+      {{ config.info }}
+    </div>
+  }
+
+  @if (usingDefaults() && config.defaultsNotice) {
+    <div class="banner banner--info">
+      <span class="material-icons-outlined">lightbulb</span>
+      {{ config.defaultsNotice }}
+    </div>
+  }
+
+  @if (success()) {
+    <div class="banner banner--success"><span class="material-icons-outlined">check_circle</span> {{ success() }}</div>
+  }
+  @if (error()) {
+    <div class="banner banner--error"><span class="material-icons-outlined">error_outline</span> {{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="skeleton-form"><div class="skeleton-row"><div class="skeleton-field"></div></div></div>
+  }
+
+  @if (!loading()) {
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Code</th><th>Label</th><th>Actions</th></tr></thead>
+        <tbody>
+          @for (item of items(); track item.code; let i = $index) {
+            <tr>
+              <td class="cell-muted">{{ i + 1 }}</td>
+              <td class="bold">{{ item.code }}</td>
+              <td>{{ item.label }}</td>
+              <td>
+                <button class="act-btn" (click)="openEdit(item, i)"><span class="material-icons-outlined">edit</span></button>
+                <button class="act-btn act-btn--danger" (click)="openDelete(item, i)"><span class="material-icons-outlined">delete</span></button>
+              </td>
+            </tr>
+          }
+          @if (items().length === 0) {
+            <tr><td colspan="4" class="empty">No {{ config.itemNoun }}s configured</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Add/Edit Dialog -->
+@if (showDialog()) {
+  <div class="dlg-overlay" (click)="closeDialog()">
+    <div class="dlg" (click)="$event.stopPropagation()">
+      <div class="dlg-header">
+        <h3>{{ editIndex() >= 0 ? 'Edit' : 'Add' }} {{ singular }}</h3>
+        <button class="dlg-close" (click)="closeDialog()">×</button>
+      </div>
+      <div class="dlg-body">
+        <div class="fg">
+          <label>Code *</label>
+          <input class="fi" [(ngModel)]="formData.code" placeholder="Code (e.g. APARTMENT)" [disabled]="editIndex() >= 0" />
+        </div>
+        <div class="fg">
+          <label>Label *</label>
+          <input class="fi" [(ngModel)]="formData.label" placeholder="Label shown to users" />
+        </div>
+      </div>
+      <div class="dlg-footer">
+        <button class="btn-cancel" (click)="closeDialog()">Cancel</button>
+        <button class="btn-save" (click)="save()" [disabled]="saving()">
+          @if (saving()) { <span class="spinner"></span> Saving... } @else { Save }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Dialog -->
+@if (showDelete()) {
+  <div class="dlg-overlay" (click)="closeDelete()">
+    <div class="dlg dlg--sm" (click)="$event.stopPropagation()">
+      <div class="dlg-header">
+        <h3>Delete {{ singular }}</h3>
+        <button class="dlg-close" (click)="closeDelete()">×</button>
+      </div>
+      <div class="dlg-body">
+        <p>Are you sure you want to delete <strong>{{ deleteTarget()?.label }}</strong>? This cannot be undone.</p>
+      </div>
+      <div class="dlg-footer">
+        <button class="btn-cancel" (click)="closeDelete()">Cancel</button>
+        <button class="btn-save" style="background:#dc2626;" (click)="confirmDelete()" [disabled]="saving()">
+          @if (saving()) { <span class="spinner"></span> Deleting... } @else { Delete }
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -9,6 +9,28 @@ import Invoice from "../models/invoice.model.js";
 import { withTransaction } from "../utils/tx.js";
 import { actor, recordHistory } from "../services/document-workflow.service.js";
 
+/**
+ * Fields an inquiry must carry to be saved or approved. Reported together so the
+ * user sees every gap at once (the form applies the same rule client-side).
+ */
+function mandatoryMissing(inquiry) {
+  const has = (value) =>
+    typeof value === "string" ? value.trim().length > 0 : !!value;
+  const missing = [];
+  if (!has(inquiry.contactPerson)) missing.push("Contact person");
+  if (!has(inquiry.mobile)) missing.push("Mobile");
+  if (!has(inquiry.email)) missing.push("Email");
+  if (!has(inquiry.propertyType)) missing.push("Type of property");
+  if (!has(inquiry.entryPoints)) missing.push("Possible entry point");
+  if (!has(inquiry.serviceType)) missing.push("Service type");
+  if (!has(inquiry.serviceLocation) && !has(inquiry.location))
+    missing.push("Location");
+  if (!has(inquiry.preferredDate)) missing.push("Preferred date");
+  if (!has(inquiry.preferredTime)) missing.push("Preferred time");
+  if (!has(inquiry.urgency)) missing.push("Urgency");
+  return missing;
+}
+
 const inquiryController = {
   async create(req, res) {
     try {
@@ -142,7 +164,27 @@ const inquiryController = {
 
   async saveDraft(req, res) {
     try {
-      const inquiry = await InquiryService.saveDraft(
+      const inquiry = await Inquiry.findById(req.params.id);
+      if (!inquiry)
+        return res
+          .status(404)
+          .json({ success: false, message: "Inquiry not found" });
+
+      // A saved draft must be complete: validate the record as it will exist
+      // after this write, so a part-filled payload cannot hide a missing field.
+      const missing = mandatoryMissing({
+        ...inquiry.toObject(),
+        ...(req.body || {}),
+      });
+      if (missing.length)
+        return res.status(400).json({
+          success: false,
+          message: `Cannot save: missing mandatory fields — ${missing.join(
+            ", ",
+          )}`,
+        });
+
+      const saved = await InquiryService.saveDraft(
         req.params.id,
         req.body,
         req.admin || req.user,
@@ -150,7 +192,7 @@ const inquiryController = {
       return res.status(200).json({
         success: true,
         message: "Inquiry saved as draft",
-        data: inquiry,
+        data: saved,
       });
     } catch (error) {
       console.error("Save inquiry draft error:", error);
@@ -179,6 +221,15 @@ const inquiryController = {
         });
       }
 
+      const missing = mandatoryMissing(inquiry);
+      if (missing.length)
+        return res.status(400).json({
+          success: false,
+          message: `Cannot approve: missing mandatory fields — ${missing.join(
+            ", ",
+          )}`,
+        });
+
       const customerId = inquiry.erpCustomerId || inquiry.customerId;
       if (!customerId)
         return res.status(400).json({
@@ -198,6 +249,15 @@ const inquiryController = {
         ) {
           throw new Error(
             `Only draft inquiries can be approved (current: ${current.status})`,
+          );
+        }
+
+        // Authoritative gate: the record cannot change between the checks above
+        // and this write, so this is where completeness is guaranteed.
+        const stillMissing = mandatoryMissing(current);
+        if (stillMissing.length) {
+          throw new Error(
+            `Cannot approve: missing mandatory fields — ${stillMissing.join(", ")}`,
           );
         }
 

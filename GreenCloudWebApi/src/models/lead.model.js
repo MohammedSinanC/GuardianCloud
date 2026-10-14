@@ -6,6 +6,9 @@ const leadSchema = new mongoose.Schema({
   status: { type: String, enum: ["DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "CANCELLED"], default: "DRAFT", index: true },
   source: { type: String, enum: ["WEBSITE", "PHONE", "WALK_IN", "REFERRAL", "CAMPAIGN", "OTHER"], default: "PHONE" },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: "customers", default: null, index: true },
+  // When true the lead must be linked to an existing customer account before approval;
+  // when false the customer is matched or created automatically on approval.
+  existingCustomer: { type: Boolean, default: false },
   inquiryId: { type: mongoose.Schema.Types.ObjectId, ref: "inquiries", default: null, index: true },
   customerName: { type: String, trim: true, default: "" },
   companyName: { type: String, required: true, trim: true },
@@ -15,6 +18,8 @@ const leadSchema = new mongoose.Schema({
   address: { type: String, trim: true, default: "" },
   location: { type: String, trim: true, default: "" },
   serviceRequired: { type: String, required: true, trim: true },
+  // Selected from the Pest Types master (same field the website contact form uses)
+  pestTypes: [{ type: String, trim: true }],
   contract: { type: String, trim: true, default: "" },
   description: { type: String, trim: true, default: "" },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "admins", default: null },

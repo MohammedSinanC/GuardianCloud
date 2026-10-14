@@ -21,6 +21,10 @@ export interface Inquiry {
   preferredDate: string | null;
   preferredTime: string;
   urgency: string;
+  /** Site profile codes, each from its own master (Settings). */
+  propertyType: string;
+  populationLevel: string;
+  entryPoints: string;
   attachments: any[];
   remarks: string;
   inspectionId: string | null;
@@ -34,6 +38,8 @@ export interface Inquiry {
   updatedAt: string;
   siteInspectionRequired?: boolean;
   leadId?: string | null;
+  /** Source lead number, attached by the list endpoint for display. */
+  leadNo?: string | null;
   customerId?: string | null;
   erpCustomerId?: string | null;
   companyName?: string;

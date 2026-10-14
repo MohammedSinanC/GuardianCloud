@@ -67,7 +67,7 @@
                   <td>{{ lead.companyName }}</td>
                   <td>{{ lead.contactPerson }}</td>
                   <td>{{ lead.mobile }}</td>
-                  <td>{{ lead.serviceRequired || '-' }}</td>
+                  <td>{{ serviceTypeLabel(lead.serviceRequired) }}</td>
                   <td>{{ lead.source ? statusLabel(lead.source) : '-' }}</td>
                   <td><span [class]="statusClass(lead.status)">{{ statusLabel(lead.status) }}</span></td>
                   <td>{{ formatDate(lead.createdAt) }}</td>

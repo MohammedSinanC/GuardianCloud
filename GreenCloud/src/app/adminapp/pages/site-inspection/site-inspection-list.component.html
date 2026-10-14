@@ -22,14 +22,29 @@
       @else {
         <div class="erp-table-card erp-table-card--flush">
           <table class="erp-table">
-            <thead><tr><th>Inspection No</th><th>Inquiry No</th><th>Customer</th><th>Site Location</th><th>Inspection Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Inspection No</th><th>Inquiry No</th><th>Lead No</th><th>Customer</th><th>Site Location</th><th>Preferred Date</th><th>Preferred Time</th><th>Inspection Date</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
               @for (inspection of inspections(); track inspection._id || $index) {
                 <tr>
                   <td class="erp-doc-no">{{ inspection.inspectionNo || '-' }}</td>
-                  <td>{{ inspection.inquiryNo || '-' }}</td>
+                  <td>
+                    @if (inspection.inquiryNo) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/inquiries', refId(inspection.inquiryId)]" title="Open the inquiry">{{ inspection.inquiryNo }}</a>
+                    } @else {
+                      -
+                    }
+                  </td>
+                  <td>
+                    @if (inspection.leadNo && inspection.leadId) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/leads', refId(inspection.leadId)]" title="Open the source lead">{{ inspection.leadNo }}</a>
+                    } @else {
+                      {{ inspection.leadNo || '-' }}
+                    }
+                  </td>
                   <td>{{ inspection.customerName || '-' }}</td>
                   <td>{{ inspection.siteLocation || inspection.location || '-' }}</td>
+                  <td>{{ formatDate(inspection.preferredDate) }}</td>
+                  <td>{{ formatPreferredTime(inspection.preferredTime) }}</td>
                   <td>{{ formatDate(inspection.inspectionDate) }}</td>
                   <td><span [class]="statusBadgeClass(inspection.status)">{{ inspection.status || 'DRAFT' }}</span></td>
                   <td>

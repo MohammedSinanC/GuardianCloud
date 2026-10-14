@@ -188,6 +188,10 @@ export interface WebsiteContent {
   checklists: ChecklistItem[];
   serviceTypes: MasterDataItem[];
   contractTypes: MasterDataItem[];
+  urgencyTypes: MasterDataItem[];
+  propertyTypes: MasterDataItem[];
+  populationLevels: MasterDataItem[];
+  entryPoints: MasterDataItem[];
   navigation: Navigation;
   hero: HeroContent;
   trust: TrustItem[];

@@ -27,7 +27,7 @@
             }
           </h1>
           @if (!isNew() && lead()?.source) {
-          <p>Source: {{ sourceLabel(lead()?.source || '') }}</p>
+          <p>Source: <span class="erp-badge erp-badge--accent">{{ sourceLabel(lead()?.source || '') }}</span></p>
           }
         </div>
         <div class="erp-actions">
@@ -35,7 +35,7 @@
           @if (isEditing()) {
           <button class="erp-btn erp-btn--primary" (click)="saveDraft()" [disabled]="saving() || busy()">
             <span class="material-icons-outlined">save</span>
-            {{ saving() ? 'Saving…' : 'Save as Draft' }}
+            {{ saving() ? 'Saving…' : (isNew() ? 'Save as Draft' : 'Save Changes') }}
           </button>
           <button class="erp-btn erp-btn--success" (click)="approveLead()" [disabled]="saving() || busy()">
             <span class="material-icons-outlined">task_alt</span>
@@ -46,11 +46,7 @@
             <span class="material-icons-outlined">block</span> Reject
           </button>
           }
-          } @else if (lead()?.status === 'APPROVED') {
-          <button class="erp-btn erp-btn--primary" (click)="startEdit()">
-            <span class="material-icons-outlined">edit</span> Edit
-          </button>
-          } @else {
+          } @else if (lead()?.status !== 'APPROVED') {
           <button class="erp-btn erp-btn--primary" (click)="startEdit()">
             <span class="material-icons-outlined">edit</span> Edit
           </button>
@@ -105,15 +101,37 @@
       }
 
       <!-- ===== Form (new / editing) ===== -->
-      @if (isEditing()) {
+      @if (isEditing() || lead()?.status === 'APPROVED') {
       <div class="erp-card">
-        <h3><span class="material-icons-outlined">edit_note</span> Lead Information</h3>
+        <h3>
+          <span class="material-icons-outlined">edit_note</span> Lead Information
+          @if (form.source) {
+          <span class="erp-badge erp-badge--accent">Source: {{ sourceLabel(form.source) }}</span>
+          }
+        </h3>
+        @if (!isEditing()) {
+        <div class="erp-detail-grid">
+          <div class="erp-field">
+            <div class="erp-field__label">Lead No</div>
+            <div class="erp-field__value erp-doc-no">{{ lead()?.leadNo }}</div>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field__label">Lead Date</div>
+            <div class="erp-field__value">{{ formatDate(lead()?.createdAt || null) }}</div>
+          </div>
+          <div class="erp-field">
+            <div class="erp-field__label">Created By</div>
+            <div class="erp-field__value">{{ lead()?.createdByName || '-' }}</div>
+          </div>
+        </div>
+        }
         @if (error()) {
         <div class="erp-error-box">
           <span class="material-icons-outlined">error_outline</span> {{ error() }}
         </div>
         }
-        <div class="erp-form-grid">
+        <fieldset class="erp-form-fieldset" [disabled]="!isEditing()">
+        <div class="erp-form-grid erp-form-grid--3">
           <div class="erp-form-group">
             <label>Company / Customer Name <span class="req">*</span></label>
             <input type="text" [(ngModel)]="form.companyName" placeholder="e.g. ABC Facilities LLC" />
@@ -127,11 +145,11 @@
             <input type="text" [(ngModel)]="form.mobile" placeholder="+971 50 123 4567" />
           </div>
           <div class="erp-form-group">
-            <label>Email</label>
+            <label>Email <span class="req">*</span></label>
             <input type="email" [(ngModel)]="form.email" placeholder="name@company.com" />
           </div>
           <div class="erp-form-group">
-            <label>Source</label>
+            <label>Source <span class="req">*</span></label>
             <select [(ngModel)]="form.source">
               @for (s of sources; track s) {
               <option [value]="s">{{ sourceLabel(s) }}</option>
@@ -140,14 +158,37 @@
           </div>
           <div class="erp-form-group">
             <label>Service Required <span class="req">*</span></label>
-            <input type="text" [(ngModel)]="form.serviceRequired" placeholder="e.g. General Pest Control" />
+            <select [(ngModel)]="form.serviceRequired">
+              <option value="">Select service type</option>
+              @for (svc of serviceTypeOptions(); track svc.code) {
+              <option [value]="svc.code">{{ svc.label }}</option>
+              }
+            </select>
           </div>
-          <div class="erp-form-group erp-form-group--full">
-            <label>Address</label>
+          <div class="erp-form-group">
+            <label>Pest Type <span class="req">*</span></label>
+            <select [(ngModel)]="form.pestType">
+              <option value="">Select pest type</option>
+              @for (pest of pestTypeOptions(); track pest.code) {
+              <option [value]="pest.code">{{ pest.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="erp-form-group">
+            <label>Contract <span class="req">*</span></label>
+            <select [(ngModel)]="form.contract">
+              <option value="">Select contract</option>
+              @for (ct of contractTypeOptions(); track ct.code) {
+              <option [value]="ct.code">{{ ct.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="erp-form-group">
+            <label>Address <span class="req">*</span></label>
             <input type="text" [(ngModel)]="form.address" placeholder="Street, building, area" />
           </div>
           <div class="erp-form-group">
-            <label>Location</label>
+            <label>Location <span class="req">*</span></label>
             <select [(ngModel)]="form.location">
               <option value="">Select your location</option>
               @for (location of locations(); track location.city) {
@@ -167,11 +208,16 @@
               }
             </select>
           </div>
-          <div class="erp-form-group">
-            <label>Link Existing Customer Account</label>
+          <div class="erp-form-group erp-form-group--full">
+            <label class="erp-check">
+              <input type="checkbox" [ngModel]="form.existingCustomer"
+                (ngModelChange)="onExistingCustomerChange($event)" />
+              Existing Customer
+            </label>
+            <label>Link Existing Customer Account @if (form.existingCustomer) {<span class="req">*</span>}</label>
             <select [ngModel]="selectedCustomerId()" (ngModelChange)="selectedCustomerId.set($event)"
-              [disabled]="loadingCustomers()">
-              <option value="">Create or match customer automatically</option>
+              [disabled]="loadingCustomers() || !form.existingCustomer">
+              <option value="">Select a customer account</option>
               @for (customer of existingCustomers(); track customer._id) {
               <option [value]="customer._id">
                 {{ customer.customerCode }} — {{ customer.companyName }} ({{ customer.mobile }})
@@ -179,33 +225,21 @@
               }
             </select>
             <small class="erp-form-help">
-              {{ loadingCustomers() ? 'Loading customer accounts…' : 'Reuse the customer login, ledger, and account history.' }}
+              @if (loadingCustomers()) { Loading customer accounts… }
+              @else if (form.existingCustomer) { Required before the lead can be submitted or approved — reuses the customer login, ledger, and account history. }
+              @else { Tick "Existing Customer" to link an account; otherwise the customer is matched or created automatically on approval. }
             </small>
           </div>
-          <div class="erp-form-group erp-form-group--full">
+          <div class="erp-form-group erp-form-group--half">
             <label>Description</label>
             <textarea [(ngModel)]="form.description" placeholder="What problem is the customer facing?"></textarea>
           </div>
-          <div class="erp-form-group erp-form-group--full">
+          <div class="erp-form-group erp-form-group--half">
             <label>Notes</label>
             <textarea [(ngModel)]="form.notes" placeholder="Internal notes (optional)"></textarea>
           </div>
         </div>
-        <div class="erp-dialog__footer" style="border:none;padding:16px 0 0">
-          <button class="erp-btn erp-btn--ghost" (click)="cancelEdit()" [disabled]="saving()">Cancel</button>
-          @if (isNew()) {
-          <button class="erp-btn erp-btn--primary" (click)="save(false)" [disabled]="saving()">
-            {{ saving() ? 'Saving…' : 'Save Draft' }}
-          </button>
-          <button class="erp-btn erp-btn--warning" (click)="save(true)" [disabled]="saving()">
-            {{ saving() ? 'Saving…' : 'Save & Submit' }}
-          </button>
-          } @else {
-          <button class="erp-btn erp-btn--primary" (click)="save(false)" [disabled]="saving()">
-            {{ saving() ? 'Saving…' : 'Save Changes' }}
-          </button>
-          }
-        </div>
+        </fieldset>
       </div>
       } @else if (lead()) {
       <!-- ===== Read-only details ===== -->
@@ -235,6 +269,12 @@
           <div class="erp-field__value">{{ lead()?.email || '-' }}</div>
         </div>
         <div class="erp-field">
+          <div class="erp-field__label">Source</div>
+          <div class="erp-field__value">
+            <span class="erp-badge erp-badge--accent">{{ sourceLabel(lead()?.source || '') || '-' }}</span>
+          </div>
+        </div>
+        <div class="erp-field">
           <div class="erp-field__label">Address</div>
           <div class="erp-field__value">{{ lead()?.address || '-' }}</div>
         </div>
@@ -244,7 +284,15 @@
         </div>
         <div class="erp-field">
           <div class="erp-field__label">Service Required</div>
-          <div class="erp-field__value">{{ lead()?.serviceRequired || '-' }}</div>
+          <div class="erp-field__value">{{ serviceTypeLabel(lead()?.serviceRequired) }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Pest Type</div>
+          <div class="erp-field__value">{{ pestTypeLabel((lead()?.pestTypes || [])[0]) }}</div>
+        </div>
+        <div class="erp-field">
+          <div class="erp-field__label">Contract</div>
+          <div class="erp-field__value">{{ contractLabel(lead()?.contract) }}</div>
         </div>
         <div class="erp-field">
           <div class="erp-field__label">Preferred Date</div>

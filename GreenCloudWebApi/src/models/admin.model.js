@@ -26,9 +26,11 @@ const adminSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    // Portal logins created from a lead start with no password (null) — an admin
+    // sets one later; an account without a password can never sign in.
     password: {
       type: String,
-      required: [true, "Password is required"],
+      default: null,
       select: false,
     },
     role: {
@@ -63,7 +65,7 @@ const adminSchema = new mongoose.Schema(
 
 // Hash password before saving
 adminSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password") || !this.password) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
@@ -71,6 +73,8 @@ adminSchema.pre("save", async function (next) {
 
 // Compare password method
 adminSchema.methods.comparePassword = async function (candidatePassword) {
+  // No stored password (or none supplied) → never matches, login stays a clean 401.
+  if (!this.password || !candidatePassword) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

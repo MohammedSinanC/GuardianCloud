@@ -1,7 +1,9 @@
 .admin-topbar {
   height: 64px;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid rgba(27, 68, 125, 0.12);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -11,6 +13,18 @@
   z-index: 50;
   flex-shrink: 0;
   box-sizing: border-box;
+}
+
+/* Brand accent hairline along the bottom edge */
+.admin-topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0, 144, 255, 0.45), rgba(27, 68, 125, 0.18) 40%, transparent 75%);
+  pointer-events: none;
 }
 
 .admin-topbar__left {
@@ -41,8 +55,9 @@
 
 .admin-topbar__title {
   font-size: 20px;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #0A2340;
   margin: 0;
 }
 
@@ -59,8 +74,15 @@
   gap: 10px;
   padding: 4px 6px 4px 4px;
   border-radius: 24px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: rgba(240, 246, 255, 0.9);
+  border: 1px solid rgba(27, 68, 125, 0.14);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.admin-topbar__user:hover {
+  border-color: rgba(0, 144, 255, 0.4);
+  box-shadow: 0 2px 10px rgba(0, 144, 255, 0.14);
 }
 
 .admin-topbar__avatar {
@@ -68,7 +90,7 @@
   height: 38px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(13, 148, 136, 0.35);
+  border: 2px solid rgba(0, 144, 255, 0.45);
   flex-shrink: 0;
 }
 
@@ -76,8 +98,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(45, 212, 191, 0.1));
-  color: #0d9488;
+  background: linear-gradient(135deg, #1B447D, #0090FF);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 144, 255, 0.3);
 }
 
 .admin-topbar__avatar--default .material-icons-outlined {
@@ -153,7 +176,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #0d9488;
+  background: #1B447D;
   color: white;
   border: none;
   border-radius: 8px;
@@ -166,7 +189,7 @@
 }
 
 .admin-topbar__create-btn:hover {
-  background: #0f766e;
+  background: #153A6B;
 }
 
 .admin-topbar__create-btn .material-icons-outlined {

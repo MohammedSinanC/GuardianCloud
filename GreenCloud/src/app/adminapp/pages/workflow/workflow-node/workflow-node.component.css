@@ -55,8 +55,8 @@
 
 /* Current state */
 .wf-node--current .wf-node__body {
-  border-color: #0d9488;
-  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15), 0 6px 20px rgba(13, 148, 136, 0.12);
+  border-color: #1B447D;
+  box-shadow: 0 0 0 4px rgba(27, 68, 125, 0.15), 0 6px 20px rgba(27, 68, 125, 0.12);
   background: #ecfdf5;
 }
 
@@ -79,15 +79,15 @@
   right: -6px;
   width: 12px;
   height: 12px;
-  background: #0d9488;
+  background: #1B447D;
   border-radius: 50%;
   border: 2px solid white;
   animation: node-pulse 2s infinite;
 }
 
 @keyframes node-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(13, 148, 136, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(27, 68, 125, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(27, 68, 125, 0); }
 }
 
 /* ===== Label ===== */
@@ -99,7 +99,7 @@
 }
 
 .wf-node--current .wf-node__label {
-  color: #0f766e;
+  color: #153A6B;
 }
 
 /* ===== Description ===== */
@@ -190,11 +190,11 @@
 
 .wf-node__tool-btn:hover {
   background: #f1f5f9;
-  border-color: #0d9488;
+  border-color: #1B447D;
 }
 
 .wf-node__tool-btn:hover .material-icons-outlined {
-  color: #0d9488;
+  color: #1B447D;
 }
 
 .wf-node__tool-btn--danger:hover {

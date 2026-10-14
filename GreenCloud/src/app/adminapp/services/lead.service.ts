@@ -14,11 +14,14 @@ export interface Lead {
   location: string;
   source: string;
   serviceRequired: string;
+  pestTypes: string[];
+  contract: string;
   preferredDate: string | null;
   preferredTime: string;
   description: string;
   notes: string;
   customerId: string | null;
+  existingCustomer: boolean;
   inquiryId: string | null;
   rejectionReason: string;
   approvedByName: string;

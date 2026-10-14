@@ -23,9 +23,23 @@ const inquirySchema = new mongoose.Schema({
   unit: { type: String, trim: true, default: "" },
   area: { type: String, trim: true, default: "" },
   pestTypes: [{ type: String }],
+  // Site profile — codes from the Property Types / Population Levels / Entry Points masters
+  propertyType: { type: String, trim: true, default: "" },
+  populationLevel: { type: String, trim: true, default: "" },
+  entryPoints: { type: String, trim: true, default: "" },
   problemDescription: { type: String, trim: true, default: "" },
   preferredDate: { type: Date, default: null },
   preferredTime: { type: String, trim: true, default: "" },
+  // Code from the "Urgency Types" master (Settings). Deliberately a free string,
+  // not an enum, so a newly added master entry is usable without a schema change —
+  // and it must exist here: mongoose drops paths a strict schema doesn't declare,
+  // which silently discarded every urgency that was ever set.
+  urgency: {
+    type: String,
+    trim: true,
+    default: "",
+    index: true,
+  },
   siteInspectionRequired: { type: Boolean, default: false },
   // Strictly one Site Inspection per Inquiry — enforced in DB for duplicate prevention
   // (partial: only rows that HAVE an inspectionId get the unique constraint)

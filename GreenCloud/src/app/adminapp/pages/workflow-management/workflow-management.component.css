@@ -37,9 +37,9 @@
 }
 
 .wf-tab.active {
-  background: #0d9488;
+  background: #1B447D;
   color: white;
-  border-color: #0d9488;
+  border-color: #1B447D;
 }
 
 .loading, .error-msg {
@@ -126,9 +126,9 @@
 .stage-code {
   font-size: 13px;
   font-weight: 700;
-  color: #0d9488;
+  color: #1B447D;
   font-family: monospace;
-  background: #f0fdfa;
+  background: #F0F6FF;
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -207,7 +207,7 @@
 .next-stage {
   font-size: 12px;
   font-weight: 600;
-  color: #0d9488;
+  color: #1B447D;
   font-family: monospace;
 }
 

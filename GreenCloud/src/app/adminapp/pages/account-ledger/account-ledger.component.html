@@ -9,29 +9,69 @@
     <div class="erp-page">
       <div class="erp-page__header">
         <div class="erp-page__title">
-          <h1><span class="material-icons-outlined">account_balance_wallet</span> Account Ledger</h1>
-          <p>One ledger per customer — invoices debit, payments credit, balance runs continuously.</p>
+          <h1>
+            <span class="material-icons-outlined">account_balance_wallet</span>
+            Account Ledger
+          </h1>
+          <p>
+            One ledger per customer — invoices debit, payments credit, balance
+            runs continuously.
+          </p>
         </div>
       </div>
 
       <!-- Customer + filters -->
       <div class="erp-filters">
-        <select class="erp-select" style="min-width:260px" [ngModel]="selectedCustomerId()" (ngModelChange)="selectedCustomerId.set($event); onCustomerChange()">
+        <select
+          class="erp-select"
+          style="min-width: 260px"
+          [ngModel]="selectedCustomerId()"
+          (ngModelChange)="selectedCustomerId.set($event); onCustomerChange()"
+        >
           <option value="">— Select customer —</option>
           @for (c of customers(); track c._id) {
-            <option [value]="c._id">{{ c.customerCode }} — {{ c.companyName }}</option>
+            <option [value]="c._id">
+              {{ c.customerCode }} — {{ c.companyName }}
+            </option>
           }
         </select>
-        <input type="date" class="erp-select" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)" title="Date From" />
-        <input type="date" class="erp-select" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)" title="Date To" />
-        <select class="erp-select" [ngModel]="txType()" (ngModelChange)="txType.set($event)">
+        <input
+          type="date"
+          class="erp-select"
+          [ngModel]="dateFrom()"
+          (ngModelChange)="dateFrom.set($event)"
+          title="Date From"
+        />
+        <input
+          type="date"
+          class="erp-select"
+          [ngModel]="dateTo()"
+          (ngModelChange)="dateTo.set($event)"
+          title="Date To"
+        />
+        <select
+          class="erp-select"
+          [ngModel]="txType()"
+          (ngModelChange)="txType.set($event)"
+        >
           <option value="">All Types</option>
           @for (t of txTypes; track t) {
             <option [value]="t">{{ t }}</option>
           }
         </select>
-        <input type="text" class="erp-search" placeholder="Reference No..." [ngModel]="referenceNo()" (ngModelChange)="referenceNo.set($event)" (keyup.enter)="viewLedger()" />
-        <button class="erp-btn erp-btn--primary" (click)="viewLedger()" [disabled]="!selectedCustomerId()">
+        <input
+          type="text"
+          class="erp-search"
+          placeholder="Reference No..."
+          [ngModel]="referenceNo()"
+          (ngModelChange)="referenceNo.set($event)"
+          (keyup.enter)="viewLedger()"
+        />
+        <button
+          class="erp-btn erp-btn--primary"
+          (click)="viewLedger()"
+          [disabled]="!selectedCustomerId()"
+        >
           <span class="material-icons-outlined">search</span> View Ledger
         </button>
       </div>
@@ -52,23 +92,39 @@
         <div class="erp-summary-row">
           <div class="erp-summary-card">
             <div class="erp-summary-card__label">Customer</div>
-            <div class="erp-summary-card__value" style="font-size:16px">{{ selectedCustomer()?.companyName }}</div>
+            <div class="erp-summary-card__value" style="font-size: 16px">
+              {{ selectedCustomer()?.companyName }}
+            </div>
           </div>
           <div class="erp-summary-card">
             <div class="erp-summary-card__label">Opening Balance</div>
-            <div class="erp-summary-card__value erp-money">{{ money(summary()?.openingBalance) }}</div>
+            <div class="erp-summary-card__value erp-money">
+              {{ money(summary()?.openingBalance) }}
+            </div>
           </div>
           <div class="erp-summary-card">
             <div class="erp-summary-card__label">Total Debit</div>
-            <div class="erp-summary-card__value erp-summary-card__value--danger erp-money">{{ money(summary()?.totalDebit) }}</div>
+            <div
+              class="erp-summary-card__value erp-summary-card__value--danger erp-money"
+            >
+              {{ money(summary()?.totalDebit) }}
+            </div>
           </div>
           <div class="erp-summary-card">
             <div class="erp-summary-card__label">Total Credit</div>
-            <div class="erp-summary-card__value erp-summary-card__value--success erp-money">{{ money(summary()?.totalCredit) }}</div>
+            <div
+              class="erp-summary-card__value erp-summary-card__value--success erp-money"
+            >
+              {{ money(summary()?.totalCredit) }}
+            </div>
           </div>
           <div class="erp-summary-card">
             <div class="erp-summary-card__label">Outstanding Balance</div>
-            <div class="erp-summary-card__value erp-summary-card__value--teal erp-money">{{ money(summary()?.outstandingBalance) }}</div>
+            <div
+              class="erp-summary-card__value erp-summary-card__value--teal erp-money"
+            >
+              {{ money(summary()?.outstandingBalance) }}
+            </div>
           </div>
         </div>
 
@@ -78,7 +134,9 @@
         }
 
         @if (!loadingTx() && transactions().length === 0) {
-          <div class="erp-empty"><p>No transactions found for these filters.</p></div>
+          <div class="erp-empty">
+            <p>No transactions found for these filters.</p>
+          </div>
         }
 
         @if (!loadingTx() && transactions().length > 0) {
@@ -90,9 +148,9 @@
                   <th>Reference</th>
                   <th>Description</th>
                   <th>Type</th>
-                  <th style="text-align:right">Debit</th>
-                  <th style="text-align:right">Credit</th>
-                  <th style="text-align:right">Balance</th>
+                  <th style="text-align: right">Debit</th>
+                  <th style="text-align: right">Credit</th>
+                  <th style="text-align: right">Balance</th>
                 </tr>
               </thead>
               <tbody>
@@ -101,10 +159,18 @@
                     <td>{{ formatDate(t.transactionDate) }}</td>
                     <td class="erp-doc-no">{{ t.referenceNo }}</td>
                     <td>{{ t.description }}</td>
-                    <td><span [class]="txClass(t.type)">{{ t.type }}</span></td>
-                    <td style="text-align:right" class="erp-money">{{ t.debit ? money(t.debit) : '-' }}</td>
-                    <td style="text-align:right" class="erp-money">{{ t.credit ? money(t.credit) : '-' }}</td>
-                    <td style="text-align:right" class="erp-money"><strong>{{ money(t.balanceAfter) }}</strong></td>
+                    <td>
+                      <span [class]="txClass(t.type)">{{ t.type }}</span>
+                    </td>
+                    <td style="text-align: right" class="erp-money">
+                      {{ t.debit ? money(t.debit) : "-" }}
+                    </td>
+                    <td style="text-align: right" class="erp-money">
+                      {{ t.credit ? money(t.credit) : "-" }}
+                    </td>
+                    <td style="text-align: right" class="erp-money">
+                      <strong>{{ money(t.balanceAfter) }}</strong>
+                    </td>
                   </tr>
                 }
               </tbody>

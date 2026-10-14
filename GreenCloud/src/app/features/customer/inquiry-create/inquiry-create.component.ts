@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InquiryService } from '../../../core/services/inquiry.service';
 import { ContentService } from '../../../core/services/content.service';
+import { DEFAULT_URGENCY_TYPES } from '../../../core/constants/app.constants';
 
 @Component({
   selector: 'app-inquiry-create',
@@ -29,11 +30,11 @@ export class InquiryCreateComponent implements OnInit {
     this.contentService.loadContent();
   }
 
-  urgencyOptions = [
-    { value: 'NORMAL', label: 'Normal' },
-    { value: 'URGENT', label: 'Urgent' },
-    { value: 'EMERGENCY', label: 'Emergency' },
-  ];
+  /** Urgency options come from the same "Urgency Types" master as the ERP side. */
+  urgencyOptions = computed(() => {
+    const master = this.contentService.urgencyTypes();
+    return (master.length ? master : DEFAULT_URGENCY_TYPES).map(u => ({ value: u.code, label: u.label }));
+  });
 
   form = this.fb.group({
     customerName: ['', Validators.required],
@@ -48,7 +49,7 @@ export class InquiryCreateComponent implements OnInit {
     problemDescription: ['', [Validators.required, Validators.minLength(10)]],
     preferredDate: [''],
     preferredTime: [''],
-    urgency: ['NORMAL'],
+    urgency: [''],
     remarks: [''],
   });
 
@@ -97,7 +98,7 @@ export class InquiryCreateComponent implements OnInit {
         problemDescription: formValue.problemDescription || '',
         preferredDate: formValue.preferredDate || undefined,
         preferredTime: formValue.preferredTime || '',
-        urgency: formValue.urgency || 'NORMAL',
+        urgency: formValue.urgency || '',
         remarks: formValue.remarks || '',
         workflowCode: 'PEST_CONTROL',
       };

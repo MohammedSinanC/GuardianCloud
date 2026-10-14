@@ -6,6 +6,7 @@ import { LeadService, Lead } from '../../services/lead.service';
 import { AdminSidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AdminTopbarComponent } from '../../components/topbar/topbar.component';
 import { ConfirmService } from '../../../core/services/confirm.service';
+import { ContentService } from '../../../core/services/content.service';
 
 @Component({
   selector: 'app-admin-lead-list',
@@ -17,6 +18,7 @@ import { ConfirmService } from '../../../core/services/confirm.service';
 export class AdminLeadListComponent implements OnInit {
   private leadService = inject(LeadService);
   private confirmService = inject(ConfirmService);
+  private contentService = inject(ContentService);
   private router = inject(Router);
 
   sidebarCollapsed = false;
@@ -40,7 +42,14 @@ export class AdminLeadListComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.contentService.loadContent();
     this.loadLeads();
+  }
+
+  /** Service master label for a stored code; falls back to the raw value. */
+  serviceTypeLabel(code?: string | null): string {
+    if (!code) return '-';
+    return this.contentService.serviceTypes().find((s) => s.code === code)?.label || code;
   }
 
   async loadLeads() {
@@ -86,8 +95,8 @@ export class AdminLeadListComponent implements OnInit {
     if (lead.status === 'DRAFT') {
       try {
         this.busyId.set(lead._id);
-        await this.leadService.submit(lead._id);
-        await this.leadService.approve(lead._id);
+        await this.leadService.submit(lead._id, { toastAction: 'lead.submit' });
+        await this.leadService.approve(lead._id, undefined, { toastAction: 'lead.approve' });
       } catch (error) {
         console.error('Failed to approve lead:', error);
       } finally {
@@ -98,7 +107,7 @@ export class AdminLeadListComponent implements OnInit {
     }
     try {
       this.busyId.set(lead._id);
-      await this.leadService.approve(lead._id);
+      await this.leadService.approve(lead._id, undefined, { toastAction: 'lead.approve' });
     } catch (error) {
       console.error('Failed to approve lead:', error);
     } finally {
@@ -111,7 +120,7 @@ export class AdminLeadListComponent implements OnInit {
   async submitLead(lead: Lead) {
     try {
       this.busyId.set(lead._id);
-      await this.leadService.submit(lead._id);
+      await this.leadService.submit(lead._id, { toastAction: 'lead.submit' });
     } catch (error) {
       console.error('Failed to submit lead:', error);
     } finally {

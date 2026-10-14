@@ -8,6 +8,18 @@ import { recordHistory } from "../services/document-workflow.service.js";
 
 // ===== Helpers =====
 
+/**
+ * Mongoose validation errors list one path at a time and read badly in the UI —
+ * collapse them into a single human message.
+ */
+function friendlyError(err) {
+  if (err?.name === "ValidationError" && err.errors) {
+    const fields = Object.values(err.errors).map((e) => e.path).filter(Boolean);
+    return fields.length ? `Missing or invalid fields — ${fields.join(", ")}` : "Validation failed";
+  }
+  return err?.message || "Unexpected error";
+}
+
 /** Info of the acting admin for audit fields */
 function actor(req) {
   return {
@@ -23,6 +35,23 @@ function validateMandatory(lead) {
   if (!lead.contactPerson?.trim()) missing.push("Contact person");
   if (!lead.mobile?.trim()) missing.push("Mobile");
   if (!lead.serviceRequired?.trim()) missing.push("Service required");
+  return missing;
+}
+
+/**
+ * ERP-side mandatory set — the website contact form cannot supply a linked
+ * customer account, so this stricter rule applies to admin submit/approve only.
+ */
+function validateErpMandatory(lead) {
+  const missing = validateMandatory(lead);
+  if (!lead.email?.trim()) missing.push("Email");
+  if (!lead.source?.trim()) missing.push("Source");
+  if (!Array.isArray(lead.pestTypes) || lead.pestTypes.length === 0) missing.push("Pest type");
+  if (!lead.contract?.trim()) missing.push("Contract");
+  if (!lead.address?.trim()) missing.push("Address");
+  if (!lead.location?.trim()) missing.push("Location");
+  // Only required when the lead is flagged as belonging to an existing customer.
+  if (lead.existingCustomer && !lead.customerId) missing.push("Linked customer account");
   return missing;
 }
 
@@ -64,17 +93,24 @@ export async function create(req, res) {
     const a = actor(req);
     const payload = { ...req.body, createdBy: a.id, createdByName: a.name };
     if (payload.status === "PENDING_APPROVAL") {
-      const missing = validateMandatory(payload);
+      const missing = validateErpMandatory(payload);
       if (missing.length) {
         return res.status(400).json({ success: false, message: `Cannot submit: missing mandatory fields — ${missing.join(", ")}` });
       }
       payload.submittedBy = a.id;
       payload.submittedDate = new Date();
+    } else {
+      // Report every missing field in one message instead of letting Mongoose
+      // surface them one at a time.
+      const missing = validateMandatory(payload);
+      if (missing.length) {
+        return res.status(400).json({ success: false, message: `Cannot save: missing mandatory fields — ${missing.join(", ")}` });
+      }
     }
     const lead = await Lead.create(payload);
     res.status(201).json({ success: true, data: lead, message: "Lead created successfully" });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: friendlyError(err) });
   }
 }
 
@@ -128,7 +164,7 @@ export async function update(req, res) {
     if (!["DRAFT", "PENDING_APPROVAL", "REJECTED"].includes(lead.status)) {
       return res.status(400).json({ success: false, message: `Lead in status ${lead.status} cannot be edited` });
     }
-    const allowed = ["companyName", "contactPerson", "mobile", "email", "address", "location", "source", "serviceRequired", "preferredDate", "preferredTime", "description", "notes"];
+    const allowed = ["companyName", "contactPerson", "mobile", "email", "address", "location", "source", "serviceRequired", "pestTypes", "contract", "existingCustomer", "preferredDate", "preferredTime", "description", "notes"];
     for (const k of allowed) {
       if (k in req.body) lead[k] = req.body[k];
     }
@@ -152,7 +188,7 @@ export async function update(req, res) {
     lead.updatedByName = a.name;
     // Resubmitting a rejected lead → back to pending approval
     if (req.body.resubmit === true) {
-      const missing = validateMandatory(lead);
+      const missing = validateErpMandatory(lead);
       if (missing.length) {
         return res.status(400).json({ success: false, message: `Cannot resubmit: missing mandatory fields — ${missing.join(", ")}` });
       }
@@ -164,10 +200,15 @@ export async function update(req, res) {
       lead.submittedBy = a.id;
       lead.submittedDate = new Date();
     }
+    // Base required fields are needed to store the lead at all — list them all at once.
+    const baseMissing = validateMandatory(lead);
+    if (baseMissing.length) {
+      return res.status(400).json({ success: false, message: `Cannot save: missing mandatory fields — ${baseMissing.join(", ")}` });
+    }
     await lead.save();
     res.json({ success: true, data: lead, message: req.body.resubmit ? "Lead resubmitted for approval" : "Lead updated successfully" });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: friendlyError(err) });
   }
 }
 
@@ -194,7 +235,7 @@ export async function submit(req, res) {
     if (lead.status !== "DRAFT") {
       return res.status(400).json({ success: false, message: `Only DRAFT leads can be submitted (current: ${lead.status})` });
     }
-    const missing = validateMandatory(lead);
+    const missing = validateErpMandatory(lead);
     if (missing.length) {
       return res.status(400).json({ success: false, message: `Cannot submit: missing mandatory fields — ${missing.join(", ")}` });
     }
@@ -264,7 +305,7 @@ export async function approve(req, res) {
     if (lead.status !== "PENDING_APPROVAL") {
       return res.status(400).json({ success: false, message: `Only PENDING_APPROVAL leads can be approved (current: ${lead.status})` });
     }
-    const missing = validateMandatory(lead);
+    const missing = validateErpMandatory(lead);
     if (missing.length) {
       return res.status(400).json({ success: false, message: `Cannot approve: missing mandatory fields — ${missing.join(", ")}` });
     }
@@ -314,15 +355,16 @@ export async function approve(req, res) {
       const userEmail = (customer.email || `${customer.mobile}@customers.local`).toLowerCase();
       let user = customer.userId ? await findById(Admin, customer.userId, session) : null;
       if (!user) user = await findOne(Admin, { username: userEmail }, session);
-      let tempPassword = null;
+      // Portal logins are created with a null password: an admin has to set one
+      // before the customer can sign in, so no temporary password is issued.
+      const tempPassword = null;
       if (!user) {
-        tempPassword = `GC${Math.random().toString(36).slice(2, 10)}!`;
         user = await createDoc(Admin, {
           username: userEmail,
           name: customer.contactPerson || customer.companyName,
           email: customer.email || userEmail,
           mobile: customer.mobile,
-          password: tempPassword,
+          password: null,
           role: "admin",
           isActive: true,
         }, session);
@@ -369,7 +411,9 @@ export async function approve(req, res) {
           email: lead.email || customer.email || "",
           source: lead.source || "PHONE",
           serviceType: lead.serviceRequired || "",
-          pestTypes: lead.serviceRequired ? [lead.serviceRequired] : [],
+          // Carry the pest type(s) captured on the lead instead of reusing the service code.
+          pestTypes: Array.isArray(lead.pestTypes) && lead.pestTypes.length ? lead.pestTypes : [],
+          contract: lead.contract || "",
           serviceLocation: leadLocation,
           location: leadLocation,
           problemDescription: lead.description || lead.serviceRequired || "",

@@ -5,10 +5,14 @@ import Lead from "../models/lead.model.js";
 import Customer from "../models/customer.model.js";
 import Company from "../models/company.model.js";
 import WorkOrder from "../models/work-order.model.js";
+import SiteInspection from "../models/site-inspection.model.js";
 import { generatePdf } from "../utils/pdf.js";
 import { sendMail } from "../utils/mailer.js";
 import { postLedgerTransaction } from "./ledger.controller.js";
 import { withTransaction } from "../utils/tx.js";
+import { PaymentSchedule, PaymentTypeMaster } from "../models/payment.model.js";
+import Receipt from "../models/receipt.model.js";
+import LedgerTransaction from "../models/ledger-transaction.model.js";
 import { actor as workflowActor, recordHistory } from "../services/document-workflow.service.js";
 
 // ===== Helpers =====
@@ -139,6 +143,53 @@ export async function create(req, res) {
 }
 
 /**
+ * PUT /api/invoices/:id — edit a draft invoice before approval (items + details).
+ * Blocked once the invoice leaves DRAFT/PENDING_APPROVAL: after approval the
+ * amounts are posted to the ledger and must stay immutable.
+ */
+export async function update(req, res) {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ success: false, message: "Invoice not found" });
+    if (!["DRAFT", "PENDING_APPROVAL"].includes(invoice.status)) {
+      return res.status(400).json({ success: false, message: `Invoice items can only be edited before approval (current: ${invoice.status})` });
+    }
+    const a = actor(req);
+
+    if (Array.isArray(req.body?.items)) {
+      const cleaned = req.body.items
+        .map((it) => ({
+          description: String(it?.description || "").trim(),
+          quantity: Number(it?.quantity) || 0,
+          unitPrice: Number(it?.unitPrice) || 0,
+        }))
+        .filter((it) => it.description || it.quantity || it.unitPrice);
+      if (cleaned.length === 0) {
+        return res.status(400).json({ success: false, message: "At least one invoice item with a description is required" });
+      }
+      for (const it of cleaned) {
+        if (!it.description) return res.status(400).json({ success: false, message: "Every invoice item needs a description" });
+        if (it.quantity <= 0) return res.status(400).json({ success: false, message: `Item "${it.description}" needs a quantity of at least 1` });
+        if (it.unitPrice < 0) return res.status(400).json({ success: false, message: `Item "${it.description}" cannot have a negative rate` });
+      }
+      invoice.items = cleaned;
+    }
+
+    for (const key of ["dueDate", "notes", "bankDetails", "paymentTerms"]) {
+      if (key in (req.body || {})) invoice[key] = req.body[key];
+    }
+
+    invoice.updatedBy = a.id;
+    await invoice.save(); // pre-save hook recomputes subtotal / VAT / totals
+    await recordHistory({ documentType: "INVOICE", documentId: invoice._id, action: "UPDATED", oldStatus: invoice.status, newStatus: invoice.status, actorId: a.id, actorName: a.name });
+    res.json({ success: true, data: invoice, message: "Invoice items updated successfully" });
+  } catch (err) {
+    console.error("Update invoice error:", err);
+    res.status(400).json({ success: false, message: err.message });
+  }
+}
+
+/**
  * POST /api/invoices/:id/approve — approve and post the ledger debit (rule #9).
  * Idempotent: re-approval does not duplicate the ledger entry.
  */
@@ -154,6 +205,32 @@ export async function approve(req, res) {
     }
     if (!invoice.customerId) {
       return res.status(400).json({ success: false, message: "Invoice has no ERP customer linked" });
+    }
+    // ERP rule 1: a payment type must be selected before approval.
+    if (!invoice.paymentTypeId) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment Type is mandatory before the invoice can be approved. Select a payment type to load its terms.",
+        code: "PAYMENT_TYPE_REQUIRED",
+      });
+    }
+    // ERP rule 2: an invoice-scoped payment schedule must exist and total the invoice amount.
+    const scheduleRows = await PaymentSchedule.find({ invoiceId: invoice._id, status: { $ne: "CANCELLED" } }).lean();
+    if (scheduleRows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "A payment schedule is required before approval. It is generated automatically from the selected payment type.",
+        code: "PAYMENT_SCHEDULE_REQUIRED",
+      });
+    }
+    const scheduleSum = Math.round(scheduleRows.reduce((s, r) => s + (Number(r.amount) || 0), 0) * 100) / 100;
+    const invoiceTotal = Math.round((Number(invoice.totalAmount) || 0) * 100) / 100;
+    if (Math.abs(scheduleSum - invoiceTotal) > 0.01) {
+      return res.status(400).json({
+        success: false,
+        message: `Payment schedule total (${scheduleSum.toFixed(2)}) must equal the invoice total (${invoiceTotal.toFixed(2)}). Regenerate the schedule.`,
+        code: "SCHEDULE_TOTAL_MISMATCH",
+      });
     }
     const a = workflowActor(req);
     const old = invoice.status;
@@ -252,14 +329,64 @@ export async function list(req, res) {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [items, total] = await Promise.all([
       Invoice.find(filter).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit))
+        .populate("inquiryId", "inquiryNo")
+        .populate("workOrderId", "workOrderNo")
         .populate("quotationId", "quotationNo")
         .populate("customerId", "companyName customerCode")
         .lean(),
       Invoice.countDocuments(filter),
     ]);
+    // Enrich with site-inspection numbers (1:1 inquiry → inspection, same as the
+    // work-order list chain columns) in a single query for the page.
+    const inqIds = items.map((i) => (i.inquiryId?._id ? i.inquiryId._id : i.inquiryId)).filter(Boolean);
+    const inspections = inqIds.length
+      ? await SiteInspection.find({ inquiryId: { $in: inqIds } }).select("inquiryId inspectionNo").lean()
+      : [];
+    const inspMap = new Map(inspections.map((s) => [String(s.inquiryId), s]));
+    // Collection aggregates for the page's invoices in one query (rule #6 overview).
+    const invIds = items.map((i) => i._id);
+    const schedRows = invIds.length
+      ? await PaymentSchedule.find({ invoiceId: { $in: invIds }, status: { $ne: "CANCELLED" } }).select("invoiceId amount paidAmount dueDate finalDueDate paymentNo").lean()
+      : [];
+    const now = new Date();
+    const byInvoice = new Map();
+    for (const r of schedRows) {
+      const key = String(r.invoiceId);
+      const agg = byInvoice.get(key) || { scheduled: 0, received: 0, outstanding: 0, overdue: 0, nextDue: null, nextAmount: 0 };
+      agg.scheduled += Number(r.amount) || 0;
+      agg.received += Number(r.paidAmount) || 0;
+      const out = Math.max((Number(r.amount) || 0) - (Number(r.paidAmount) || 0), 0);
+      agg.outstanding += out;
+      const final = r.finalDueDate ? new Date(r.finalDueDate) : r.dueDate ? new Date(r.dueDate) : null;
+      if (out > 0.009 && final && final < now) agg.overdue += out;
+      if (out > 0.009 && r.dueDate && (!agg.nextDue || new Date(r.dueDate) < agg.nextDue)) {
+        agg.nextDue = new Date(r.dueDate);
+        agg.nextAmount = out;
+      }
+      byInvoice.set(key, agg);
+    }
+    const data = items.map((i) => {
+      const insp = inspMap.get(String(i.inquiryId?._id || i.inquiryId));
+      const agg = byInvoice.get(String(i._id)) || { scheduled: 0, received: 0, outstanding: 0, overdue: 0, nextDue: null, nextAmount: 0 };
+      const round = (n) => Math.round(n * 100) / 100;
+      return {
+        ...i,
+        inspectionNo: insp?.inspectionNo || "",
+        inspectionId: insp?._id || null,
+        collection: {
+          scheduled: round(agg.scheduled),
+          received: round(agg.received),
+          outstanding: round(agg.outstanding),
+          overdue: round(agg.overdue),
+          nextDueDate: agg.nextDue,
+          nextAmount: round(agg.nextAmount),
+          status: agg.scheduled <= 0.009 ? "NO_SCHEDULE" : agg.outstanding <= 0.009 ? "PAID" : agg.received > 0.009 ? "PARTIAL" : agg.overdue > 0.009 ? "OVERDUE" : "PENDING",
+        },
+      };
+    });
     res.json({
       success: true,
-      data: items,
+      data,
       pagination: { total, page: parseInt(page), limit: parseInt(limit), totalPages: Math.ceil(total / parseInt(limit)) || 1 },
     });
   } catch (err) {
@@ -267,7 +394,7 @@ export async function list(req, res) {
   }
 }
 
-/** GET /api/invoices/:id — details with chain references */
+/** GET /api/invoices/:id — details with full ERP chain documents (inquiry, site inspection, quotation, work order) */
 export async function getById(req, res) {
   try {
     const invoice = await Invoice.findById(req.params.id)
@@ -275,14 +402,27 @@ export async function getById(req, res) {
       .populate("customerId", "companyName customerCode email mobile")
       .lean();
     if (!invoice) return res.status(404).json({ success: false, message: "Invoice not found" });
-    const inquiry = invoice.inquiryId ? await Inquiry.findById(invoice.inquiryId).select("inquiryNo leadId").lean() : null;
+    const inquiry = invoice.inquiryId ? await Inquiry.findById(invoice.inquiryId).lean() : null;
     const lead = invoice.leadId ? await Lead.findById(invoice.leadId).select("leadNo").lean() : null;
+
+    // ERP chain documents for the detail view — same pattern as the
+    // quotation / work-order pages: each source document embedded in full.
+    const [siteInspection, workOrder, quotation] = await Promise.all([
+      inquiry ? SiteInspection.findOne({ inquiryId: inquiry._id }).lean() : Promise.resolve(null),
+      invoice.workOrderId ? WorkOrder.findById(invoice.workOrderId).lean() : Promise.resolve(null),
+      invoice.quotationId ? Quotation.findById(invoice.quotationId).lean() : Promise.resolve(null),
+    ]);
+
     res.json({
       success: true,
       data: {
         ...invoice,
         inquiryNo: inquiry?.inquiryNo || "",
         leadNo: lead?.leadNo || "",
+        inquiry: inquiry || null,
+        siteInspection: siteInspection || null,
+        quotation: quotation || null,
+        workOrder: workOrder || null,
       },
     });
   } catch (err) {

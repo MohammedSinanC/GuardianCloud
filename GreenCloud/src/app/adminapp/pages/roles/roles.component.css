@@ -8,10 +8,10 @@
 .page-subtitle { font-size: 14px; color: #6b7280; margin: 0; }
 .btn-primary {
   display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
-  background: #0d9488; color: #fff; border: none; border-radius: 8px;
+  background: #1B447D; color: #fff; border: none; border-radius: 8px;
   font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;
 }
-.btn-primary:hover { background: #0b7a75; }
+.btn-primary:hover { background: #173F74; }
 .btn-primary .material-icons-outlined { font-size: 18px; }
 .table-card { background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
 .data-table { width: 100%; border-collapse: collapse; }
@@ -26,7 +26,7 @@
 .badge--warning { background: #fef3c7; color: #92400e; }
 .action-btns { display: flex; gap: 6px; }
 .action-btn { width: 32px; height: 32px; border: 1px solid #e5e7eb; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #6b7280; }
-.action-btn:hover { background: #f0fdfa; border-color: #0d9488; color: #0d9488; }
+.action-btn:hover { background: #F0F6FF; border-color: #1B447D; color: #1B447D; }
 .action-btn .material-icons-outlined { font-size: 16px; }
 .action-btn--danger:hover { background: #fef2f2; border-color: #dc2626; color: #dc2626; }
 .empty-state { text-align: center; padding: 60px 20px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
@@ -58,7 +58,7 @@
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-label { font-size: 12px; font-weight: 600; color: #374151; }
 .form-input { padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-family: inherit; color: #111827; background: #f8fafc; box-sizing: border-box; }
-.form-input:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+.form-input:focus { outline: none; border-color: #1B447D; box-shadow: 0 0 0 3px rgba(27,68,125,0.1); }
 
 /* ===== PERMISSION MATRIX ===== */
 .perm-matrix-section { margin-top: 20px; }
@@ -66,7 +66,7 @@
   display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;
   color: #374151; margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb;
 }
-.perm-matrix-title .material-icons-outlined { font-size: 18px; color: #0d9488; }
+.perm-matrix-title .material-icons-outlined { font-size: 18px; color: #1B447D; }
 .perm-matrix { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
 .perm-matrix-header {
   display: grid; grid-template-columns: 140px repeat(5, 1fr) 48px;
@@ -84,7 +84,7 @@
 .perm-matrix-cell--na { color: #d1d5db; font-size: 12px; }
 .perm-matrix-row:hover { background: #f8fafc; }
 .perm-matrix input[type="checkbox"] {
-  width: 16px; height: 16px; cursor: pointer; accent-color: #0d9488;
+  width: 16px; height: 16px; cursor: pointer; accent-color: #1B447D;
 }
 .perm-matrix input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.4; }
 .perm-all-btn {
@@ -92,7 +92,7 @@
   border-radius: 6px; display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all 0.2s; color: #6b7280;
 }
-.perm-all-btn:hover { background: #f0fdfa; border-color: #0d9488; color: #0d9488; }
+.perm-all-btn:hover { background: #F0F6FF; border-color: #1B447D; color: #1B447D; }
 .perm-all-btn .material-icons-outlined { font-size: 14px; }
 
 /* ===== RESPONSIVE ===== */

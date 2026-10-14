@@ -25,6 +25,8 @@ const ledgerTransactionSchema = new mongoose.Schema(
 
     // Cross-document references (rule #20)
     invoiceId: { type: mongoose.Schema.Types.ObjectId, ref: "invoices", default: null, index: true },
+    paymentScheduleId: { type: mongoose.Schema.Types.ObjectId, ref: "payment_schedules", default: null, index: true },
+    receiptId: { type: mongoose.Schema.Types.ObjectId, ref: "receipts", default: null, index: true },
     quotationId: { type: mongoose.Schema.Types.ObjectId, ref: "quotations", default: null },
     leadId: { type: mongoose.Schema.Types.ObjectId, ref: "leads", default: null },
     inquiryId: { type: mongoose.Schema.Types.ObjectId, ref: "inquiries", default: null },

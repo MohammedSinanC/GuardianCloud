@@ -41,6 +41,9 @@ export class SiteInspectionViewComponent implements OnInit {
   // Editable only while the workflow still allows changes (mirrors backend `update`)
   readonly editableStatuses = ['DRAFT', 'REJECTED', 'PENDING_APPROVAL'];
 
+  /** Fields a blocked approve reported as missing — shown in red until filled. */
+  private missingFields = signal<ReadonlySet<string>>(new Set());
+
   /** Inspection Type dropdown source — Inspection Types master data */
   readonly inspectionTypeOptions = computed(() => this.contentService.inspectionTypes());
 
@@ -139,6 +142,7 @@ export class SiteInspectionViewComponent implements OnInit {
     const current = this.inspection();
     if (!current) return;
     this.inspection.set({ ...current, [field]: value });
+    this.clearFilledHighlights();
   }
 
   // ── Checklist (from Checklist master, Settings → Master Data) ──
@@ -287,27 +291,103 @@ export class SiteInspectionViewComponent implements OnInit {
     return value ? new Date(value).toLocaleDateString('en-GB') : '-';
   }
 
+  /** Every editable field, shaped for the backend `update` allowlist. */
+  private inspectionPayload(item: SiteInspection) {
+    return {
+      inspectionDate: item.inspectionDate,
+      location: item.location,
+      inspector: item.inspector,
+      inspectionType: item.inspectionType,
+      findings: item.findings,
+      pestType: item.pestType,
+      affectedArea: item.affectedArea,
+      checklistItems: item.checklistItems || [],
+      severity: item.severity,
+      recommendations: item.recommendations,
+      requiredTreatment: item.requiredTreatment,
+      estimatedWork: item.estimatedWork,
+      remarks: item.remarks,
+      attachments: item.attachments || [],
+    };
+  }
+
+  /**
+   * What an inspection must carry before it can be approved — one source of truth
+   * for the alert text, the red highlights, and the template bindings. Approval
+   * promotes the inspection to a quotation, so the record must be complete first.
+   */
+  private static readonly MANDATORY_FIELDS: ReadonlyArray<[string, string]> = [
+    ['inspectionDate', 'Inspection Date'],
+    ['inspectionType', 'Inspection Type'],
+    ['pestType', 'Pest Type'],
+    ['severity', 'Severity'],
+    ['inspector', 'Inspector'],
+    ['findings', 'Findings'],
+    ['recommendations', 'Recommendations'],
+  ];
+
+  /** True while the named field is one the last blocked approve reported missing. */
+  isMissing(field: string): boolean {
+    return this.missingFields().has(field);
+  }
+
+  /** Labels of the mandatory fields still empty, in form order (drives the alert). */
+  missingInspectionFields(): string[] {
+    const missing = this.missingFields();
+    return SiteInspectionViewComponent.MANDATORY_FIELDS
+      .filter(([key]) => missing.has(key))
+      .map(([, label]) => label);
+  }
+
+  /** Keys of the mandatory fields that are currently empty. */
+  private missingFieldKeys(): string[] {
+    const item = this.inspection();
+    if (!item) return [];
+    const has = (value: unknown) => !!String(value ?? '').trim();
+    const filled: Record<string, boolean> = {
+      inspectionDate: has(item.inspectionDate),
+      inspectionType: has(item.inspectionType),
+      pestType: has(item.pestType),
+      severity: has(item.severity),
+      inspector: has(item.inspector),
+      findings: has(item.findings),
+      recommendations: has(item.recommendations),
+    };
+    return SiteInspectionViewComponent.MANDATORY_FIELDS
+      .filter(([key]) => !filled[key])
+      .map(([key]) => key);
+  }
+
+  /**
+   * Refuses an approval while the inspection is incomplete: the gaps are named in
+   * an alert at the top of the card and the fields themselves turn red. Returns
+   * true when the caller must stop.
+   */
+  private blockWhenIncomplete(): boolean {
+    const keys = this.missingFieldKeys();
+    if (!keys.length) {
+      this.missingFields.set(new Set());
+      return false;
+    }
+    this.missingFields.set(new Set(keys));
+    this.error.set('');
+    return true;
+  }
+
+  /** Drops the red mark from a field once it holds a value — but never adds new ones. */
+  private clearFilledHighlights(): void {
+    const shown = this.missingFields();
+    if (!shown.size) return;
+    const stillMissing = new Set(this.missingFieldKeys());
+    this.missingFields.set(new Set([...shown].filter((key) => stillMissing.has(key))));
+  }
+
   async saveDraft() {
     const item = this.inspection();
     if (!item) return;
     this.saving.set(true);
     try {
-      await this.service.update(item._id, {
-        inspectionDate: item.inspectionDate,
-        checklistItems: item.checklistItems || [],
-        location: item.location,
-        inspector: item.inspector,
-        inspectionType: item.inspectionType,
-        findings: item.findings,
-        pestType: item.pestType,
-        affectedArea: item.affectedArea,
-        severity: item.severity,
-        recommendations: item.recommendations,
-        requiredTreatment: item.requiredTreatment,
-        estimatedWork: item.estimatedWork,
-        remarks: item.remarks,
-        attachments: item.attachments || [],
-      });
+      await this.service.update(item._id, this.inspectionPayload(item));
       await this.load(item._id);
     } catch (e: any) {
       this.error.set(e?.error?.message || 'Unable to save inspection');
@@ -322,22 +402,7 @@ export class SiteInspectionViewComponent implements OnInit {
     this.saving.set(true);
     try {
       // Persist the draft (incl. checklist answers) before moving the workflow forward
-      await this.service.update(item._id, {
-        inspectionDate: item.inspectionDate,
-        location: item.location,
-        inspector: item.inspector,
-        inspectionType: item.inspectionType,
-        findings: item.findings,
-        pestType: item.pestType,
-        affectedArea: item.affectedArea,
-        checklistItems: item.checklistItems || [],
-        severity: item.severity,
-        recommendations: item.recommendations,
-        requiredTreatment: item.requiredTreatment,
-        estimatedWork: item.estimatedWork,
-        remarks: item.remarks,
-        attachments: item.attachments || [],
-      });
+      await this.service.update(item._id, this.inspectionPayload(item));
       await this.service.submit(item._id);
       await this.load(item._id);
     } catch (e: any) {
@@ -350,8 +415,13 @@ export class SiteInspectionViewComponent implements OnInit {
   async approve() {
     const item = this.inspection();
     if (!item) return;
+    // Close the mandatory gaps before the inspection is promoted to a quotation.
+    if (this.blockWhenIncomplete()) return;
     this.saving.set(true);
     try {
+      // Persist the details first: the fields just filled in live only in the
+      // signal, and the server re-checks them before approving.
+      await this.service.update(item._id, this.inspectionPayload(item));
       await this.service.approve(item._id);
       await this.load(item._id);
     } catch (e: any) {

@@ -77,12 +77,24 @@ export async function reject(req, res) {
 }
 
 export async function start(req, res) {
-  try { const order = await WorkOrder.findById(req.params.id); if (!order) return res.status(404).json({ success: false, message: "Work order not found" }); assertTransition("WORK_ORDER", order.status, "WORK_STARTED"); const a = actor(req); const old = order.status; order.status = "WORK_STARTED"; order.startedAt = new Date(); order.startedBy = a.id; await order.save(); await recordHistory({ documentType: "WORK_ORDER", documentId: order._id, action: "STARTED", oldStatus: old, newStatus: "WORK_STARTED", actorId: a.id, actorName: a.name }); res.json({ success: true, data: order }); } catch (err) { res.status(400).json({ success: false, message: err.message }); }
+  try { const order = await WorkOrder.findById(req.params.id); if (!order) return res.status(404).json({ success: false, message: "Work order not found" }); assertTransition("WORK_ORDER", order.status, "WORK_STARTED"); const a = actor(req); const old = order.status;
+    /** Optional work-start evidence: base64 data-URL images from the client, capped at 10 per upload. */
+    const evidence = Array.isArray(req.body?.workStartEvidence) ? req.body.workStartEvidence : [];
+    if (evidence.length > 10) return res.status(400).json({ success: false, message: "A maximum of 10 work-start evidence images is allowed" });
+    for (const img of evidence) { if (!img?.data || !String(img.data).startsWith("data:image/")) return res.status(400).json({ success: false, message: "Each work-start evidence item must be a base64 image data URL" }); }
+    if (evidence.length) order.workStartEvidence = evidence.map((img) => ({ fileName: String(img.fileName || "work-start-image"), data: String(img.data), uploadedAt: new Date() }));
+    order.status = "WORK_STARTED"; order.startedAt = new Date(); order.startedBy = a.id; await order.save();
+    await recordHistory({ documentType: "WORK_ORDER", documentId: order._id, action: "STARTED", oldStatus: old, newStatus: "WORK_STARTED", actorId: a.id, actorName: a.name }); res.json({ success: true, data: order }); } catch (err) { res.status(400).json({ success: false, message: err.message }); }
 }
 
 export async function complete(req, res) {
   try {
     const order = await WorkOrder.findById(req.params.id); if (!order) return res.status(404).json({ success: false, message: "Work order not found" }); assertTransition("WORK_ORDER", order.status, "WORK_COMPLETED"); if (!String(req.body?.completionNotes || "").trim()) return res.status(400).json({ success: false, message: "Completion notes are required" }); const a = actor(req);
+    /** Optional work-completion evidence: base64 data-URL images from the client, capped at 10 per upload. */
+    const evidence = Array.isArray(req.body?.workCompletionEvidence) ? req.body.workCompletionEvidence : [];
+    if (evidence.length > 10) return res.status(400).json({ success: false, message: "A maximum of 10 work-completion evidence images is allowed" });
+    for (const img of evidence) { if (!img?.data || !String(img.data).startsWith("data:image/") ) return res.status(400).json({ success: false, message: "Each work-completion evidence item must be a base64 image data URL" }); }
+    if (evidence.length) order.workCompletionEvidence = evidence.map((img) => ({ fileName: String(img.fileName || "work-completion-image"), data: String(img.data), uploadedAt: new Date() }));
     const result = await withTransaction(async (session) => {
       let invoice = order.invoiceId ? await (session ? Invoice.findById(order.invoiceId).session(session) : Invoice.findById(order.invoiceId)) : null;
       if (!invoice) invoice = await (session ? Invoice.findOne({ workOrderId: order._id }).session(session) : Invoice.findOne({ workOrderId: order._id }));

@@ -22,8 +22,20 @@
 }
 
 .inspection-typeahead input:focus {
-    border-color: #0d9488;
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, .12);
+    border-color: #1B447D;
+    box-shadow: 0 0 0 3px rgba(27, 68, 125, .12);
+}
+
+/* The typeahead is styled apart from .detail-input, so the required-field
+   treatment has to be repeated here or the missing inspector stays unmarked. */
+.info-item--invalid .inspection-typeahead input {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .12);
+}
+
+.info-item--invalid .inspection-typeahead input:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .18);
 }
 
 .inspection-typeahead__icon {
@@ -66,8 +78,8 @@
 }
 
 .inspection-typeahead__option:hover {
-    background: #f0fdfa;
-    color: #0f766e;
+    background: #F0F6FF;
+    color: #153A6B;
 }
 
 .inspection-typeahead__name {
@@ -114,10 +126,10 @@
     grid-column: auto;
 }
 
-/* ── Inspection checklist (full-width card, master-data rows) ── */
+/* ── Inspection checklist (half card, paired with Inspection Details) ── */
 .checklist-card {
-    /* full width inside the 2-col details-grid */
-    grid-column: 1 / -1;
+    /* one column of the 2-col details-grid — the slot Site Images used to take */
+    grid-column: auto;
 }
 
 .checklist-header {
@@ -145,6 +157,9 @@
 
 .checklist-table {
     width: 100%;
+    /* The card is only half the grid wide, so keep the table readable and let
+       .checklist-table-wrap scroll instead of crushing the columns. */
+    min-width: 520px;
     border-collapse: collapse;
     font-size: 13px;
 }
@@ -186,14 +201,16 @@
     font-weight: 600;
 }
 
+/* Result column: wide enough for a text answer, narrow enough to leave the
+   item name and remarks room to breathe in the half-width card. */
 .checklist-col-input {
-    width: 220px;
+    width: 160px;
 }
 
 .checklist-checkbox {
     width: 18px;
     height: 18px;
-    accent-color: #0d9488;
+    accent-color: #1B447D;
     cursor: pointer;
     display: block;
 }
@@ -266,6 +283,9 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
+    /* The card spans the whole grid now, so don't stretch the drop zone with it */
+    max-width: 560px;
+    margin: 0 auto;
     padding: 22px 16px;
     border: 1px dashed #cbd5e1;
     border-radius: 10px;
@@ -277,14 +297,14 @@
 }
 
 .image-upload-label:hover {
-    border-color: #0d9488;
-    background: #f0fdfa;
-    color: #0f766e;
+    border-color: #1B447D;
+    background: #F0F6FF;
+    color: #153A6B;
 }
 
 .image-upload-label .material-icons-outlined {
     font-size: 26px;
-    color: #0d9488;
+    color: #1B447D;
 }
 
 .image-upload-label strong {

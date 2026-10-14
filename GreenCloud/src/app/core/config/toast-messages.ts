@@ -107,6 +107,9 @@ export const TOAST_MESSAGES = {
   // ===== ERP: INVOICE =====
   invoice: {
     create:   { success: 'Invoice created successfully.',                error: 'Invoice could not be created. The quotation must be approved first.' },
+    update:   { success: 'Invoice items updated successfully.',          error: 'Unable to update the invoice items.' },
+    paymentType: { success: 'Payment type selected — terms loaded and payment schedule generated.', error: 'Unable to select the payment type.' },
+    collect:  { success: 'Payment recorded — receipt generated, schedule and ledger updated.', error: 'Unable to record the payment.' },
     approve:  { success: 'Invoice approved successfully. Ledger updated.', error: 'Unable to approve the invoice.' },
     cancel:   { success: 'Invoice cancelled successfully.',              error: 'Unable to cancel the invoice.' },
     send:     { success: 'Invoice sent to customer successfully.',       error: 'Unable to send the invoice to the customer.' },

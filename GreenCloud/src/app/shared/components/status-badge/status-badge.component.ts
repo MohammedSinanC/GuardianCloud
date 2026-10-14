@@ -39,10 +39,18 @@ import { CommonModule } from '@angular/common';
 export class StatusBadgeComponent {
   status = input.required<string>();
 
-  label = computed(() => this.status().replace(/_/g, ' '));
+  /**
+   * Optional friendly text (e.g. a master's label) while the colour still
+   * derives from the status code.
+   */
+  text = input<string>('');
+
+  // Fall back to an empty value so a badge never breaks rendering (e.g. while a
+  // hot-reload re-creates the component before its input is bound).
+  label = computed(() => this.text().trim() || (this.status() ?? '').replace(/_/g, ' '));
 
   badgeClass = computed(() => {
-    const s = this.status().toLowerCase();
+    const s = (this.status() ?? '').toLowerCase();
     if (s === 'created') return 'badge-created';
     if (s === 'submitted') return 'badge-submitted';
     if (s === 'draft') return 'badge-draft';

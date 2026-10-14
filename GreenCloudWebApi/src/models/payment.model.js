@@ -12,6 +12,9 @@ const paymentTypeSchema = new mongoose.Schema(
     },
     interval: { type: Number, default: 1, min: 0 }, // months between payments
     gracePeriodDays: { type: Number, default: 0, min: 0 },
+    // Optional custom installment plan — percentages of the invoice total, e.g. [30, 40, 30].
+    // When empty, installments are split equally across the frequency's payment count.
+    installmentPlan: [{ type: Number, min: 0, max: 100 }],
     isActive: { type: Boolean, default: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, default: null },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, default: null },
@@ -24,9 +27,16 @@ const paymentScheduleSchema = new mongoose.Schema(
   {
     quotationId: { type: mongoose.Schema.Types.ObjectId, ref: "quotations", required: true, index: true },
     inquiryId: { type: mongoose.Schema.Types.ObjectId, ref: "inquiries", required: true, index: true },
+    // Invoice-scoped schedules (invoice payment & collection workflow). When set,
+    // the row belongs to an invoice installment plan instead of a quotation plan.
+    invoiceId: { type: mongoose.Schema.Types.ObjectId, ref: "invoices", default: null, index: true },
     paymentNo: { type: Number, required: true },
     paymentDate: { type: Date, required: true },
     dueDate: { type: Date, required: true },
+    // Grace-period snapshot for display + derived-status calculation
+    percentage: { type: Number, default: 0 },
+    graceDays: { type: Number, default: 0 },
+    finalDueDate: { type: Date, default: null },
     paymentTypeId: { type: mongoose.Schema.Types.ObjectId, ref: "payment_type_masters", default: null },
     paymentTypeName: { type: String, default: "" },
     paymentFrequency: { type: String, default: "" },

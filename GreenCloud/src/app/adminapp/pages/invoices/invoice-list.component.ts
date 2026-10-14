@@ -81,6 +81,29 @@ export class AdminInvoiceListComponent implements OnInit {
     return c?.companyName || '-';
   }
 
+  /** ERP document chain numbers (populated by the backend list endpoint) */
+  inquiryNo(inv: Invoice) { return (inv.inquiryId as any)?.inquiryNo || ''; }
+  inspectionNo(inv: Invoice) { return (inv as any).inspectionNo || ''; }
+  inspectionId(inv: Invoice) { return (inv as any).inspectionId || ''; }
+  quotationNo(inv: Invoice) { return (inv.quotationId as any)?.quotationNo || ''; }
+  workOrderNo(inv: Invoice) { return (inv.workOrderId as any)?.workOrderNo || ''; }
+
+  /** Collection status (aggregated from the invoice payment schedule by the backend) */
+  collection(inv: Invoice) { return (inv as any).collection || null; }
+
+  collectionClass(inv: Invoice): string {
+    const s = this.collection(inv)?.status;
+    switch (s) {
+      case 'PAID': return 'erp-badge erp-badge--approved';
+      case 'PARTIAL': return 'erp-badge erp-badge--pending';
+      case 'OVERDUE': return 'erp-badge erp-badge--rejected';
+      case 'PENDING': return 'erp-badge erp-badge--draft';
+      default: return 'erp-badge';
+    }
+  }
+  /** Raw ref id whether the populate returned an object or the field holds a plain id */
+  refId(value: any) { return value && typeof value === 'object' ? value._id : value || ''; }
+
   money(n: number | null | undefined): string {
     return (n ?? 0).toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }

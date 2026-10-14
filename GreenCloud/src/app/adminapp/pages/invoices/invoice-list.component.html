@@ -47,8 +47,14 @@
             <thead>
               <tr>
                 <th>Invoice No</th>
+                <th>Inquiry No</th>
+                <th>Site Inspection</th>
+                <th>Quotation No</th>
+                <th>Work Order No</th>
                 <th>Customer</th>
                 <th>Total</th>
+                <th>Collection</th>
+                <th>Payment</th>
                 <th>Status</th>
                 <th>Due Date</th>
                 <th>Created</th>
@@ -59,7 +65,35 @@
               @for (inv of invoices(); track inv._id) {
                 <tr>
                   <td class="erp-doc-no">{{ inv.invoiceNo }}</td>
+                  <td>
+                    @if (inquiryNo(inv)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/inquiries', refId(inv.inquiryId)]">{{ inquiryNo(inv) }}</a>
+                    } @else { - }
+                  </td>
+                  <td>
+                    @if (inspectionNo(inv)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/site-inspection', inspectionId(inv)]">{{ inspectionNo(inv) }}</a>
+                    } @else { - }
+                  </td>
+                  <td>
+                    @if (quotationNo(inv)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/quotation', refId(inv.quotationId)]">{{ quotationNo(inv) }}</a>
+                    } @else { - }
+                  </td>
+                  <td>
+                    @if (workOrderNo(inv)) {
+                      <a class="erp-doc-no" [routerLink]="['/adminapp/work-orders', refId(inv.workOrderId)]">{{ workOrderNo(inv) }}</a>
+                    } @else { - }
+                  </td>
                   <td>{{ customerName(inv) }}</td>
+                  <td class="erp-money">
+                    @if (collection(inv); as c) {
+                      <div>{{ money(c.received) }} / {{ money(c.scheduled) }}</div>
+                      @if (c.overdue > 0) { <div class="erp-req-hint" style="margin:0">Overdue {{ money(c.overdue) }}</div> }
+                      @if (c.nextDueDate) { <div class="erp-req-hint" style="margin:0">Next {{ c.nextDueDate | date:'dd MMM' }} · {{ money(c.nextAmount) }}</div> }
+                    } @else { - }
+                  </td>
+                  <td><span [class]="collectionClass(inv)">{{ collection(inv)?.status || '—' }}</span></td>
                   <td class="erp-money">{{ money(inv.totalAmount) }} {{ inv.currency }}</td>
                   <td><span [class]="statusClass(inv.status)">{{ inv.status }}</span></td>
                   <td>{{ formatDate(inv.dueDate) }}</td>

@@ -1,10 +1,29 @@
 import SiteInspection from "../models/site-inspection.model.js";
 import Inquiry from "../models/inquiry.model.js";
+import Lead from "../models/lead.model.js";
 import Quotation from "../models/quotation.model.js";
 import { withTransaction } from "../utils/tx.js";
 import { actor, assertTransition, recordHistory } from "../services/document-workflow.service.js";
 
 const editable = ["inspectionDate", "location", "inspector", "inspectionType", "findings", "pestType", "affectedArea", "checklistItems", "severity", "recommendations", "requiredTreatment", "estimatedWork", "attachments", "remarks"];
+
+// Approval promotes the inspection to a Quotation, so these must be captured
+// first. Kept in sync with the client-side gate in site-inspection-view.
+const REQUIRED_FOR_APPROVAL = [
+  ["inspectionDate", "Inspection Date"],
+  ["inspectionType", "Inspection Type"],
+  ["pestType", "Pest Type"],
+  ["severity", "Severity"],
+  ["inspector", "Inspector"],
+  ["findings", "Findings"],
+  ["recommendations", "Recommendations"],
+];
+
+/** Labels of the mandatory fields still empty on an inspection, in form order. */
+function labelsMissingForApproval(inspection) {
+  const filled = (value) => !!String(value ?? "").trim();
+  return REQUIRED_FOR_APPROVAL.filter(([key]) => !filled(inspection[key])).map(([, label]) => label);
+}
 
 export async function create(req, res) {
   try {
@@ -33,15 +52,24 @@ export async function list(req, res) {
     if (search) filter.$or = [{ inspectionNo: { $regex: search, $options: "i" } }, { location: { $regex: search, $options: "i" } }, { inspector: { $regex: search, $options: "i" } }];
     const skip = (Number(page) - 1) * Number(limit);
     const [data, total] = await Promise.all([SiteInspection.find(filter)
-        .populate("inquiryId", "inquiryNo customerName companyName mobile serviceLocation location")
+        .populate("inquiryId", "inquiryNo leadId customerName companyName mobile serviceLocation location preferredDate preferredTime")
         .populate("customerId", "companyName contactPerson mobile")
         .sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(), SiteInspection.countDocuments(filter)]);
+    // Lead number resolution: the inspection carries its own leadId, but fall back
+    // to the inquiry's lead. Resolved in one batched lookup (no per-row query).
+    const leadIds = [...new Set(data.map((row) => String(row.leadId || row.inquiryId?.leadId || "")).filter(Boolean))];
+    const leads = leadIds.length ? await Lead.find({ _id: { $in: leadIds } }).select("leadNo").lean() : [];
+    const leadMap = new Map(leads.map((lead) => [String(lead._id), lead.leadNo || ""]));
     // Flatten inquiry/customer info so list rows carry the ERP context
     const enriched = data.map((row) => ({
       ...row,
       inquiryNo: row.inquiryId?.inquiryNo || "",
+      leadNo: leadMap.get(String(row.leadId || row.inquiryId?.leadId || "")) || "",
       customerName: row.customerId?.companyName || row.customerId?.contactPerson || row.inquiryId?.customerName || row.inquiryId?.companyName || "",
       siteLocation: row.location || row.inquiryId?.serviceLocation || row.inquiryId?.location || "",
+      // Scheduling window requested on the inquiry this inspection belongs to
+      preferredDate: row.inquiryId?.preferredDate || null,
+      preferredTime: row.inquiryId?.preferredTime || "",
     }));
     res.json({ success: true, data: enriched, pagination: { total, page: Number(page), limit: Number(limit), totalPages: Math.ceil(total / Number(limit)) || 1 } });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -90,6 +118,9 @@ export async function approve(req, res) {
     const inspection = await SiteInspection.findById(req.params.id);
     if (!inspection) return res.status(404).json({ success: false, message: "Site inspection not found" });
     if (inspection.status === "APPROVED" && inspection.quotationId) return res.json({ success: true, data: inspection, quotationId: inspection.quotationId, alreadyApproved: true });
+    // Server-side counterpart of the UI gate: never approve (and quote) an incomplete inspection.
+    const missing = labelsMissingForApproval(inspection);
+    if (missing.length) return res.status(400).json({ success: false, message: `Missing mandatory fields: ${missing.join(", ")}` });
     assertTransition("INSPECTION", inspection.status, "APPROVED");
     const a = actor(req);
     const result = await withTransaction(async (session) => {

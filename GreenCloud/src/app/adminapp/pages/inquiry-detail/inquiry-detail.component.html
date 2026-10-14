@@ -70,25 +70,31 @@
           <section class="detail-card">
             <h2><span class="material-icons-outlined">business</span> Customer Information</h2>
             @if (isEditing()) {
+              @if (missingIn('customer').length) {
+                <div class="erp-error-box">
+                  <span class="material-icons-outlined">error_outline</span>
+                  Missing mandatory fields: {{ missingIn('customer').join(', ') }}
+                </div>
+              }
               <div class="info-grid">
                 <div class="info-item">
                   <label class="label" for="customerName">Customer Name</label>
-                  <input id="customerName" class="detail-input" type="text" autocomplete="name" [disabled]="false" [ngModel]="inquiry()!.customerName || inquiry()!.companyName || inquiry()!.contactPerson" (ngModelChange)="updateField('customerName', $event)" />
+                  <input id="customerName" class="detail-input" type="text" autocomplete="name" title="Carried over from the customer / lead record" disabled [ngModel]="inquiry()!.customerName || inquiry()!.companyName || inquiry()!.contactPerson" />
                 </div>
                 <div class="info-item">
                   <label class="label" for="companyName">Company</label>
-                  <input id="companyName" class="detail-input" [ngModel]="inquiry()!.companyName" (ngModelChange)="updateField('companyName', $event)" />
+                  <input id="companyName" class="detail-input" title="Carried over from the customer / lead record" disabled [ngModel]="inquiry()!.companyName" />
                 </div>
-                <div class="info-item">
-                  <label class="label" for="contactPerson">Contact Person</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('contactPerson')">
+                  <label class="label" for="contactPerson">Contact Person <span class="req">*</span></label>
                   <input id="contactPerson" class="detail-input" [ngModel]="inquiry()!.contactPerson" (ngModelChange)="updateField('contactPerson', $event)" />
                 </div>
-                <div class="info-item">
-                  <label class="label" for="mobile">Mobile</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('mobile')">
+                  <label class="label" for="mobile">Mobile <span class="req">*</span></label>
                   <input id="mobile" class="detail-input" [ngModel]="inquiry()!.mobile" (ngModelChange)="updateField('mobile', $event)" />
                 </div>
-                <div class="info-item">
-                  <label class="label" for="email">Email</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('email')">
+                  <label class="label" for="email">Email <span class="req">*</span></label>
                   <input id="email" type="email" class="detail-input" [ngModel]="inquiry()!.email" (ngModelChange)="updateField('email', $event)" />
                 </div>
                 <div class="info-item">
@@ -110,14 +116,67 @@
                 <div class="info-item"><span class="label">Source</span><span class="value">{{ sourceLabel(inquiry()!.source) || '-' }}</span></div>
               </div>
             }
+
+            <div class="request-info">
+              <h3 class="subheading"><span class="material-icons-outlined">home_work</span> Property Details</h3>
+              @if (isEditing()) {
+                <div class="info-grid">
+                  <div class="info-item" [class.info-item--invalid]="isMissing('propertyType')">
+                    <label class="label" for="propertyType">Type of Property <span class="req">*</span></label>
+                    <select id="propertyType" class="detail-input" [ngModel]="inquiry()!.propertyType" (ngModelChange)="updateField('propertyType', $event)">
+                      <option value="">Select property type</option>
+                      @for (item of propertyTypeOptions(); track item.code) {
+                        <option [value]="item.code">{{ item.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="info-item">
+                    <label class="label" for="populationLevel">Estimated Population Level</label>
+                    <select id="populationLevel" class="detail-input" [ngModel]="inquiry()!.populationLevel" (ngModelChange)="updateField('populationLevel', $event)">
+                      <option value="">Select population level</option>
+                      @for (item of populationLevelOptions(); track item.code) {
+                        <option [value]="item.code">{{ item.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="info-item" [class.info-item--invalid]="isMissing('entryPoints')">
+                    <label class="label" for="entryPoints">Possible Entry Point <span class="req">*</span></label>
+                    <select id="entryPoints" class="detail-input" [ngModel]="inquiry()!.entryPoints" (ngModelChange)="updateField('entryPoints', $event)">
+                      <option value="">Select entry point</option>
+                      @for (item of entryPointOptions(); track item.code) {
+                        <option [value]="item.code">{{ item.label }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              } @else {
+                <div class="info-grid">
+                  <div class="info-item"><span class="label">Type of Property</span><span class="value">{{ masterLabel(propertyTypeOptions(), inquiry()!.propertyType) }}</span></div>
+                  <div class="info-item"><span class="label">Estimated Population Level</span><span class="value">{{ masterLabel(populationLevelOptions(), inquiry()!.populationLevel) }}</span></div>
+                  <div class="info-item"><span class="label">Possible Entry Point</span><span class="value">{{ masterLabel(entryPointOptions(), inquiry()!.entryPoints) }}</span></div>
+                </div>
+              }
+            </div>
+
+            <div class="info-grid info-grid--single request-info">
+              <div class="info-item"><span class="label">Created</span><span class="value">{{ formatDate(inquiry()!.createdAt) }}</span></div>
+              <div class="info-item"><span class="label">Last Updated</span><span class="value">{{ formatDate(inquiry()!.updatedAt) }}</span></div>
+              <div class="info-item"><span class="label">Created By</span><span class="value">{{ inquiry()!.createdByName || 'System' }}</span></div>
+            </div>
           </section>
 
           <section class="detail-card">
             <h2><span class="material-icons-outlined">location_on</span> Service Details</h2>
             @if (isEditing()) {
+              @if (missingIn('service').length) {
+                <div class="erp-error-box">
+                  <span class="material-icons-outlined">error_outline</span>
+                  Missing mandatory fields: {{ missingIn('service').join(', ') }}
+                </div>
+              }
               <div class="info-grid">
-                <div class="info-item">
-                  <label class="label" for="serviceType">Service Type</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('serviceType')">
+                  <label class="label" for="serviceType">Service Type <span class="req">*</span></label>
                   <select id="serviceType" class="detail-input" [ngModel]="inquiry()!.serviceType" (ngModelChange)="updateField('serviceType', $event)">
                     <option value="">Select service type</option>
                     @for (service of serviceTypes(); track service.code) {
@@ -125,8 +184,8 @@
                     }
                   </select>
                 </div>
-                <div class="info-item">
-                  <label class="label" for="serviceLocation">Location</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('serviceLocation')">
+                  <label class="label" for="serviceLocation">Location <span class="req">*</span></label>
                   <select id="serviceLocation" class="detail-input" [ngModel]="masterLocationValue(inquiry()!.serviceLocation || inquiry()!.location)" (ngModelChange)="updateLocation($event)">
                     <option value="">Select location</option>
                     @for (item of locations(); track item.city) {
@@ -146,15 +205,25 @@
                   <label class="label" for="area">Area</label>
                   <input id="area" class="detail-input" [ngModel]="inquiry()!.area" (ngModelChange)="updateField('area', $event)" />
                 </div>
-                <div class="info-item">
-                  <label class="label" for="preferredDate">Preferred Date</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('preferredDate')">
+                  <label class="label" for="preferredDate">Preferred Date <span class="req">*</span></label>
                   <input id="preferredDate" type="date" class="detail-input" [ngModel]="inputDate(inquiry()!.preferredDate)" (ngModelChange)="updateField('preferredDate', $event || null)" />
                 </div>
-                <div class="info-item">
-                  <label class="label" for="preferredTime">Preferred Time</label>
+                <div class="info-item" [class.info-item--invalid]="isMissing('preferredTime')">
+                  <label class="label" for="preferredTime">Preferred Time <span class="req">*</span></label>
                   <select id="preferredTime" class="detail-input" [ngModel]="inquiry()!.preferredTime" (ngModelChange)="updateField('preferredTime', $event)">
-                    @for (time of preferredTimes; track time) {
-                      <option [value]="time">{{ sourceLabel(time) }}</option>
+                    <option value="">Select preferred time</option>
+                    @for (time of preferredTimeOptions(); track time.value) {
+                      <option [value]="time.value">{{ time.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="info-item" [class.info-item--invalid]="isMissing('urgency')">
+                  <label class="label" for="urgency">Urgency <span class="req">*</span></label>
+                  <select id="urgency" class="detail-input" [ngModel]="inquiry()!.urgency" (ngModelChange)="updateField('urgency', $event)">
+                    <option value="">Select urgency</option>
+                    @for (option of urgencyOptions(); track option.code) {
+                      <option [value]="option.code">{{ option.label }}</option>
                     }
                   </select>
                 </div>
@@ -177,6 +246,7 @@
                 <div class="info-item"><span class="label">Unit / Area</span><span class="value">{{ inquiry()!.unit || inquiry()!.area || '-' }}</span></div>
                 <div class="info-item"><span class="label">Preferred Date</span><span class="value">{{ formatDateShort(inquiry()!.preferredDate) }}</span></div>
                 <div class="info-item"><span class="label">Preferred Time</span><span class="value">{{ sourceLabel(inquiry()!.preferredTime) || '-' }}</span></div>
+                <div class="info-item"><span class="label">Urgency</span><span class="value">@if (inquiry()!.urgency) {<app-status-badge [status]="inquiry()!.urgency" [text]="urgencyLabel(inquiry()!.urgency)" />} @else { - }</span></div>
                 <div class="info-item">
                   <span class="label">Site Inspection</span>
                   <span class="value inspection-value">
@@ -188,48 +258,38 @@
                 </div>
               </div>
             }
-          </section>
 
-          <section class="detail-card">
-            <h2><span class="material-icons-outlined">pest_control</span> Inquiry Description</h2>
-            @if (isEditing()) {
-              <div class="pest-selector">
-                <span class="label">Pest Type(s)</span>
-                <div class="pest-options">
-                  @for (pest of pestTypeOptions(); track pest.code) {
-                    <button type="button" class="pest-option" [class.pest-option--selected]="hasPestType(pest.code)" (click)="togglePestType(pest.code)">
-                      {{ pest.label }}
-                    </button>
+            <div class="request-info">
+              <h3 class="subheading"><span class="material-icons-outlined">pest_control</span> Inquiry Description</h3>
+              @if (isEditing()) {
+                <div class="pest-selector">
+                  <span class="label">Pest Type(s)</span>
+                  <div class="pest-options">
+                    @for (pest of pestTypeOptions(); track pest.code) {
+                      <button type="button" class="pest-option" [class.pest-option--selected]="hasPestType(pest.code)" (click)="togglePestType(pest.code)">
+                        {{ pest.label }}
+                      </button>
+                    }
+                  </div>
+                </div>
+                <label class="label description-label" for="problemDescription">Description</label>
+                <textarea id="problemDescription" class="detail-textarea" rows="5" [ngModel]="inquiry()!.problemDescription" (ngModelChange)="updateField('problemDescription', $event)"></textarea>
+                <label class="label description-label" for="remarks">Remarks</label>
+                <textarea id="remarks" class="detail-textarea" rows="3" [ngModel]="inquiry()!.remarks" (ngModelChange)="updateField('remarks', $event)"></textarea>
+              } @else {
+                <div class="pest-tags">
+                  @for (pest of inquiry()!.pestTypes || []; track pest) {
+                    <span class="pest-tag">{{ pest }}</span>
+                  }
+                  @if (!(inquiry()!.pestTypes || []).length) {
+                    <span class="muted">No pest type specified</span>
                   }
                 </div>
-              </div>
-              <label class="label description-label" for="problemDescription">Description</label>
-              <textarea id="problemDescription" class="detail-textarea" rows="5" [ngModel]="inquiry()!.problemDescription" (ngModelChange)="updateField('problemDescription', $event)"></textarea>
-              <label class="label description-label" for="remarks">Remarks</label>
-              <textarea id="remarks" class="detail-textarea" rows="3" [ngModel]="inquiry()!.remarks" (ngModelChange)="updateField('remarks', $event)"></textarea>
-            } @else {
-              <div class="pest-tags">
-                @for (pest of inquiry()!.pestTypes || []; track pest) {
-                  <span class="pest-tag">{{ pest }}</span>
+                <p class="description">{{ inquiry()!.problemDescription || 'No description provided.' }}</p>
+                @if (inquiry()!.remarks) {
+                  <div class="remarks"><strong>Remarks:</strong> {{ inquiry()!.remarks }}</div>
                 }
-                @if (!(inquiry()!.pestTypes || []).length) {
-                  <span class="muted">No pest type specified</span>
-                }
-              </div>
-              <p class="description">{{ inquiry()!.problemDescription || 'No description provided.' }}</p>
-              @if (inquiry()!.remarks) {
-                <div class="remarks"><strong>Remarks:</strong> {{ inquiry()!.remarks }}</div>
               }
-            }
-          </section>
-
-          <section class="detail-card">
-            <h2><span class="material-icons-outlined">info</span> Request Information</h2>
-            <div class="info-grid info-grid--single">
-              <div class="info-item"><span class="label">Created</span><span class="value">{{ formatDate(inquiry()!.createdAt) }}</span></div>
-              <div class="info-item"><span class="label">Last Updated</span><span class="value">{{ formatDate(inquiry()!.updatedAt) }}</span></div>
-              <div class="info-item"><span class="label">Created By</span><span class="value">{{ inquiry()!.createdByName || 'System' }}</span></div>
-              <div class="info-item"><span class="label">Urgency</span><span class="value"><app-status-badge [status]="inquiry()!.urgency" /></span></div>
             </div>
           </section>
         </div>

@@ -26,6 +26,10 @@ const workOrderSchema = new mongoose.Schema(
     materialsUsed: { type: String, default: "" },
     customerConfirmation: { type: String, default: "" },
     attachments: [{ fileName: String, fileUrl: String, fileType: String, uploadedAt: { type: Date, default: Date.now } }],
+    /** Work-start evidence: images converted to base64 data URLs on the client. */
+    workStartEvidence: [{ fileName: String, data: String, uploadedAt: { type: Date, default: Date.now } }],
+    /** Work-completion evidence: images converted to base64 data URLs on the client. */
+    workCompletionEvidence: [{ fileName: String, data: String, uploadedAt: { type: Date, default: Date.now } }],
     status: {
       type: String,
       enum: ["DRAFT", "PENDING_APPROVAL", "APPROVED", "SCHEDULED", "WORK_STARTED", "WORK_COMPLETED", "REJECTED", "CANCELLED"],

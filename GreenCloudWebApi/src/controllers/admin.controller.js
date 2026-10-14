@@ -3,7 +3,18 @@ import { generateToken } from "../utils/jwt.js";
 import Inquiry from "../models/inquiry.model.js";
 import Quotation from "../models/quotation.model.js";
 import ScheduleChangeHistory from "../models/schedule-change.model.js";
+import WebsiteContent from "../models/website-content.model.js";
 import mongoose from "mongoose";
+
+/** Urgency codes are owned by the "Urgency Types" master; these defaults only
+ *  apply when that section has never been configured. */
+const FALLBACK_URGENCIES = ["NORMAL", "URGENT", "EMERGENCY"];
+
+async function validUrgencyCodes() {
+  const section = await WebsiteContent.findOne({ key: "urgencyTypes" });
+  const codes = (section?.data || []).map((item) => item?.code).filter(Boolean);
+  return codes.length ? codes : FALLBACK_URGENCIES;
+}
 
 class AdminController {
   /** POST /api/admin/login */
@@ -248,11 +259,11 @@ class AdminController {
       }
 
       // Validate urgency if provided
-      const validUrgencies = ["NORMAL", "URGENT", "EMERGENCY"];
+      const validUrgencies = await validUrgencyCodes();
       if (urgency && !validUrgencies.includes(urgency)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid urgency value. Must be NORMAL, URGENT, or EMERGENCY",
+          message: `Invalid urgency value. Must be one of: ${validUrgencies.join(", ")}`,
         });
       }
 

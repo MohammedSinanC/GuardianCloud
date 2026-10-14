@@ -45,6 +45,28 @@ export class AdminLeadDetailComponent implements OnInit {
   readonly sources = ['WALK_IN', 'REFERRAL', 'WEBSITE', 'PHONE', 'CAMPAIGN', 'OTHER'];
   readonly times = ['MORNING', 'AFTERNOON', 'EVENING', 'ANY'];
   readonly locations = computed(() => this.contentService.locations());
+  /** Service Required picks from the Service Types master (stored as code). */
+  readonly serviceTypeOptions = computed(() => this.contentService.serviceTypes());
+  /** Pest Type picks from the Pest Types master — the same field the website contact form collects. */
+  readonly pestTypeOptions = computed(() => this.contentService.pestTypes());
+  /** Contract picks from the Contract Types master. */
+  readonly contractTypeOptions = computed(() => this.contentService.contractTypes());
+
+  /** Show the master's label for a stored code; fall back to the raw value for legacy rows. */
+  serviceTypeLabel(code?: string | null): string {
+    if (!code) return '-';
+    return this.serviceTypeOptions().find((s) => s.code === code)?.label || code;
+  }
+
+  pestTypeLabel(code?: string | null): string {
+    if (!code) return '-';
+    return this.pestTypeOptions().find((p) => p.code === code)?.label || code;
+  }
+
+  contractLabel(code?: string | null): string {
+    if (!code) return '-';
+    return this.contractTypeOptions().find((c) => c.code === code)?.label || code;
+  }
 
   statusLabel = computed(() => (this.lead()?.status || '').replace(/_/g, ' '));
 
@@ -75,6 +97,9 @@ export class AdminLeadDetailComponent implements OnInit {
       location: '',
       source: 'WEBSITE',
       serviceRequired: '',
+      pestType: '',
+      contract: '',
+      existingCustomer: false,
       preferredDate: '',
       preferredTime: 'ANY',
       description: '',
@@ -101,8 +126,16 @@ export class AdminLeadDetailComponent implements OnInit {
   startEdit() {
     const l = this.lead();
     if (!l) return;
+    // Approved leads are locked: the form renders read-only with no edit action.
+    if (l.status === 'APPROVED') return;
     this.form = this.formFromLead(l);
     this.isEditing.set(true);
+  }
+
+  /** "Existing Customer" toggles the link picker: enabled + required when ticked. */
+  onExistingCustomerChange(checked: boolean) {
+    this.form.existingCustomer = checked;
+    if (!checked) this.selectedCustomerId.set('');
   }
 
   cancelEdit() {
@@ -115,6 +148,12 @@ export class AdminLeadDetailComponent implements OnInit {
 
   async saveDraft() {
     this.error.set('');
+    // Report every missing field in one message up front (no round trip, no toast).
+    const baseMissing = this.baseMandatoryMissing();
+    if (baseMissing.length) {
+      this.error.set(`Missing mandatory fields: ${baseMissing.join(', ')}`);
+      return;
+    }
     const wasNew = this.isNew();
     this.form.status = 'DRAFT';
     this.saving.set(true);
@@ -131,10 +170,14 @@ export class AdminLeadDetailComponent implements OnInit {
   }
 
   private async persistForm(options?: { toastAction?: string }): Promise<Lead | null> {
+    // The form edits a single pest type; the lead stores the array shape the inquiry uses.
+    // Unchecking "Existing Customer" clears any previous link (explicit null).
     const payload: any = {
       ...this.form,
-      customerId: this.selectedCustomerId() || undefined,
+      pestTypes: this.form.pestType ? [this.form.pestType] : [],
+      customerId: this.form.existingCustomer ? (this.selectedCustomerId() || undefined) : null,
     };
+    delete payload.pestType;
 
     if (this.isNew()) {
       const res = await this.leadService.create(payload, options);
@@ -194,12 +237,26 @@ export class AdminLeadDetailComponent implements OnInit {
     }
   }
 
-  private mandatoryMissing(): string[] {
+  /** Fields the record cannot be stored without — checked even when saving a draft. */
+  private baseMandatoryMissing(): string[] {
     const missing: string[] = [];
     if (!this.form.companyName?.trim()) missing.push('Company name');
     if (!this.form.contactPerson?.trim()) missing.push('Contact person');
     if (!this.form.mobile?.trim()) missing.push('Mobile');
     if (!this.form.serviceRequired?.trim()) missing.push('Service required');
+    return missing;
+  }
+
+  /** Everything required before the lead can be submitted or approved. */
+  private mandatoryMissing(): string[] {
+    const missing = this.baseMandatoryMissing();
+    if (!this.form.email?.trim()) missing.push('Email');
+    if (!this.form.source?.trim()) missing.push('Source');
+    if (!this.form.pestType?.trim()) missing.push('Pest type');
+    if (!this.form.contract?.trim()) missing.push('Contract');
+    if (!this.form.address?.trim()) missing.push('Address');
+    if (!this.form.location?.trim()) missing.push('Location');
+    if (this.form.existingCustomer && !this.selectedCustomerId()) missing.push('Linked customer account');
     return missing;
   }
 
@@ -313,6 +370,10 @@ export class AdminLeadDetailComponent implements OnInit {
       location: l.location || '',
       source: l.source || 'WEBSITE',
       serviceRequired: l.serviceRequired || '',
+      pestType: (l.pestTypes || [])[0] || '',
+      contract: l.contract || '',
+      // A lead that already points at an account is treated as an existing customer.
+      existingCustomer: !!l.customerId,
       preferredDate: l.preferredDate ? l.preferredDate.substring(0, 10) : '',
       preferredTime: l.preferredTime || 'ANY',
       description: l.description || '',

@@ -34,6 +34,27 @@ async function backfillCustomerNames(rows) {
   return rows;
 }
 
+/**
+ * Attach the source lead number to list rows so the table can show "Lead No"
+ * with one batched lookup instead of a per-row query.
+ */
+async function attachLeadNumbers(rows) {
+  const leadIds = [...new Set(rows.map((r) => r.leadId).filter(Boolean).map(String))];
+  if (leadIds.length === 0) {
+    for (const row of rows) row.leadNo = "";
+    return rows;
+  }
+
+  const leads = await Lead.find({ _id: { $in: leadIds } }).select("leadNo").lean();
+  const leadMap = new Map(leads.map((l) => [String(l._id), l.leadNo || ""]));
+
+  for (const row of rows) {
+    row.leadNo = row.leadId ? leadMap.get(String(row.leadId)) || "" : "";
+  }
+
+  return rows;
+}
+
 class InquiryService {
   /**
    * Create a new inquiry (customer action)
@@ -71,7 +92,7 @@ class InquiryService {
       throw new Error("Cannot edit inquiry in the current status");
     }
 
-    const allowed = ["source", "customerName", "companyName", "contactPerson", "mobile", "email", "serviceType", "serviceLocation", "location", "building", "unit", "area", "pestTypes", "problemDescription", "preferredDate", "preferredTime", "siteInspectionRequired", "assignedTo", "assignedToName", "attachments", "remarks"];
+    const allowed = ["source", "customerName", "companyName", "contactPerson", "mobile", "email", "serviceType", "serviceLocation", "location", "building", "unit", "area", "pestTypes", "propertyType", "populationLevel", "entryPoints", "problemDescription", "preferredDate", "preferredTime", "urgency", "siteInspectionRequired", "assignedTo", "assignedToName", "attachments", "remarks"];
     for (const key of allowed) {
       if (key in data) inquiry[key] = data[key];
     }
@@ -160,6 +181,7 @@ class InquiryService {
     // Older/portal-created rows may be missing the stored customerName.
     // Backfill it from the linked customer or lead so list rows never show it blank.
     await backfillCustomerNames(inquiries);
+    await attachLeadNumbers(inquiries);
 
     return {
       inquiries,

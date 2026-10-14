@@ -31,6 +31,52 @@ const inspectionTypes = [
   { code: "FOLLOW_UP", label: "Follow-up Inspection" },
 ];
 
+// ============ URGENCY TYPES (code + label) ============
+const urgencyTypes = [
+  { code: "NORMAL", label: "Normal" },
+  { code: "URGENT", label: "Urgent" },
+  { code: "EMERGENCY", label: "Emergency" },
+];
+
+// ============ PROPERTY TYPES (code + label) ============
+const propertyTypes = [
+  { code: "APARTMENT", label: "Apartment" },
+  { code: "VILLA", label: "Villa" },
+  { code: "OFFICE", label: "Office" },
+  { code: "RETAIL", label: "Retail / Shop" },
+  { code: "RESTAURANT", label: "Restaurant / F&B" },
+  { code: "HOTEL", label: "Hotel / Hospitality" },
+  { code: "WAREHOUSE", label: "Warehouse" },
+  { code: "FACTORY", label: "Factory / Industrial" },
+  { code: "SCHOOL", label: "School / Nursery" },
+  { code: "HOSPITAL", label: "Hospital / Clinic" },
+  { code: "RESIDENTIAL_BUILDING", label: "Residential Building" },
+  { code: "OTHER", label: "Other" },
+];
+
+// ============ POPULATION LEVELS (code + label) ============
+const populationLevels = [
+  { code: "VERY_LOW", label: "Very Low (up to 5)" },
+  { code: "LOW", label: "Low (6 - 20)" },
+  { code: "MEDIUM", label: "Medium (21 - 100)" },
+  { code: "HIGH", label: "High (101 - 500)" },
+  { code: "VERY_HIGH", label: "Very High (500+)" },
+];
+
+// ============ ENTRY POINTS (code + label) ============
+const entryPoints = [
+  { code: "DOOR_GAPS", label: "Gaps under doors" },
+  { code: "WINDOWS", label: "Windows / openings" },
+  { code: "DRAINS", label: "Floor drains" },
+  { code: "VENTS", label: "Ventilation openings" },
+  { code: "PIPE_PENETRATIONS", label: "Utility / pipe penetrations" },
+  { code: "ROOF_EAVES", label: "Roof / eaves" },
+  { code: "BASEMENT", label: "Basement / crawl space" },
+  { code: "BALCONY", label: "Balcony / terrace" },
+  { code: "SEWER", label: "Sewer / manhole connection" },
+  { code: "OTHER", label: "Other" },
+];
+
 // ============ CHECKLIST (code + name + controlType) ============
 const checklists = [
   { code: "PEST_DROPPINGS", name: "Signs of pest droppings", controlType: "CHECKBOX" },
@@ -73,6 +119,18 @@ async function seed() {
 
     const inspections = await seedSection("inspectionTypes", "inspectionTypes", inspectionTypes, "code");
     console.log(`Inspection Types: +${inspections.added} added, ${inspections.total} total`);
+
+    const urgency = await seedSection("urgencyTypes", "urgencyTypes", urgencyTypes, "code");
+    console.log(`Urgency Types:    +${urgency.added} added, ${urgency.total} total`);
+
+    const property = await seedSection("propertyTypes", "propertyTypes", propertyTypes, "code");
+    console.log(`Property Types:   +${property.added} added, ${property.total} total`);
+
+    const population = await seedSection("populationLevels", "populationLevels", populationLevels, "code");
+    console.log(`Population:       +${population.added} added, ${population.total} total`);
+
+    const entry = await seedSection("entryPoints", "entryPoints", entryPoints, "code");
+    console.log(`Entry Points:     +${entry.added} added, ${entry.total} total`);
 
     const checklist = await seedSection("checklists", "checklists", checklists, "code");
     console.log(`Checklist:        +${checklist.added} added, ${checklist.total} total`);

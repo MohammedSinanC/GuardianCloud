@@ -128,7 +128,8 @@
         <div class="form-group">
           <label>Urgency</label>
           <select formControlName="urgency">
-            @for (opt of urgencyOptions; track opt.value) {
+            <option value="">Select urgency</option>
+            @for (opt of urgencyOptions(); track opt.value) {
               <option [value]="opt.value">{{ opt.label }}</option>
             }
           </select>

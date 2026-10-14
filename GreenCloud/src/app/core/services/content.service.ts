@@ -34,6 +34,10 @@ export class ContentService {
   readonly checklists = computed(() => this.contentSignal()?.checklists ?? []);
   readonly serviceTypes = computed(() => this.contentSignal()?.serviceTypes ?? []);
   readonly contractTypes = computed(() => this.contentSignal()?.contractTypes ?? []);
+  readonly urgencyTypes = computed(() => this.contentSignal()?.urgencyTypes ?? []);
+  readonly propertyTypes = computed(() => this.contentSignal()?.propertyTypes ?? []);
+  readonly populationLevels = computed(() => this.contentSignal()?.populationLevels ?? []);
+  readonly entryPoints = computed(() => this.contentSignal()?.entryPoints ?? []);
   readonly loading = computed(() => this.contentSignal() === null);
 
   /**

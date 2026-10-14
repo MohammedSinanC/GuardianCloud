@@ -39,6 +39,8 @@ export class ContactService {
         location: data.location,
         source: 'WEBSITE',
         serviceRequired: data.service,
+        pestTypes: data.pestType ? [data.pestType] : [],
+        contract: data.contract,
         preferredDate: data.preferredDate || undefined,
         preferredTime: '',
         description: data.message,

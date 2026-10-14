@@ -5,10 +5,10 @@
 
 .btn-add {
   display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
-  background: #0d9488; color: #fff; border: none; border-radius: 8px;
+  background: #1B447D; color: #fff; border: none; border-radius: 8px;
   font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;
 }
-.btn-add:hover { background: #0b7a75; }
+.btn-add:hover { background: #173F74; }
 .btn-add .material-icons-outlined { font-size: 16px; }
 
 /* Table */
@@ -33,7 +33,7 @@
   border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer; color: #6b7280; transition: all 0.15s;
 }
-.act-btn:hover { background: #f0fdfa; border-color: #0d9488; color: #0d9488; }
+.act-btn:hover { background: #F0F6FF; border-color: #1B447D; color: #1B447D; }
 .act-btn .material-icons-outlined { font-size: 15px; }
 
 /* Empty & Skeleton */
@@ -87,7 +87,7 @@
   font-size: 13px; font-family: inherit; color: #111827; background: #f8fafc;
   box-sizing: border-box;
 }
-.fi:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 2px rgba(13,148,136,0.1); }
+.fi:focus { outline: none; border-color: #1B447D; box-shadow: 0 0 0 2px rgba(27,68,125,0.1); }
 .fi:disabled { opacity: 0.6; cursor: not-allowed; }
 textarea.fi { resize: vertical; }
 
@@ -97,7 +97,7 @@ textarea.fi { resize: vertical; }
 }
 .btn-cancel:hover:not(:disabled) { background: #f3f4f6; }
 .btn-save {
-  padding: 8px 16px; border: none; background: #0d9488; border-radius: 8px;
+  padding: 8px 16px; border: none; background: #1B447D; border-radius: 8px;
   font-size: 13px; font-weight: 600; color: #fff; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
 }
@@ -108,3 +108,13 @@ textarea.fi { resize: vertical; }
   border-radius: 50%; animation: spin 0.6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Action banners (success / error / notice) used by every master page */
+.banner {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 16px;
+}
+.banner .material-icons-outlined { font-size: 18px; flex-shrink: 0; }
+.banner--success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+.banner--error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.banner--info { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
